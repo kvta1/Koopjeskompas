@@ -188,7 +188,52 @@ Practices to apply: Pydantic request/response models, proper HTTP status codes, 
 
 ---
 
-## 9. Roadmap (phased)
+## 9. Roadmap
+
+### 9.1 MVP roadmap (fastest path to something demoable)
+
+Goal: prove the core idea end-to-end — real deals, real stores, a real ranked list — for **one
+chain, one city**, with everything else deliberately cut. This collapses Phases 1–4 below into a
+much smaller scope so you get a working vertical slice before investing in the parts that don't
+change the core learning (a second chain, a database, deployment).
+
+Cut from the full roadmap, on purpose, until the MVP works end-to-end:
+
+- **No database.** Cache scraped deals as a JSON file on disk; load it into memory at startup.
+  SQLAlchemy/Alembic/Postgres come later, once there's something worth persisting.
+- **One chain only** (Albert Heijn). No `DealSource` abstraction yet beyond a single function —
+  premature to design a plugin interface around a sample size of one.
+  Jumbo is Phase 5 in the full roadmap.
+- **One city only** (Leiden). Store list is a short hardcoded/OSM-exported list, not a live query.
+- **Tier 1 matching only** (keyword taxonomy). No embeddings, no LLM tagging.
+- **No Docker, no deployment.** Runs locally via `uv run`.
+- **Minimal frontend**: one page, one form (location + preference checkboxes), one ranked list.
+  No slider, no map, no tag chips UI.
+
+MVP steps:
+
+1. **Domain core** — same as full-roadmap Phase 1: `Deal`, `Store`, `Preferences` models;
+   `parse_deal_mechanic()`; Tier-1 tag matching; scoring function; haversine distance — all with
+   tests. Nothing here is MVP-specific; this layer is needed regardless of scope.
+   ✅ Milestone: `rank_stores(stores, deals, prefs, location)` works in-memory with hand-written
+   sample data (identical milestone to full-roadmap Phase 1).
+2. **One real source, no DB** — scrape/pull AH deals for Leiden, parse into `Deal` models, cache
+   to a JSON fixture. A short script loads that JSON + a hardcoded Leiden store list and calls
+   `rank_stores()`.
+   ✅ Milestone: running the script against real AH data produces a real ranked list of Leiden
+   stores, printed to the terminal.
+3. **Minimal API** — a single `POST /api/rank` FastAPI endpoint reading from the cached JSON
+   (no DB session, no other endpoints yet).
+   ✅ Milestone: `POST /api/rank` returns real ranked results in Swagger UI.
+4. **Minimal frontend** — one Vite/React page: location input, a handful of preference checkboxes,
+   submit, render the ranked list with each store's top matching deals.
+   ✅ **MVP milestone: a working page in the browser, one chain, one city, real deals, real
+   ranking.** This is the point to demo it to someone before continuing.
+
+From here, the full roadmap resumes at Phase 2 (add the DB and a proper `DealSource` interface —
+informed by now actually having one working scraper to abstract from) through Phase 6.
+
+### 9.2 Full roadmap (phased)
 
 ### Phase 0 — Foundations (1 evening)
 Repo setup, `pyproject.toml`, ruff/mypy/pre-commit, pytest skeleton, GitHub Actions CI running a trivial test. Get the green checkmark before writing features.
