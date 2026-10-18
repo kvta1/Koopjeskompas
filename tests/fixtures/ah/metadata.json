@@ -1,0 +1,244 @@
+{
+ "periods": [
+  {
+   "bonusStartDate": "2026-10-12",
+   "bonusEndDate": "2026-10-18",
+   "tabs": [
+    {
+     "description": "Uitgelicht",
+     "urlMetadataList": [
+      {
+       "url": "bonuspage/v2/section/spotlight?application=AHWEBSHOP&date=2026-10-12",
+       "count": 6,
+       "bonusType": "SPOTLIGHT",
+       "description": "Uit de Bonusfolder",
+       "untranslatedDescription": "Uit de Bonusfolder"
+      }
+     ]
+    },
+    {
+     "description": "Alle Bonus",
+     "urlMetadataList": [
+      {
+       "url": "bonuspage/v2/section/spotlight?application=AHWEBSHOP&date=2026-10-12",
+       "count": 6,
+       "bonusType": "SPOTLIGHT",
+       "description": "Uit de Bonusfolder",
+       "untranslatedDescription": "Uit de Bonusfolder"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Groente%2C%20aardappelen",
+       "count": 13,
+       "bonusType": "NATIONAL",
+       "description": "Groente, aardappelen",
+       "untranslatedDescription": "Groente, aardappelen"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Fruit%2C%20verse%20sappen",
+       "count": 13,
+       "bonusType": "NATIONAL",
+       "description": "Fruit, verse sappen",
+       "untranslatedDescription": "Fruit, verse sappen"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Maaltijden%2C%20salades",
+       "count": 10,
+       "bonusType": "NATIONAL",
+       "description": "Maaltijden, salades",
+       "untranslatedDescription": "Maaltijden, salades"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Vlees",
+       "count": 10,
+       "bonusType": "NATIONAL",
+       "description": "Vlees",
+       "untranslatedDescription": "Vlees"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Vis",
+       "count": 3,
+       "bonusType": "NATIONAL",
+       "description": "Vis",
+       "untranslatedDescription": "Vis"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Vegetarisch%2C%20vegan%20en%20plantaardig",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Vegetarisch, vegan en plantaardig",
+       "untranslatedDescription": "Vegetarisch, vegan en plantaardig"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Vleeswaren",
+       "count": 8,
+       "bonusType": "NATIONAL",
+       "description": "Vleeswaren",
+       "untranslatedDescription": "Vleeswaren"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Kaas",
+       "count": 7,
+       "bonusType": "NATIONAL",
+       "description": "Kaas",
+       "untranslatedDescription": "Kaas"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Zuivel%2C%20eieren",
+       "count": 6,
+       "bonusType": "NATIONAL",
+       "description": "Zuivel, eieren",
+       "untranslatedDescription": "Zuivel, eieren"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Bakkerij",
+       "count": 6,
+       "bonusType": "NATIONAL",
+       "description": "Bakkerij",
+       "untranslatedDescription": "Bakkerij"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Glutenvrij",
+       "count": 1,
+       "bonusType": "NATIONAL",
+       "description": "Glutenvrij",
+       "untranslatedDescription": "Glutenvrij"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Borrel%2C%20chips%2C%20snacks",
+       "count": 8,
+       "bonusType": "NATIONAL",
+       "description": "Borrel, chips, snacks",
+       "untranslatedDescription": "Borrel, chips, snacks"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Pasta%2C%20rijst%2C%20wereldkeuken",
+       "count": 3,
+       "bonusType": "NATIONAL",
+       "description": "Pasta, rijst, wereldkeuken",
+       "untranslatedDescription": "Pasta, rijst, wereldkeuken"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Soepen%2C%20sauzen%2C%20kruiden%2C%20olie",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Soepen, sauzen, kruiden, olie",
+       "untranslatedDescription": "Soepen, sauzen, kruiden, olie"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Koek%2C%20snoep%2C%20chocolade",
+       "count": 5,
+       "bonusType": "NATIONAL",
+       "description": "Koek, snoep, chocolade",
+       "untranslatedDescription": "Koek, snoep, chocolade"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Ontbijtgranen%2C%20beleg",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Ontbijtgranen, beleg",
+       "untranslatedDescription": "Ontbijtgranen, beleg"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Diepvries",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Diepvries",
+       "untranslatedDescription": "Diepvries"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Koffie%2C%20thee",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Koffie, thee",
+       "untranslatedDescription": "Koffie, thee"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Frisdrank%2C%20sappen%2C%20water",
+       "count": 15,
+       "bonusType": "NATIONAL",
+       "description": "Frisdrank, sappen, water",
+       "untranslatedDescription": "Frisdrank, sappen, water"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Bier%2C%20wijn%2C%20aperitieven",
+       "count": 18,
+       "bonusType": "NATIONAL",
+       "description": "Bier, wijn, aperitieven",
+       "untranslatedDescription": "Bier, wijn, aperitieven"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Drogisterij",
+       "count": 6,
+       "bonusType": "NATIONAL",
+       "description": "Drogisterij",
+       "untranslatedDescription": "Drogisterij"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Gezondheid%20en%20sport",
+       "count": 1,
+       "bonusType": "NATIONAL",
+       "description": "Gezondheid en sport",
+       "untranslatedDescription": "Gezondheid en sport"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Huishouden",
+       "count": 12,
+       "bonusType": "NATIONAL",
+       "description": "Huishouden",
+       "untranslatedDescription": "Huishouden"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Baby%20en%20kind",
+       "count": 2,
+       "bonusType": "NATIONAL",
+       "description": "Baby en kind",
+       "untranslatedDescription": "Baby en kind"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=Koken%2C%20tafelen%2C%20vrije%20tijd",
+       "count": 12,
+       "bonusType": "NATIONAL",
+       "description": "Koken, tafelen, vrije tijd",
+       "untranslatedDescription": "Koken, tafelen, vrije tijd"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=NATIONAL&category=AH%20Voordeelshop",
+       "count": 1,
+       "bonusType": "NATIONAL",
+       "description": "AH Voordeelshop",
+       "untranslatedDescription": "AH Voordeelshop"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=AHONLINE",
+       "count": 1,
+       "bonusType": "AHONLINE",
+       "description": "Online aanbiedingen",
+       "untranslatedDescription": "Online aanbiedingen"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=GALL",
+       "count": 14,
+       "bonusType": "GALL",
+       "description": "Gall & Gall acties",
+       "untranslatedDescription": "Gall & Gall acties"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=GALLCARD",
+       "count": 5,
+       "bonusType": "GALLCARD",
+       "description": "Gall & Gall klantenkaart",
+       "untranslatedDescription": "Gall & Gall klantenkaart"
+      },
+      {
+       "url": "bonuspage/v2/section?application=AHWEBSHOP&date=2026-10-12&promotionType=ETOS",
+       "count": 31,
+       "bonusType": "ETOS",
+       "description": "Etos acties",
+       "untranslatedDescription": "Etos acties"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
