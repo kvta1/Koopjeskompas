@@ -1,9 +1,14 @@
 """Tier-1 preference matching: a hand-built Dutch keyword taxonomy.
 
-Product names are split into lowercase word tokens. A keyword matches a token if
-they are equal or, for keywords of at least ``_MIN_COMPOUND_LEN`` characters, if
-the token starts or ends with it — Dutch glues words together, so "kip" must
-match "kipfilet" and "kaas" must match "geitenkaas".
+Product names are split into lowercase word tokens. Dutch glues words together, so
+a keyword (of at least ``_MIN_COMPOUND_LEN`` characters) can match inside a longer
+token, not only as a whole word:
+
+- Animal-product keywords, which drive the hard diet filters, match *anywhere* in a
+  token: "kip" in "scharrelkipfiletreepjes", "kaas" in "geitenkaasjes". Known false
+  friends ("champignon" contains "ham") are blanked out first.
+- Everything else (cuisines, allergens, labels) matches at the start or end of a
+  token: "pesto" in "basilicumpesto". A miss there only costs relevance.
 
 Diet tags are a blocklist: a product with no recognisable animal-product keyword
 passes the vegetarian/vegan filter. Keywords lean towards over-matching, because
@@ -40,7 +45,7 @@ _MIN_COMPOUND_LEN = 3
 _TOKEN_RE = re.compile(r"[a-zà-ÿ]+")
 
 _MEAT = frozenset({
-    "vlees", "kip", "rund", "varken", "kalf", "lam", "lams", "gehakt", "spek",
+    "vlees", "kip", "rund", "varken", "kalf", "lam", "gehakt", "spek",
     "ham", "worst", "salami", "bacon", "kalkoen", "eend", "biefstuk", "schnitzel",
     "burger", "shoarma", "döner", "kebab", "gyros", "frikandel", "kroket",
     "bitterbal", "americain", "carpaccio", "chorizo", "pastrami", "prosciutto",
@@ -73,8 +78,14 @@ _VEGAN_MARKERS = frozenset({"vegan", "plantaardig"})
 _LACTOSE_FREE_MARKERS = frozenset({"lactosevrij"})
 _GLUTEN_FREE_MARKERS = frozenset({"glutenvrij"})
 
-# Tokens that contain a keyword but are not what the keyword suggests.
-_NOT_MEAT = frozenset({"vleestomaat", "vleestomaten"})
+# Word parts that contain a keyword but are not what the keyword suggests; they are
+# blanked out of a token before matching.
+_NOT_MEAT = (
+    "champignon", "champagne", "shampoo", "graham", "vleestoma", "skippy",
+    "spekkoek", "weekend", "lamp",
+)  # fmt: skip
+_NOT_FISH = ("oesterzwam",)  # oyster mushroom
+_NOT_GLUTEN = ("banaan",)
 _PLANT_BASED_PREFIXES = (
     "soja", "haver", "amandel", "kokos", "rijst", "pinda", "noten", "cacao",
     "cashew",
@@ -111,28 +122,33 @@ _CUISINE_KEYWORDS: dict[Cuisine, frozenset[str]] = {
 }  # fmt: skip
 
 
-def tag_product(product_name: str) -> frozenset[str]:
-    """Return the diet, allergen and cuisine tags for a product name."""
+def tag_product(product_name: str, category: str | None = None) -> frozenset[str]:
+    """Return the diet, allergen and cuisine tags for a product.
+
+    The category only adds animal-product evidence ("Vlees" means meat). It never
+    adds labels: AH's "Vegetarisch, vegan en plantaardig" also holds non-vegan items.
+    """
     tokens = _TOKEN_RE.findall(product_name.lower())
+    evidence = tokens + _TOKEN_RE.findall((category or "").lower())
     tags: set[str] = set()
 
     is_vegan = _matches(tokens, _VEGAN_MARKERS)
     is_vegetarian = is_vegan or _matches(tokens, _VEGETARIAN_MARKERS)
 
     if not is_vegetarian:
-        if _matches([t for t in tokens if t not in _NOT_MEAT], _MEAT):
+        if _matches(evidence, _MEAT, anywhere=True, ignore=_NOT_MEAT):
             tags.add(Tag.MEAT)
-        if _matches(tokens, _FISH):
+        if _matches(evidence, _FISH, anywhere=True, ignore=_NOT_FISH):
             tags.add(Tag.FISH)
     if not is_vegan:
-        animal_tokens = [t for t in tokens if not t.startswith(_PLANT_BASED_PREFIXES)]
-        if _matches(animal_tokens, _DAIRY):
+        animal_tokens = [t for t in evidence if not t.startswith(_PLANT_BASED_PREFIXES)]
+        if _matches(animal_tokens, _DAIRY, anywhere=True, ignore=("paneermeel",)):
             tags.add(Tag.DAIRY)
-        if _matches(tokens, _EGG):
+        if _matches(evidence, _EGG, anywhere=True):
             tags.add(Tag.EGG)
-        if _matches(tokens, _HONEY):
+        if _matches(evidence, _HONEY, anywhere=True):
             tags.add(Tag.HONEY)
-    if _matches(tokens, _GLUTEN):
+    if _matches(tokens, _GLUTEN, ignore=_NOT_GLUTEN):
         tags.add(Tag.GLUTEN)
 
     if is_vegan:
@@ -182,13 +198,26 @@ def relevance(tags: frozenset[str], preferences: Preferences) -> float:
     return BASELINE_RELEVANCE
 
 
-def _matches(tokens: Iterable[str], keywords: frozenset[str]) -> bool:
-    return any(_token_matches(token, kw) for token in tokens for kw in keywords)
+def _matches(
+    tokens: Iterable[str],
+    keywords: frozenset[str],
+    *,
+    anywhere: bool = False,
+    ignore: tuple[str, ...] = (),
+) -> bool:
+    for token in tokens:
+        for part in ignore:
+            token = token.replace(part, "_")
+        if any(_token_matches(token, kw, anywhere) for kw in keywords):
+            return True
+    return False
 
 
-def _token_matches(token: str, keyword: str) -> bool:
+def _token_matches(token: str, keyword: str, anywhere: bool) -> bool:
     if token == keyword:
         return True
     if len(keyword) < _MIN_COMPOUND_LEN:
         return False
+    if anywhere:
+        return keyword in token
     return token.startswith(keyword) or token.endswith(keyword)

@@ -34,6 +34,9 @@ class Deal(BaseModel):
 
     chain: str
     product_name: str
+    # The chain's own product category, e.g. "Vlees". Helps tagging when the name
+    # alone says nothing ("Wahid" is a halal meat brand).
+    category: str | None = None
     normal_price: Decimal | None = Field(default=None, gt=0)
     deal_price: Decimal | None = Field(default=None, ge=0)
     mechanic_string: str | None = None
