@@ -56,6 +56,7 @@ class Store(BaseModel):
     chain: str
     name: str
     location: Coordinates
+    address: str | None = None
 
 
 class Preferences(BaseModel):
