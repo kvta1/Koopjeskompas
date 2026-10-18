@@ -8,12 +8,15 @@ Koopjeskompas ("deals compass") is a web app that ranks nearby Dutch supermarket
 current deals are for a given user's food preferences (e.g. "vegetarian, Middle Eastern inspired"),
 weighing deal relevance, discount depth, and distance.
 
-The primary goal of the project is to practice software engineering best practices — clean
-architecture, unit testing, CI, typed code, documentation — on a system with real-world messiness.
-The full design doc and phased roadmap live in `PLAN.md` (concept, architecture, tech stack, data
-sources, scoring formula, API design, and an 8-phase build order). Read it before making
-architectural decisions — this repo is currently at **Phase 0 (foundations)**: tooling is wired up
-but no domain code exists yet beyond a placeholder `main.py`.
+The project is a learning vehicle for software engineering best practices — clean architecture,
+unit testing, CI, typed code, documentation — on a system with real-world messiness. The user does
+not need to implement it by hand: Claude writes the code, and the user learns by reading and
+reviewing it. So favour code that is idiomatic and easy to learn from, and explain non-obvious design
+choices. The full design doc and phased roadmap live in `PLAN.md` (concept, architecture, tech stack,
+data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before making architectural
+decisions. Current status: **MVP step 1 (domain core) is done** — models, deal-mechanic parsing,
+Tier-1 tagging, scoring and `rank_stores()` in `koopjeskompas/domain/`, all pure and tested. Next is
+MVP step 2 (one real AH source cached to JSON).
 
 ## Commands
 
@@ -28,10 +31,10 @@ uv run ruff format --check .   # format check (use `uv run ruff format .` to fix
 uv run mypy .              # type check
 ```
 
-CI (`.github/workflows/ci.yml`) runs `ruff check`, `ruff format --check`, and `pytest` on every push/PR
-to `main`. Keep changes green against this pipeline; there is no ruff/mypy config section in
-`pyproject.toml` yet and no `.pre-commit-config.yaml`, despite `pre-commit` being a listed dependency —
-if you add one, make sure it mirrors the CI checks rather than diverging from them.
+CI (`.github/workflows/ci.yml`) runs `ruff check`, `ruff format --check`, `mypy` (strict, pydantic
+plugin; configured in `pyproject.toml`) and `pytest` on every push/PR to `main`. Keep changes green
+against this pipeline. There is no `.pre-commit-config.yaml` yet despite `pre-commit` being a dev
+dependency — if you add one, make it mirror the CI checks rather than diverging from them.
 
 ## Architecture (target — see PLAN.md for full detail)
 
