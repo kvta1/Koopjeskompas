@@ -1,0 +1,390 @@
+{
+ "sectionType": "AH",
+ "sectionDescription": "Vlees",
+ "bonusGroupOrProducts": [
+  {
+   "bonusGroup": {
+    "id": "814121",
+    "offerId": 197860,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 814121,
+    "segmentDescription": "Alle AH Greenfields beefburgers 2 stuks",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "VOOR 2.49",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "labelType": "SPOTLIGHT",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_FIXED_PRICE",
+      "defaultDescription": "voor 2.49",
+      "price": 2.49
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818888",
+    "offerId": 202717,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818888,
+    "segmentDescription": "Alle Unox rookworsten",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "25% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "25% korting",
+      "percentage": 25,
+      "precisePercentage": 25
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818865",
+    "offerId": 202698,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818865,
+    "segmentDescription": "AH Scharrelkipfiletreepjes",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "15% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "15% korting",
+      "percentage": 15,
+      "precisePercentage": 15
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818772",
+    "offerId": 202605,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818772,
+    "segmentDescription": "Alle AH Scharrelkipworsten",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "25% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "25% korting",
+      "percentage": 25,
+      "precisePercentage": 25
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818873",
+    "offerId": 202706,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818873,
+    "segmentDescription": "AH Spek- of filetlapjes à la minute",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "15% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "15% korting",
+      "percentage": 15,
+      "precisePercentage": 15
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818877",
+    "offerId": 202710,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818877,
+    "segmentDescription": "AH Excellent vlees of vis uit de diepvries",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "25% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "25% korting",
+      "percentage": 25,
+      "precisePercentage": 25
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818875",
+    "offerId": 202708,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818875,
+    "segmentDescription": "Wahid",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "15% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "15% korting",
+      "percentage": 15,
+      "precisePercentage": 15
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 123836,
+    "hqId": 572516,
+    "title": "AH Kogelbiefstuk 2 stuks",
+    "brand": "AH",
+    "isSample": false,
+    "unitPriceDescription": "normale prijs per kg €36.50",
+    "segmentId": "814106",
+    "bonusSegmentId": 814106,
+    "offerId": 197845,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Kogelbiefstuk 2 stuks",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "100 GRAM VOOR 2.99",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_WEIGHT",
+      "defaultDescription": "per 100 GRAM voor €2.99",
+      "count": 100,
+      "price": 2.99,
+      "unit": "GRAM"
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 9.49,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Vlees",
+    "subCategory": "Biefstuk",
+    "subCategoryId": 6326,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818852",
+    "offerId": 202685,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818852,
+    "segmentDescription": "AH Scharrelkipschnitzels Hongaars of Wiener",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "15% KORTING",
+    "category": "Vlees",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "15% korting",
+      "percentage": 15,
+      "precisePercentage": 15
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 183170,
+    "hqId": 752363,
+    "title": "AH Bacon reepjes",
+    "brand": "AH",
+    "isSample": false,
+    "unitPriceDescription": "normale prijs per kg €26.60",
+    "segmentId": "818870",
+    "bonusSegmentId": 818870,
+    "offerId": 202703,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Bacon reepjes",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "VOOR 3.39",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_FIXED_PRICE",
+      "defaultDescription": "voor 3.39",
+      "price": 3.39
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 3.99,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Vlees",
+    "subCategory": "Spek en bacon reepjes en -blokjes",
+    "subCategoryId": 4711,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  }
+ ]
+}

@@ -1,12 +1,24 @@
 [project]
 name = "koopjeskompas"
 version = "0.1.0"
-description = "Add your description here"
+description = "Ranks nearby Dutch supermarkets by how well their current deals fit your food preferences."
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "httpx>=0.28.1",
     "pydantic>=2.13.4",
 ]
+
+[project.scripts]
+koopjeskompas = "koopjeskompas.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# The package lives at the repo root rather than under src/.
+module-root = ""
 
 [dependency-groups]
 dev = [
@@ -14,6 +26,7 @@ dev = [
     "mypy>=2.3.0",
     "pre-commit>=4.7.0",
     "pytest>=9.1.1",
+    "respx>=0.23.1",
     "ruff>=0.15.22",
 ]
 
@@ -21,7 +34,6 @@ dev = [
 # Skip these plugins if a ROS 2 install on PYTHONPATH registers them; harmless
 # no-op on machines without ROS (e.g. CI). See CLAUDE.md for details.
 addopts = "-p no:launch_testing -p no:launch_ros"
-pythonpath = ["."]
 
 [tool.mypy]
 strict = true

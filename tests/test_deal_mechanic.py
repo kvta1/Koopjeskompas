@@ -30,6 +30,33 @@ from koopjeskompas.domain.models import Deal
         ("2 voor €5", Decimal("3.00"), None, Decimal(1) / 6),
         ("2 voor €5,00", Decimal("3.00"), None, Decimal(1) / 6),
         ("3 voor € 4.50", Decimal("2.00"), None, Decimal("0.25")),
+        # AH's spelling: uppercase, no euro sign, dot decimals, spaced plus signs.
+        (
+            "3 VOOR 5.99",
+            Decimal("2.29"),
+            None,
+            1 - Decimal("5.99") / 3 / Decimal("2.29"),
+        ),
+        ("2 VOOR 3,00", Decimal("2.00"), None, Decimal("0.25")),
+        ("1 + 1 GRATIS", None, None, Decimal("0.5")),
+        ("2 + 1 gratis", None, None, Decimal(1) / 3),
+        # Fixed price for one item, and AH's "stapel" (stack) deals.
+        ("VOOR 0.99", Decimal("1.49"), None, 1 - Decimal("0.99") / Decimal("1.49")),
+        ("voor €2", Decimal("2.50"), None, Decimal("0.2")),
+        (
+            "4 stapelen voor 2.49",
+            Decimal("0.95"),
+            None,
+            1 - Decimal("2.49") / 4 / Decimal("0.95"),
+        ),
+        # A fixed amount off.
+        ("1 EURO KORTING", Decimal("4.00"), None, Decimal("0.25")),
+        ("€0,50 korting", Decimal("2.00"), None, Decimal("0.25")),
+        ("5 euro korting", Decimal("4.00"), None, Decimal(1)),
+        ("2.50 KORTING", Decimal("10.00"), None, Decimal("0.25")),
+        # Pay for n, get m more free: m / (n + m).
+        ("2 + 3 GRATIS", None, None, Decimal("0.6")),
+        ("5 + 1 GRATIS", None, None, Decimal(1) / 6),
         # Not actually cheaper: no discount rather than a negative one.
         ("2 voor €5", Decimal("2.00"), None, Decimal(0)),
         # No mechanic: derive the discount from the two prices.
@@ -47,7 +74,20 @@ def test_parse_deal_mechanic(
     assert parse_deal_mechanic(mechanic, normal_price, deal_price) == expected
 
 
-@pytest.mark.parametrize("mechanic", ["gratis bezorging", "150% korting", "0 voor €5"])
+@pytest.mark.parametrize(
+    # "2 voor 3" is ambiguous without a euro sign or decimals, so it is not guessed.
+    "mechanic",
+    [
+        "gratis bezorging",
+        "150% korting",
+        "0 voor €5",
+        "2 voor 3",
+        "0+1 gratis",
+        "2 korting",  # 2 euro or 2 percent? Not guessed.
+        "100 GRAM VOOR 2.99",  # a per-weight price says nothing about the pack price
+        "BONUS",
+    ],
+)
 def test_unknown_mechanic(mechanic: str) -> None:
     with pytest.raises(UnknownMechanicError):
         parse_deal_mechanic(mechanic, Decimal("1.00"))
@@ -57,6 +97,8 @@ def test_unknown_mechanic(mechanic: str) -> None:
     ("mechanic", "normal_price", "deal_price"),
     [
         ("2 voor €5", None, None),  # price-based mechanic needs a normal price
+        ("voor 0.99", None, None),
+        ("1 euro korting", None, None),
         (None, Decimal("1.00"), None),  # no mechanic needs a deal price
         (None, None, Decimal("1.00")),
         ("25% korting", Decimal(0), None),
