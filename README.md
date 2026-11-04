@@ -10,8 +10,8 @@ CI, applied to messy real-world data.
 
 ## Status
 
-**MVP steps 1 and 2 of 4 are done.** The app works end to end from the command line on real
-Albert Heijn data for Leiden. The web API and frontend come next.
+**MVP steps 1–3 of 4 are done.** The app works end to end on real Albert Heijn data for Leiden,
+from the command line and through a web API. The web page comes next.
 
 | | Feature | Status |
 |---|---|---|
@@ -20,8 +20,8 @@ Albert Heijn data for Leiden. The web API and frontend come next.
 | ✅ | Leiden store list (6 AH supermarkets, from OpenStreetMap) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
-| ⏳ | Web API (`POST /api/rank`, FastAPI) | next |
-| ⏳ | Web page (React + TypeScript) | planned |
+| ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
+| ⏳ | Web page (React + TypeScript) | next |
 | ⏳ | Public demo on AWS | planned |
 
 **Known limitations:**
@@ -43,6 +43,8 @@ AH mobile API ──► fetch-deals ──► data/raw/ah/<date>/*.json   (raw r
                  data/deals/ah.json
                       │
  stores + your preferences + location ──► rank_stores() ──► ranked stores with their top deals
+                                                         (printed by `rank`, or JSON from
+                                                          POST /api/rank via `serve`)
 ```
 
 For each store, its chain's active deals are scored:
@@ -137,11 +139,46 @@ vegetarian, and the range is scored on those three:
 | `--radius-km` | ignore stores further away than this | 5 |
 | `--top-k` | how many deals count towards a store's score | 10 |
 
-Two options go *before* the subcommand and work for both commands:
+### 3. Run the web API
+
+```bash
+uv run koopjeskompas serve            # http://127.0.0.1:8000, change with --host and --port
+```
+
+Open <http://127.0.0.1:8000/docs> for interactive documentation; the bare address redirects
+there. It shows every endpoint, its request and response models, and a "Try it out" button. The
+API reads the same deal cache as `rank`; a new `fetch-deals` run is picked up without a restart.
+It never contacts AH during a request.
+
+| Endpoint | What it does |
+|---|---|
+| `GET /api/health` | `{"status": "ok"}` when the server is up |
+| `POST /api/rank` | ranks the stores around a location, with the deals behind each score |
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/rank \
+  -H 'content-type: application/json' \
+  -d '{"location": {"lat": 52.1664, "lon": 4.4817}, "diet": "vegetarian", "cuisines": ["italian"]}'
+```
+
+The request body has the same options as `rank`: `location` (required), `diet`, `cuisines`,
+`gluten_free`, `lactose_free`, `radius_km`, `top_k`, plus `distance_weight` (0 ignores distance).
+A response lists `stores` best first. Each store has its `score`, `distance_km` and `top_deals`,
+and each deal has its `discount`, `relevance` and `value`.
+
+Error responses:
+- **422:** an invalid request, e.g. a latitude of 152 or a misspelled field name. The response
+  says what's wrong and where.
+- **503:** no deals are cached yet.
+
+### Global options
+
+Two options go *before* the subcommand and work for every command:
 
 - `--data-dir DIR` stores the cache somewhere other than `./data`.
-- `--today YYYY-MM-DD` fetches or ranks as if it were that day. Deals only count during their bonus
-  week, so ranking with an old cache shows no deals unless you pass a date inside that week:
+- `--today YYYY-MM-DD` fetches, ranks or serves as if it were that day. Deals only count during
+  their bonus week, so ranking with an old cache shows no deals unless you pass a date inside that
+  week:
 
   ```bash
   uv run koopjeskompas --today 2026-10-15 rank --diet vegan
@@ -164,6 +201,8 @@ Testing approach:
   store's score", "a vegetarian ranking never contains meat or fish".
 - **AH integration:** tests replay real AH responses saved in `tests/fixtures/ah/`, with HTTP mocked
   by `respx`. Tests never contact AH.
+- **Web API:** tests send real HTTP requests through FastAPI's `TestClient`, without a running
+  server. They swap the deal cache and "today" through FastAPI's dependency overrides.
 
 ### Project structure
 
@@ -171,6 +210,7 @@ Testing approach:
 koopjeskompas/
 ├── domain/        pure logic, no I/O: models, deal mechanics, tagging, scoring, distance
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
+├── api/           the web API: request/response models (schemas.py) and endpoints (app.py)
 ├── stores/        the Leiden store list and the OpenStreetMap query that produced it
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
@@ -187,7 +227,7 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
 
 1. ✅ **Domain core:** models, deal mechanics, tagging, scoring.
 2. ✅ **One real source:** AH deals for Leiden, ranked in the terminal.
-3. **Web API:** `POST /api/rank` with FastAPI, reading the cached deals.
+3. ✅ **Web API:** `POST /api/rank` with FastAPI, reading the cached deals.
 4. **Web page:** a React + TypeScript page with location, preferences and the ranked stores.
 5. **Public demo on AWS** ([PLAN.md §9.3](PLAN.md)):
    - S3 + CloudFront for the page, Lambda for the API;

@@ -7,6 +7,9 @@ from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
+import uvicorn
+
+from koopjeskompas.api.app import create_app, get_today
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
 from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
 from koopjeskompas.ingestion.ah.client import AhApiError, AhClient, load_raw_week
@@ -40,8 +43,8 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--today",
         type=date.fromisoformat,
-        default=date.today(),
-        help="the date to fetch or rank for, as YYYY-MM-DD (default: today)",
+        default=None,
+        help="the date to fetch, rank or serve for, as YYYY-MM-DD (default: today)",
     )
     subcommands = parser.add_subparsers(required=True, metavar="COMMAND")
 
@@ -73,16 +76,29 @@ def _build_parser() -> argparse.ArgumentParser:
     rank.add_argument("--top-k", type=int, default=ScoringWeights().top_k)
     rank.set_defaults(handler=_rank)
 
+    serve = subcommands.add_parser(
+        "serve", help="run the web API (interactive docs at /docs)"
+    )
+    serve.add_argument("--host", default="127.0.0.1")
+    serve.add_argument("--port", type=int, default=8000)
+    serve.set_defaults(handler=_serve)
+
     return parser
 
 
+def _today(args: argparse.Namespace) -> date:
+    today: date = args.today or date.today()
+    return today
+
+
 def _fetch_deals(args: argparse.Namespace) -> int:
-    raw_dir = args.data_dir / "raw" / "ah" / args.today.isoformat()
+    today = _today(args)
+    raw_dir = args.data_dir / "raw" / "ah" / today.isoformat()
     try:
         if args.from_raw:
-            week = load_raw_week(raw_dir, args.today)
+            week = load_raw_week(raw_dir, today)
         else:
-            week = AhClient(raw_dir=raw_dir).fetch_bonus_week(args.today)
+            week = AhClient(raw_dir=raw_dir).fetch_bonus_week(today)
     except AhApiError as error:
         print(f"Fetching AH deals failed: {error}", file=sys.stderr)
         return 1
@@ -137,8 +153,19 @@ def _rank(args: argparse.Namespace) -> int:
         deals=load_deals(path),
         preferences=preferences,
         location=Coordinates(latitude=args.lat, longitude=args.lon),
-        today=args.today,
+        today=_today(args),
         weights=ScoringWeights(max_distance_km=args.radius_km, top_k=args.top_k),
     )
     print(format_ranking(rankings))
+    return 0
+
+
+def _serve(args: argparse.Namespace) -> int:
+    app = create_app(data_dir=args.data_dir)
+    if args.today is not None:
+        # Rank as if it were that day, e.g. to demo with an older deal cache. Without
+        # --today the server asks for the real date on every request.
+        fixed_day: date = args.today
+        app.dependency_overrides[get_today] = lambda: fixed_day
+    uvicorn.run(app, host=args.host, port=args.port)
     return 0

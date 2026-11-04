@@ -1,12 +1,18 @@
 import json
 import time
 from collections.abc import Iterator
+from datetime import date
 from pathlib import Path
+from typing import Any
 
 import httpx
 import pytest
 import respx
+import uvicorn
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
+from koopjeskompas.api.app import get_today
 from koopjeskompas.cli import main
 from koopjeskompas.ingestion.ah.client import (
     BASE_URL,
@@ -139,3 +145,24 @@ def test_rank_without_cached_deals(
 ) -> None:
     assert main(["--data-dir", str(tmp_path), "rank"]) == 1
     assert "run 'koopjeskompas fetch-deals' first" in capsys.readouterr().out
+
+
+def test_serve_runs_the_api_on_the_given_address(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    started: dict[str, Any] = {}
+
+    def fake_run(app: FastAPI, host: str, port: int) -> None:
+        started.update(app=app, host=host, port=port)
+
+    monkeypatch.setattr(uvicorn, "run", fake_run)
+    argv = ["--data-dir", str(tmp_path), "--today", TODAY, "serve", "--port", "9000"]
+
+    assert main(argv) == 0
+
+    assert (started["host"], started["port"]) == ("127.0.0.1", 9000)
+    client = TestClient(started["app"])
+    response = client.post("/api/rank", json={"location": {"lat": 52.16, "lon": 4.48}})
+    assert response.status_code == 503  # nothing cached in tmp_path yet
+    app: FastAPI = started["app"]
+    assert app.dependency_overrides[get_today]() == date(2026, 10, 15)
