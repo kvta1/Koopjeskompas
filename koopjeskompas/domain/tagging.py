@@ -53,7 +53,10 @@ _MEAT = frozenset({
     "bitterbal", "americain", "carpaccio", "chorizo", "pastrami", "prosciutto",
     "pancetta", "rosbief", "entrecote", "ossenhaas", "varkenshaas", "karbonade",
     "slavink", "spareribs", "cervelaat", "fricandeau", "hotdog", "pepperoni",
-    "meat",  # AH's English names: "pizza meatlovers", "meatballs"
+    "hachee", "ajam", "babi",  # Dutch and Indonesian: "saté ajam" is chicken
+    "meat", "chicken", "beef", "boeuf", "pork",  # "butter chicken", "beef bulgogi"
+    # Dishes that are made with meat by definition.
+    "carbonara", "moussaka", "rendang", "bulgogi", "bolognese",
 })  # fmt: skip
 _FISH = frozenset({
     "vis", "zalm", "tonijn", "garnaal", "garnalen", "kabeljauw", "haring",
