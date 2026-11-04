@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import RedirectResponse
 
 from koopjeskompas.api.schemas import Health, RankedStore, RankRequest, RankResponse
 from koopjeskompas.domain.models import Coordinates, Deal, Preferences, Store
@@ -41,6 +42,13 @@ def create_app(data_dir: Path) -> FastAPI:
     app.state.data_dir = data_dir
     app.state.stores = load_stores()  # packaged and fixed: load once
     app.include_router(router)
+
+    # Until the web page (MVP step 4) lives at "/", send visitors to the API docs
+    # rather than a bare 404. Left out of the OpenAPI schema: it's not part of the API.
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/docs")
+
     return app
 
 

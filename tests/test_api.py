@@ -81,6 +81,13 @@ def test_health(client: TestClient) -> None:
     assert response.json() == {"status": "ok"}
 
 
+def test_the_root_redirects_to_the_docs(client: TestClient) -> None:
+    response = client.get("/", follow_redirects=False)
+    assert response.status_code == 307
+    assert response.headers["location"] == "/docs"
+    assert "/" not in client.get("/openapi.json").json()["paths"]
+
+
 def test_ranks_the_leiden_stores_nearest_first(client: TestClient) -> None:
     result = rank(client)
 
