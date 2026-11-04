@@ -69,7 +69,7 @@ Chosen to leverage your Python strength while pushing you into new territory whe
 | Testing | **pytest** (+ `pytest-cov`, `respx` for HTTP mocking, `factory_boy` or fixtures for test data) | The heart of this project |
 | Lint/format/types | **ruff + mypy (strict on the core package) + pre-commit** | Cheap to set up, huge habit-forming value |
 | CI | **GitHub Actions** | Run lint + type check + tests on every push/PR |
-| Packaging | **uv** (or poetry) with `pyproject.toml`, src-layout | Modern Python project structure |
+| Packaging | **uv** (or poetry) with `pyproject.toml`, flat layout (the package at the repo root) | Modern Python project structure |
 | Deployment | **AWS serverless demo** (S3 + CloudFront + Lambda, defined in AWS CDK; see §9.3); **Docker + docker-compose** for local app + Postgres later | Fits the AWS Free plan for an interview demo, and IaC + CI deploys are core industry skills. Docker is near-mandatory professionally, and directly transfers to robotics (ROS 2 in Docker is common) |
 
 ---

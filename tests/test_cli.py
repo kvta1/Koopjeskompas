@@ -20,8 +20,8 @@ from koopjeskompas.ingestion.ah.client import (
     METADATA_PATH,
     TOKEN_PATH,
 )
+from tests.ah_fixtures import load_ah_fixture
 
-FIXTURES = Path(__file__).parent / "fixtures" / "ah"
 TODAY = "2026-10-15"  # inside the fixture's bonus week
 
 
@@ -46,16 +46,14 @@ def ah_api(monkeypatch: pytest.MonkeyPatch) -> Iterator[respx.MockRouter]:
     monkeypatch.setattr(time, "sleep", lambda _: None)
     with respx.mock(base_url=BASE_URL, assert_all_called=False) as router:
         router.post(TOKEN_PATH).respond(json={"access_token": "t"})
-        router.get(METADATA_PATH).respond(
-            json=json.loads((FIXTURES / "metadata.json").read_text())
-        )
+        router.get(METADATA_PATH).respond(json=load_ah_fixture("metadata.json"))
         for category, fixture in [
             ("Groente, aardappelen", "section_groente_aardappelen.json"),
             ("Vlees", "section_vlees.json"),
         ]:
             router.get(
                 "/mobile-services/bonuspage/v2/section", params={"category": category}
-            ).respond(json=json.loads((FIXTURES / fixture).read_text()))
+            ).respond(json=load_ah_fixture(fixture))
         router.get("/mobile-services/bonuspage/v2/section").respond(
             json={"bonusGroupOrProducts": []}
         )
