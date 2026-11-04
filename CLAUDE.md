@@ -14,11 +14,12 @@ not need to implement it by hand: Claude writes the code, and the user learns by
 reviewing it. So favour code that is idiomatic and easy to learn from, and explain non-obvious design
 choices. The full design doc and phased roadmap live in `PLAN.md` (concept, architecture, tech stack,
 data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before making architectural
-decisions. Current status: **MVP steps 1–2 are done** — the pure domain core
+decisions. Current status: **MVP steps 1–3 are done** — the pure domain core
 (`koopjeskompas/domain/`), real AH bonus deals fetched and cached as JSON
 (`koopjeskompas/ingestion/`), a hardcoded Leiden store list (`koopjeskompas/stores/`) and a
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
-product and per-weight deals are scored. Next is MVP step 3 (a minimal `POST /api/rank`).
+product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
+`POST /api/rank`, `GET /api/health`). Next is MVP step 4 (a minimal React + TypeScript page).
 
 ## Commands
 
@@ -35,6 +36,7 @@ uv run mypy .              # type check
 uv run koopjeskompas fetch-deals               # fetch this week's AH bonus (live, ~65 requests)
 uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw responses, no network
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
+uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swagger UI at /docs
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -71,7 +73,11 @@ The intended design is a modular monolith with a strict separation between the d
   `products`; scoring values it at the median of its products that pass the diet filters. Deals go to a
   JSON cache (`ingestion/cache.py`) instead of a DB.
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
-  scrapes or hits external sources synchronously in a request.
+  scrapes or hits external sources synchronously in a request. Built so far: `api/app.py`
+  (`create_app(data_dir)` factory; deals, stores and today are FastAPI dependencies, so tests swap
+  them via `dependency_overrides`) and `api/schemas.py` (the HTTP contract, deliberately separate
+  from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
+  `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its
   chain's active deals. See PLAN.md §4.4 for the schema sketch.
 - **Frontend**: React + TypeScript + Vite, calling the FastAPI backend over HTTP.
