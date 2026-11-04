@@ -70,7 +70,7 @@ Chosen to leverage your Python strength while pushing you into new territory whe
 | Lint/format/types | **ruff + mypy (strict on the core package) + pre-commit** | Cheap to set up, huge habit-forming value |
 | CI | **GitHub Actions** | Run lint + type check + tests on every push/PR |
 | Packaging | **uv** (or poetry) with `pyproject.toml`, src-layout | Modern Python project structure |
-| Deployment | **Docker + docker-compose** (app + Postgres), deploy later to a small VPS or Fly.io/Railway | Docker is near-mandatory professionally, and directly transfers to robotics (ROS 2 in Docker is common) |
+| Deployment | **AWS serverless demo** (S3 + CloudFront + Lambda, defined in AWS CDK; see §9.3); **Docker + docker-compose** for local app + Postgres later | Fits the AWS Free plan for an interview demo, and IaC + CI deploys are core industry skills. Docker is near-mandatory professionally, and directly transfers to robotics (ROS 2 in Docker is common) |
 
 ---
 
@@ -233,6 +233,84 @@ MVP steps:
 From here, the full roadmap resumes at Phase 2 (add the DB and a proper `DealSource` interface —
 informed by now actually having one working scraper to abstract from) through Phase 6.
 
+### 9.3 Deployment: an AWS demo for job interviews
+
+Goal: after MVP step 4, put the app at a public URL you can open in an interview, show the code
+behind it, and explain how it's deployed, at no cost. Optimise for "always works when I open it"
+and "costs nothing", not for production scale.
+
+**Architecture (serverless, so nothing runs or costs money while nobody uses it):**
+
+```
+Browser ──► CloudFront ──┬─► S3 bucket: React build (static files)
+                         └─► /api/* ─► Lambda Function URL: FastAPI (via Mangum)
+                                           │ reads at cold start
+                                           ▼
+                                   S3 bucket: deals snapshot (ah.json)
+```
+
+- **Frontend:** the Vite build in a private S3 bucket, served through CloudFront.
+- **API:** the FastAPI app in one Lambda function, wrapped with
+  [Mangum](https://mangum.fastapiexpert.com/). It's exposed through a Lambda Function URL instead of
+  API Gateway, because Function URLs cost nothing beyond the Lambda calls themselves.
+- **One domain:** CloudFront routes `/api/*` to the Lambda and everything else to S3. The browser
+  only ever talks to one origin, so CORS never comes up in production.
+- **Data:** the parsed deals (`data/deals/ah.json`) and the Leiden store list as objects in S3,
+  loaded once per Lambda cold start. This is the JSON cache from MVP step 2, moved to S3; the code
+  change is one storage adapter behind `ingestion/cache.py`. No database.
+
+**Demo-specific decision: a deals snapshot, no scraping from AWS.**
+`fetch-deals` keeps running on your own machine, about once a week (or just before an interview),
+and the result is uploaded to S3. AWS never contacts AH. This:
+- keeps the setup within PLAN.md's personal, low-volume use of AH's unofficial API (§4.1), because a
+  scheduled job on AWS republishing AH data would go further than that;
+- avoids AH blocking requests from cloud IP addresses, which would break the demo at the worst
+  moment;
+- removes the scheduler, a second Lambda and their failure modes from the setup.
+
+Because the snapshot can be stale, the API ranks against the **snapshot's bonus week** when that
+week has ended (instead of returning nothing), and the page says so: *"Deals of AH bonus week 42
+(snapshot)"*. A stale but honest demo beats an empty one.
+
+**Cost: the AWS Free plan.** Since July 2025 a new AWS account can choose a *Free account plan*.
+In AWS's own words, you "will not incur any charges" on it; it ends after six months or when the
+USD 100–200 of sign-up credits is used, whichever comes first, and then you upgrade to a paid plan
+or the account closes. ([AWS docs](https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier.html))
+- **First six months:** no charges are possible on the Free plan.
+- **After that (paid plan):** the parts above stay within AWS's *always free* monthly allowances at
+  demo traffic, e.g. Lambda's 1M requests/month and CloudFront's free data transfer. S3 storage for
+  a few MB costs a few cents at most. Check the [Free Tier page](https://aws.amazon.com/free/)
+  before upgrading, since the allowances change.
+- **What would cost money, so avoid it:** RDS/Aurora, EC2, NAT gateways, App Runner, API Gateway
+  beyond its trial, Secrets Manager, and a custom domain (the domain name itself plus a Route 53
+  hosted zone). The CloudFront `*.cloudfront.net` URL is fine for a demo.
+- **Guardrails:** an AWS Budget with an alert at USD 1, and 7-day retention on Lambda's CloudWatch
+  logs.
+
+**Infrastructure as code:** define everything with **AWS CDK in Python** (one stack:
+both buckets, the Lambda, the CloudFront distribution and its two origins). Nothing is clicked
+together in the console, so the whole setup can be destroyed and recreated with one command, and
+it's readable in an interview. Python keeps it in one language with the rest of the backend.
+
+**Deployment from CI:** a GitHub Actions workflow that runs after CI passes on `main`: build the
+frontend, package the Lambda, `cdk deploy`. It authenticates to AWS through **OIDC** (a role that
+trusts GitHub), so no AWS keys are stored in the repository or its secrets.
+
+Steps:
+
+1. **Lambda-ready API.** Add Mangum, an S3 storage adapter next to the file-based cache (chosen by
+   config via `pydantic-settings`), and the snapshot-week fallback. Test the adapter against a
+   mocked S3 ([moto](https://github.com/getmoto/moto)); never real AWS in CI.
+   ✅ Milestone: the API runs locally against a mocked S3 with the snapshot fallback.
+2. **CDK stack, deployed by hand once.** Buckets, Lambda + Function URL, CloudFront with both
+   origins, the budget alert. Plus a small `koopjeskompas publish-deals` command that uploads the
+   local snapshot.
+   ✅ Milestone: the app works at its `*.cloudfront.net` URL.
+3. **Deploy from GitHub Actions** via OIDC, after CI passes.
+   ✅ Milestone: merging to `main` updates the live demo with no manual steps.
+4. **Interview polish.** A README section with the architecture diagram and the reasons for each
+   choice above, and a footer link from the page to the repository.
+
 ### 9.2 Full roadmap (phased)
 
 ### Phase 0 — Foundations (1 evening)
@@ -267,7 +345,8 @@ Repo setup, `pyproject.toml`, ruff/mypy/pre-commit, pytest skeleton, GitHub Acti
 
 ### Phase 6 — Ship it (1 week)
 - Dockerfile + docker-compose (app + Postgres), switch SQLite → Postgres.
-- Deploy (Fly.io / Railway / small VPS). Scheduled weekly ingestion via GitHub Actions or cron.
+- Deploy: the AWS setup from §9.3 is the starting point. With a database and a second chain, revisit
+  whether a scheduled ingestion job on AWS is acceptable (see §9.3 on the snapshot decision).
 - ✅ Milestone: a URL you can put on your CV and show recruiters.
 
 ### Phase 7 — Stretch goals
