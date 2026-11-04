@@ -27,6 +27,11 @@ VEGAN = Preferences(diet=Diet.VEGAN)
         # Keywords in the middle of a compound (real AH deal names).
         ("AH Scharrelkipfiletreepjes", False, False),
         ("AH Scharrelkipschnitzels Hongaars of Wiener", False, False),
+        # Pizza names from an AH range lookup, partly Italian or English.
+        ("AH Verse pizza tonno", False, False),
+        ("AH Verse pizza meatlovers", False, False),
+        ("AH Pizza pepperoni", False, False),
+        ("AH Verse pizza Amerikaans cheese onion", True, False),
         ("Geitenkaasjes", True, False),
         ("Kastanjechampignons", True, True),
         ("Champignonsoep", True, True),

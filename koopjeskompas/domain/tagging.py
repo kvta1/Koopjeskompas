@@ -50,18 +50,20 @@ _MEAT = frozenset({
     "burger", "shoarma", "döner", "kebab", "gyros", "frikandel", "kroket",
     "bitterbal", "americain", "carpaccio", "chorizo", "pastrami", "prosciutto",
     "pancetta", "rosbief", "entrecote", "ossenhaas", "varkenshaas", "karbonade",
-    "slavink", "spareribs", "cervelaat", "fricandeau", "hotdog",
+    "slavink", "spareribs", "cervelaat", "fricandeau", "hotdog", "pepperoni",
+    "meat",  # AH's English names: "pizza meatlovers", "meatballs"
 })  # fmt: skip
 _FISH = frozenset({
     "vis", "zalm", "tonijn", "garnaal", "garnalen", "kabeljauw", "haring",
     "makreel", "mossel", "mosselen", "pangasius", "tilapia", "kibbeling",
     "sardine", "sardines", "forel", "schol", "scampi", "surimi", "krab",
-    "kreeft", "oester", "oesters", "lekkerbekje", "ansjovis",
+    "kreeft", "oester", "oesters", "lekkerbekje", "ansjovis", "tonno",
 })  # fmt: skip
 _DAIRY = frozenset({
     "melk", "kaas", "yoghurt", "kwark", "boter", "room", "vla", "zuivel", "feta",
     "mozzarella", "mascarpone", "ricotta", "halloumi", "burrata", "parmezaan",
     "parmigiano", "brie", "camembert", "skyr", "labneh", "paneer", "fraiche",
+    "cheese",
 })  # fmt: skip
 _EGG = frozenset({"ei", "eieren", "eier", "mayonaise"})
 _HONEY = frozenset({"honing"})
