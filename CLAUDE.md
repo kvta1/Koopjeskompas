@@ -14,12 +14,13 @@ not need to implement it by hand: Claude writes the code, and the user learns by
 reviewing it. So favour code that is idiomatic and easy to learn from, and explain non-obvious design
 choices. The full design doc and phased roadmap live in `PLAN.md` (concept, architecture, tech stack,
 data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before making architectural
-decisions. Current status: **MVP steps 1–3 are done** — the pure domain core
+decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain core
 (`koopjeskompas/domain/`), real AH bonus deals fetched and cached as JSON
 (`koopjeskompas/ingestion/`), a hardcoded Leiden store list (`koopjeskompas/stores/`) and a
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
-`POST /api/rank`, `GET /api/health`). Next is MVP step 4 (a minimal React + TypeScript page).
+`POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). Next is the AWS
+demo (PLAN.md §9.3).
 
 ## Commands
 
@@ -37,6 +38,14 @@ uv run koopjeskompas fetch-deals               # fetch this week's AH bonus (liv
 uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw responses, no network
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
 uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swagger UI at /docs
+uv run koopjeskompas openapi                   # write the API schema to frontend/openapi.json
+
+cd frontend                # Node 24 (.nvmrc), npm
+npm ci                     # install
+npm run dev                # page on localhost:5173; proxies /api to 127.0.0.1:8000
+npm test                   # Vitest + React Testing Library
+npm run lint && npm run format:check && npm run typecheck && npm run build
+npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -49,7 +58,8 @@ HTTP with `respx`. If AH changes its API, use `--from-raw` while fixing the pars
 refetching.
 
 CI (`.github/workflows/ci.yml`) runs `ruff check`, `ruff format --check`, `mypy` (strict, pydantic
-plugin; configured in `pyproject.toml`) and `pytest` on every push/PR to `main`. Keep changes green
+plugin; configured in `pyproject.toml`) and `pytest` on every push/PR to `main`, and in a second
+job the frontend's checks (generated types current, ESLint, Prettier, tsc, Vitest, Vite build). Keep changes green
 against this pipeline. There is no `.pre-commit-config.yaml` yet despite `pre-commit` being a dev
 dependency — if you add one, make it mirror the CI checks rather than diverging from them.
 
@@ -82,7 +92,15 @@ The intended design is a modular monolith with a strict separation between the d
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its
   chain's active deals. See PLAN.md §4.4 for the schema sketch.
-- **Frontend**: React + TypeScript + Vite, calling the FastAPI backend over HTTP.
+- **Frontend** (`frontend/`): React + TypeScript + Vite, calling the FastAPI backend over HTTP.
+  The API types are generated, never hand-written: `koopjeskompas openapi` writes
+  `frontend/openapi.json` (a pytest test fails when it's stale) and `npm run gen:api` turns it into
+  `src/api/schema.d.ts` (CI fails when that's stale). So after changing `api/schemas.py`, run both
+  and commit both. In development Vite proxies `/api` to the API, so the browser sees one origin
+  and no CORS is configured (production will be one origin too, via CloudFront). Plain CSS with
+  colour tokens; components hold no fetch logic (`src/api/client.ts` does); tests sit next to the
+  code (`*.test.ts(x)`) and stub `fetch`. TypeScript stays on 5.9 because typescript-eslint and
+  openapi-typescript don't support TypeScript 7 yet.
 
 Key invariant carried through every layer: vegetarian/vegan preference is a **hard filter**, not a
 soft relevance score.

@@ -10,8 +10,8 @@ CI, applied to messy real-world data.
 
 ## Status
 
-**MVP steps 1–3 of 4 are done.** The app works end to end on real Albert Heijn data for Leiden,
-from the command line and through a web API. The web page comes next.
+**The MVP is done.** The app works end to end on real Albert Heijn data for Leiden: in the
+browser, from the command line and through a web API. A public demo on AWS comes next.
 
 | | Feature | Status |
 |---|---|---|
@@ -21,8 +21,8 @@ from the command line and through a web API. The web page comes next.
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
 | ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
-| ⏳ | Web page (React + TypeScript) | next |
-| ⏳ | Public demo on AWS | planned |
+| ✅ | Web page (React + TypeScript) | done (`frontend/`) |
+| ⏳ | Public demo on AWS | next |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -33,6 +33,8 @@ from the command line and through a web API. The web page comes next.
     korting"), because those aren't looked up product by product.
 - **A failed range lookup leaves that range unscored.** It's kept, but it scores zero.
 - **Only one chain.** Every store has the same deals, so for now the ranking comes down to distance.
+- **No postcode search yet.** The page offers a few places in Leiden and the browser's own
+  location; the API itself takes any coordinates.
 
 ## How it works
 
@@ -44,7 +46,8 @@ AH mobile API ──► fetch-deals ──► data/raw/ah/<date>/*.json   (raw r
                       │
  stores + your preferences + location ──► rank_stores() ──► ranked stores with their top deals
                                                          (printed by `rank`, or JSON from
-                                                          POST /api/rank via `serve`)
+                                                          POST /api/rank via `serve`, shown
+                                                          by the web page)
 ```
 
 For each store, its chain's active deals are scored:
@@ -67,7 +70,8 @@ The design is described in detail in [PLAN.md](PLAN.md).
 ## Installation
 
 Requirements: [uv](https://docs.astral.sh/uv/getting-started/installation/) and Python 3.14 (uv
-installs the right Python for you if needed).
+installs the right Python for you if needed). For the web page, also
+[Node.js](https://nodejs.org/) 24 (the version in `frontend/.nvmrc`).
 
 ```bash
 git clone git@github.com:kvta1/Koopjeskompas.git
@@ -80,6 +84,13 @@ works:
 
 ```bash
 uv run koopjeskompas --help
+```
+
+For the web page, install its packages too:
+
+```bash
+cd frontend
+npm ci
 ```
 
 ## Usage
@@ -171,6 +182,23 @@ Error responses:
   says what's wrong and where.
 - **503:** no deals are cached yet.
 
+### 4. Open the web page
+
+Run the API and the page's development server side by side, each in its own terminal:
+
+```bash
+uv run koopjeskompas serve      # terminal 1: the API on port 8000
+cd frontend && npm run dev      # terminal 2: the page on http://localhost:5173
+```
+
+Open <http://localhost:5173>, pick a place in Leiden (or "Use my location"), choose a diet and
+cuisines, and press **Find the best deals**. The stores come back best first; the best store's
+deals are shown, and the others open with a click.
+
+The development server forwards every `/api` request to the API on port 8000, so to the browser
+the page and the API are one site. That's also how the AWS demo will serve them, so the API needs
+no CORS settings.
+
 ### Global options
 
 Two options go *before* the subcommand and work for every command:
@@ -193,7 +221,28 @@ uv run ruff format .           # format
 uv run mypy .                  # type check (strict)
 ```
 
-GitHub Actions runs lint, format check, mypy and the tests on every push and pull request to `main`.
+For the web page, in `frontend/`:
+
+```bash
+npm test                       # run the tests (Vitest; offline)
+npm run lint                   # lint (ESLint)
+npm run format                 # format (Prettier)
+npm run typecheck              # type check (tsc, strict)
+npm run build                  # production build into frontend/dist/
+```
+
+GitHub Actions runs all of these on every push and pull request to `main`, in two jobs: one for
+the Python backend and one for the frontend.
+
+**When the API's request or response models change**, regenerate the page's types and commit
+both files (a test and CI fail until you do):
+
+```bash
+uv run koopjeskompas openapi              # writes frontend/openapi.json
+cd frontend && npm run gen:api            # writes src/api/schema.d.ts from it
+```
+
+TypeScript then points at every part of the page that no longer fits the API.
 
 Testing approach:
 - **Domain code:** table-driven tests with real Dutch product names and deal mechanics, plus
@@ -203,6 +252,10 @@ Testing approach:
   by `respx`. Tests never contact AH.
 - **Web API:** tests send real HTTP requests through FastAPI's `TestClient`, without a running
   server. They swap the deal cache and "today" through FastAPI's dependency overrides.
+- **Web page:** tests render the page with React Testing Library and use it the way a person
+  would: pick options by their label, click the button, read the result. `fetch` is replaced by a
+  stub, so the tests need no server. The page's API types are generated from the API's OpenAPI
+  schema, so the two can't drift apart unnoticed.
 
 ### Project structure
 
@@ -216,7 +269,16 @@ koopjeskompas/
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
                    and so on; fixtures/ah/ holds the captured AH responses
+frontend/          the web page (React + TypeScript + Vite)
+├── openapi.json   the API's schema, written by `koopjeskompas openapi`
+└── src/
+    ├── api/       the API client, and the types generated from openapi.json
+    ├── components/  the form, its location picker, and the ranked stores
+    └── App.tsx    the page: sends the form to the API and shows the result
 ```
+
+Frontend tests sit next to the code they test (`format.test.ts` beside `format.ts`), the usual
+convention in TypeScript projects.
 
 The domain layer never imports HTTP or file-handling code. External data, such as AH's JSON, is
 validated and converted into domain models the moment it enters (`ingestion/ah/parser.py`), so
@@ -229,13 +291,14 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
 1. ✅ **Domain core:** models, deal mechanics, tagging, scoring.
 2. ✅ **One real source:** AH deals for Leiden, ranked in the terminal.
 3. ✅ **Web API:** `POST /api/rank` with FastAPI, reading the cached deals.
-4. **Web page:** a React + TypeScript page with location, preferences and the ranked stores.
+4. ✅ **Web page:** a React + TypeScript page with location, preferences and the ranked stores.
 5. **Public demo on AWS** ([PLAN.md §9.3](PLAN.md)):
    - S3 + CloudFront for the page, Lambda for the API;
    - defined with AWS CDK and deployed from GitHub Actions;
    - designed to stay within the AWS free plan.
 
 After the MVP:
+- **Postcode search:** turn a Dutch postcode into coordinates, e.g. with PDOK's free Locatieserver.
 - **Use AH's own diet labels:** AH's product data includes fields like "vegetarisch" and "geen
   gluten". They could replace much of the name-based tagging.
 - **Second chain:** add Jumbo behind a common `DealSource` interface, so rankings differ by more

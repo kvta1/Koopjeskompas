@@ -241,6 +241,9 @@ MVP steps:
    submit, render the ranked list with each store's top matching deals.
    ✅ **MVP milestone: a working page in the browser, one chain, one city, real deals, real
    ranking.** This is the point to demo it to someone before continuing.
+   - Done as: a Vite dev server that proxies `/api` to the API (one origin, so no CORS),
+     TypeScript types generated from the API's OpenAPI schema, and a few preset Leiden places
+     plus the browser's location instead of postcode search (which needs a geocoder, e.g. PDOK).
 
 From here, the full roadmap resumes at Phase 2 (add the DB and a proper `DealSource` interface —
 informed by now actually having one working scraper to abstract from) through Phase 6.
