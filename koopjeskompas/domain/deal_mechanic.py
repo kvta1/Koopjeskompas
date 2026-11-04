@@ -1,7 +1,7 @@
 import re
 from decimal import Decimal
 
-from koopjeskompas.domain.models import Deal
+from koopjeskompas.domain.models import Deal, RangeProduct
 
 
 class UnknownMechanicError(ValueError):
@@ -120,6 +120,26 @@ def deal_discount(deal: Deal) -> Decimal | None:
         )
     except ValueError:
         return None
+
+
+def product_discount(deal: Deal, product: RangeProduct) -> Decimal | None:
+    """Discount fraction of one product of a range deal, or None if undeterminable."""
+    try:
+        return parse_deal_mechanic(
+            deal.mechanic_string,
+            product.normal_price,
+            deal.deal_price,
+            product.normal_price_per_kg,
+        )
+    except ValueError:
+        return None
+
+
+def is_scorable(deal: Deal) -> bool:
+    """Whether the deal itself, or at least one of its products, has a discount."""
+    return deal_discount(deal) is not None or any(
+        product_discount(deal, product) is not None for product in deal.products
+    )
 
 
 def _require_normal_price(normal_price: Decimal | None) -> Decimal:

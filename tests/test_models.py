@@ -10,6 +10,7 @@ from koopjeskompas.domain.models import (
     Deal,
     Diet,
     Preferences,
+    RangeProduct,
     Store,
 )
 
@@ -53,6 +54,24 @@ def test_deal_rejects_non_positive_normal_price() -> None:
 )
 def test_deal_is_active_on_inclusive_window(day: date, active: bool) -> None:
     assert make_deal().is_active_on(day) is active
+
+
+def test_deal_has_no_products_by_default() -> None:
+    assert make_deal().products == ()
+
+
+def test_range_product_needs_a_positive_price() -> None:
+    with pytest.raises(ValidationError):
+        RangeProduct(name="AH Verse pizza bianca", normal_price=Decimal(0))
+
+
+def test_range_products_are_immutable() -> None:
+    deal = make_deal(
+        products=[RangeProduct(name="AH Pizza tonno", normal_price=Decimal("6.89"))]
+    )
+    assert isinstance(deal.products, tuple)
+    with pytest.raises(ValidationError):
+        deal.products[0].name = "something else"  # type: ignore[misc]
 
 
 def test_instantiate_store() -> None:

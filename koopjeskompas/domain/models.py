@@ -27,8 +27,22 @@ class Coordinates(BaseModel):
     longitude: float = Field(ge=-180, le=180)
 
 
+class RangeProduct(BaseModel):
+    """One product of a range deal ("Alle AH Verse pizza's"), with its own price."""
+
+    model_config = ConfigDict(frozen=True)
+
+    name: str
+    normal_price: Decimal = Field(gt=0)
+    normal_price_per_kg: Decimal | None = Field(default=None, gt=0)
+
+
 class Deal(BaseModel):
-    """A national promotion of one chain; every store of that chain carries it."""
+    """A national promotion of one chain; every store of that chain carries it.
+
+    A range deal ("2 voor €12 on all fresh pizzas") lists its ``products``: the range
+    has no single normal price, so each product's discount is worked out separately.
+    """
 
     model_config = ConfigDict(frozen=True)
 
@@ -45,6 +59,8 @@ class Deal(BaseModel):
     mechanic_string: str | None = None
     valid_from: date
     valid_to: date
+    # A tuple, not a list: a frozen model with a list field could still be mutated.
+    products: tuple[RangeProduct, ...] = ()
 
     @model_validator(mode="after")
     def _check_validity_window(self) -> Self:
