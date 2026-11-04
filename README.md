@@ -145,9 +145,10 @@ vegetarian, and the range is scored on those three:
 uv run koopjeskompas serve            # http://127.0.0.1:8000, change with --host and --port
 ```
 
-Open <http://127.0.0.1:8000/docs> for interactive documentation: every endpoint, its request and
-response models, and a "Try it out" button. The API reads the same deal cache as `rank`; a new
-`fetch-deals` run is picked up without a restart. It never contacts AH during a request.
+Open <http://127.0.0.1:8000/docs> for interactive documentation; the bare address redirects
+there. It shows every endpoint, its request and response models, and a "Try it out" button. The
+API reads the same deal cache as `rank`; a new `fetch-deals` run is picked up without a restart.
+It never contacts AH during a request.
 
 | Endpoint | What it does |
 |---|---|
@@ -200,6 +201,8 @@ Testing approach:
   store's score", "a vegetarian ranking never contains meat or fish".
 - **AH integration:** tests replay real AH responses saved in `tests/fixtures/ah/`, with HTTP mocked
   by `respx`. Tests never contact AH.
+- **Web API:** tests send real HTTP requests through FastAPI's `TestClient`, without a running
+  server. They swap the deal cache and "today" through FastAPI's dependency overrides.
 
 ### Project structure
 
