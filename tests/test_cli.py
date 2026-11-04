@@ -3,11 +3,17 @@ import time
 from collections.abc import Iterator
 from pathlib import Path
 
+import httpx
 import pytest
 import respx
 
 from koopjeskompas.cli import main
-from koopjeskompas.ingestion.ah.client import BASE_URL, METADATA_PATH, TOKEN_PATH
+from koopjeskompas.ingestion.ah.client import (
+    BASE_URL,
+    GRAPHQL_PATH,
+    METADATA_PATH,
+    TOKEN_PATH,
+)
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ah"
 TODAY = "2026-10-15"  # inside the fixture's bonus week
@@ -47,7 +53,26 @@ def ah_api(monkeypatch: pytest.MonkeyPatch) -> Iterator[respx.MockRouter]:
         router.get("/mobile-services/bonuspage/v2/section").respond(
             json={"bonusGroupOrProducts": []}
         )
+        router.post(GRAPHQL_PATH).mock(side_effect=_range_lookup)
         yield router
+
+
+# A hand-made lookup for "Alle AH Rauwkost" (2 VOOR 4.00) in the fixture week: €2.00
+# each saves 12.7% on the first product and 19.7% on the second. The fixture week's
+# other ranges come back without products.
+RAUWKOST_SEGMENT_ID = "818834"
+RAUWKOST_PRODUCTS = [("AH Rauwkost wortel", 2.29), ("AH Rauwkost bietjes", 2.49)]
+
+
+def _range_lookup(request: httpx.Request) -> httpx.Response:
+    segment_id = json.loads(request.content)["variables"]["id"]
+    products = [
+        {"title": title, "priceV2": {"was": {"amount": price}}}
+        for title, price in RAUWKOST_PRODUCTS
+        if segment_id == RAUWKOST_SEGMENT_ID
+    ]
+    promotions = [{"id": segment_id, "products": products}]
+    return httpx.Response(200, json={"data": {"bonusPromotions": promotions}})
 
 
 def test_fetch_then_rank(

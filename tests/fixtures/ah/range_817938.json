@@ -1,0 +1,73 @@
+{
+  "data": {
+    "bonusPromotions": [
+      {
+        "id": "817938",
+        "title": "AH Yorkham van de versafdeling",
+        "productCount": 2,
+        "products": [
+          {
+            "id": 188709,
+            "title": "AH Yorkham",
+            "brand": "AH",
+            "category": "Vleeswaren/Ham (versafdeling)",
+            "salesUnitSize": "ca. 110 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 2.19
+              },
+              "was": {
+                "amount": 3.49
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "WEIGHT",
+                    "description": "per 100 GRAM voor €1.99"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 197145,
+            "title": "AH Gegrilde yorkham",
+            "brand": "AH",
+            "category": "Vleeswaren/Ham (versafdeling)",
+            "salesUnitSize": "ca. 110 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 2.19
+              },
+              "was": {
+                "amount": 3.49
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "WEIGHT",
+                    "description": "per 100 GRAM voor €1.99"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -10,6 +10,7 @@ import respx
 
 from koopjeskompas.ingestion.ah.client import (
     BASE_URL,
+    GRAPHQL_PATH,
     METADATA_PATH,
     TOKEN_PATH,
     AhApiError,
@@ -196,3 +197,91 @@ def test_saved_responses_can_be_reparsed_without_the_api(
 def test_reparsing_needs_saved_responses(tmp_path: Path) -> None:
     with pytest.raises(AhApiError, match="no saved responses"):
         load_raw_week(tmp_path, date(2026, 10, 15))
+
+
+# --- range lookups -------------------------------------------------------
+
+
+def group(segment_id: int, code: str, **extra: Any) -> dict[str, Any]:
+    return {
+        "bonusGroup": {
+            "segmentId": segment_id,
+            "segmentDescription": f"Range {segment_id}",
+            "discountLabels": [{"code": code}],
+            **extra,
+        }
+    }
+
+
+SECTION_WITH_RANGES = {
+    "bonusGroupOrProducts": [
+        group(1, "DISCOUNT_X_FOR_Y"),  # "2 voor 12.00": needs prices
+        group(2, "DISCOUNT_PERCENTAGE"),  # "25% korting": doesn't
+        group(3, "DISCOUNT_FIXED_PRICE", products=[{"title": "Already listed"}]),
+        group(4, "DISCOUNT_FIXED_PRICE", promotionType="AHONLINE"),  # not in store
+        group(1, "DISCOUNT_X_FOR_Y"),  # listed twice, looked up once
+        {"unexpected": "shape"},
+    ]
+}
+RANGE_RESPONSE = {"data": {"bonusPromotions": [{"id": "1", "products": []}]}}
+
+
+def fetch_with_ranges(
+    api: respx.MockRouter, tmp_path: Path, graphql: httpx.Response
+) -> tuple[Any, respx.Route]:
+    section_route(api, "Groente, aardappelen").respond(json=SECTION_WITH_RANGES)
+    section_route(api, "Vlees").respond(json={})
+    route = api.post(GRAPHQL_PATH).mock(return_value=graphql)
+    return make_client(tmp_path).fetch_bonus_week(date(2026, 10, 15)), route
+
+
+def test_looks_up_only_price_dependent_ranges_once(
+    api: respx.MockRouter, tmp_path: Path
+) -> None:
+    week, route = fetch_with_ranges(
+        api, tmp_path, httpx.Response(200, json=RANGE_RESPONSE)
+    )
+
+    assert route.call_count == 1
+    body = json.loads(route.calls.last.request.content)
+    assert "bonusPromotions" in body["query"]
+    assert body["variables"] == {
+        "id": "1",
+        "periodStart": "2026-10-12",
+        "periodEnd": "2026-10-18",
+    }
+    assert week.ranges == {1: RANGE_RESPONSE}
+    assert week.failed_ranges == []
+    saved = json.loads((tmp_path / "range_1.json").read_text())
+    assert saved == RANGE_RESPONSE
+
+
+@pytest.mark.parametrize(
+    "response",
+    [
+        httpx.Response(500),
+        httpx.Response(200, json={"errors": [{"message": "not allowed"}]}),
+        httpx.Response(200, json=["not", "an", "object"]),
+    ],
+)
+def test_a_failing_range_lookup_is_skipped_not_fatal(
+    api: respx.MockRouter, tmp_path: Path, response: httpx.Response
+) -> None:
+    week, _ = fetch_with_ranges(api, tmp_path, response)
+
+    assert week.ranges == {}
+    assert week.failed_ranges == [1]
+    assert not (tmp_path / "range_1.json").exists()
+    assert len(week.sections) == 2, "the sections themselves still count"
+
+
+def test_saved_range_lookups_can_be_reparsed(
+    api: respx.MockRouter, tmp_path: Path
+) -> None:
+    fetch_with_ranges(api, tmp_path, httpx.Response(200, json=RANGE_RESPONSE))
+
+    reloaded = load_raw_week(tmp_path, date(2026, 10, 15))
+    assert reloaded.ranges == {1: RANGE_RESPONSE}
+
+    (tmp_path / "range_1.json").unlink()
+    assert load_raw_week(tmp_path, date(2026, 10, 15)).failed_ranges == [1]
