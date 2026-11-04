@@ -77,7 +77,7 @@ def score_deals(
     for deal in deals:
         if not deal.is_active_on(today):
             continue
-        tags = tag_product(deal.product_name)
+        tags = tag_product(deal.product_name, deal.category)
         if not passes_hard_filters(tags, preferences):
             continue
         discount = deal_discount(deal)

@@ -1,0 +1,526 @@
+{
+ "sectionType": "AH",
+ "sectionDescription": "Groente, aardappelen",
+ "bonusGroupOrProducts": [
+  {
+   "bonusGroup": {
+    "id": "819040",
+    "offerId": 202873,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 819040,
+    "segmentDescription": "Combideal voor 7.50: AH Verspakket nacho bowl Mexicaanse stijl",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "BONUS",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleFromPrice": 12.87,
+    "exampleForPrice": 7.5,
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_BONUS",
+      "defaultDescription": "BONUS"
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 4117,
+    "hqId": 646784,
+    "title": "AH Paprika rood",
+    "brand": "AH",
+    "isSample": false,
+    "salesUnitSize": "Los",
+    "segmentId": "822277",
+    "bonusSegmentId": 822277,
+    "offerId": 206068,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Paprika rood",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "4 stapelen voor 2.49",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_TIERED_PRICE",
+      "defaultDescription": "4 stuks 2.49",
+      "count": 4,
+      "price": 2.49,
+      "unit": "PIECE"
+     },
+     {
+      "code": "DISCOUNT_TIERED_PRICE",
+      "defaultDescription": "2 stuks 1.49",
+      "count": 2,
+      "price": 1.49,
+      "unit": "PIECE"
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 0.95,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Groente, aardappelen",
+    "subCategory": "Paprika",
+    "subCategoryId": 1397,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "814155",
+    "offerId": 197894,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 814155,
+    "segmentDescription": "Alle AH Kleinverpakkingen groentegemak",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "2 VOOR 2.49",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_X_FOR_Y",
+      "defaultDescription": "2 voor 2.49",
+      "count": 2,
+      "price": 2.49
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "814123",
+    "offerId": 197862,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 814123,
+    "segmentDescription": "Alle Bonduelle 255-400 gram en diepvriesgroenten",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "2 VOOR 2.99",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_X_FOR_Y",
+      "defaultDescription": "2 voor 2.99",
+      "count": 2,
+      "price": 2.99
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "814073",
+    "offerId": 197812,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 814073,
+    "segmentDescription": "Alle AH Soep verspakketten",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "1 EURO KORTING",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_AMOUNT",
+      "defaultDescription": "€1.00 euro korting",
+      "amount": 1.0
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 238834,
+    "hqId": 831963,
+    "title": "AH Witlof zak 4 stuks",
+    "brand": "AH",
+    "isSample": false,
+    "segmentId": "822273",
+    "bonusSegmentId": 822273,
+    "offerId": 206064,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Witlof zak 4 stuks",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "30% korting",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "30% korting",
+      "percentage": 30,
+      "precisePercentage": 30
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 2.29,
+    "hasListPrice": false,
+    "currentPrice": 1.6,
+    "isBonusPrice": true,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Groente, aardappelen",
+    "subCategory": "Witlof en roodlof",
+    "subCategoryId": 1696,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 4095,
+    "hqId": 20971,
+    "title": "AH Spruitjes 500 gram",
+    "brand": "AH",
+    "isSample": false,
+    "unitPriceDescription": "normale prijs per kg €2.98",
+    "segmentId": "822276",
+    "bonusSegmentId": 822276,
+    "offerId": 206067,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Spruitjes 500 gram",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "VOOR 0.99",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_FIXED_PRICE",
+      "defaultDescription": "voor 0.99",
+      "price": 0.99
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 1.49,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Groente, aardappelen",
+    "subCategory": "Spruitjes",
+    "subCategoryId": 1586,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 51774,
+    "hqId": 70832,
+    "title": "AH Biologisch zuurkool naturel 520 gram",
+    "brand": "AH Biologisch",
+    "isSample": false,
+    "unitPriceDescription": "normale prijs per kg €2.18",
+    "segmentId": "822272",
+    "bonusSegmentId": 822272,
+    "offerId": 206063,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Biologisch zuurkool naturel 520 gram",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "VOOR 0.69",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_FIXED_PRICE",
+      "defaultDescription": "voor 0.69",
+      "price": 0.69
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 1.09,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Groente, aardappelen",
+    "subCategory": "Zuurkool",
+    "subCategoryId": 5200,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "product": {
+    "webshopId": 449311,
+    "hqId": 708785,
+    "title": "AH Biologisch baby romaine 2 stuks",
+    "brand": "AH Biologisch",
+    "isSample": false,
+    "segmentId": "822278",
+    "bonusSegmentId": 822278,
+    "offerId": 206069,
+    "offerStartDate": "2026-10-12",
+    "bonusSegmentDescription": "AH Biologisch baby romaine 2 stuks",
+    "discountType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "isInfiniteBonus": false,
+    "bonusMechanism": "VOOR 1.99",
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_FIXED_PRICE",
+      "defaultDescription": "voor 1.99",
+      "price": 1.99
+     }
+    ],
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "priceBeforeBonus": 2.59,
+    "hasListPrice": false,
+    "isBonusPrice": false,
+    "isStapelBonus": false,
+    "isBonus": true,
+    "shopType": "AH",
+    "orderAvailabilityStatus": "IN_ASSORTMENT",
+    "availableOnline": true,
+    "isOrderable": true,
+    "mainCategory": "Groente, aardappelen",
+    "subCategory": "Sla",
+    "subCategoryId": 1525,
+    "isPreviouslyBought": false,
+    "nix18": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "822275",
+    "offerId": 206066,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 822275,
+    "segmentDescription": "AH Biologisch flespompoen",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "25% KORTING",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "salesUnitSize": "Los, per 500 gram",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_PERCENTAGE",
+      "defaultDescription": "25% korting",
+      "percentage": 25,
+      "precisePercentage": 25
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "814075",
+    "offerId": 197814,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 814075,
+    "segmentDescription": "Combideal voor 7.50: AH Verspakket fusilli met oesterzwam",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "BONUS",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleFromPrice": 11.62,
+    "exampleForPrice": 7.5,
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_BONUS",
+      "defaultDescription": "BONUS"
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818834",
+    "offerId": 202667,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818834,
+    "segmentDescription": "Alle AH Rauwkost",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "2 VOOR 4.00",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_X_FOR_Y",
+      "defaultDescription": "2 voor 4.00",
+      "count": 2,
+      "price": 4.0
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  },
+  {
+   "bonusGroup": {
+    "id": "818869",
+    "offerId": 202702,
+    "offerStartDate": "2026-10-12",
+    "segmentId": 818869,
+    "segmentDescription": "AH Slaverrijkers",
+    "bonusStartDate": "2026-10-12",
+    "bonusEndDate": "2026-10-18",
+    "validityPeriod": {
+     "start": "2026-10-12",
+     "end": "2026-10-18",
+     "description": "vandaag",
+     "code": "TODAY"
+    },
+    "bonusType": "AH",
+    "promotionType": "NATIONAL",
+    "segmentType": "AH",
+    "discountDescription": "3 VOOR 6.00",
+    "category": "Groente, aardappelen",
+    "future": false,
+    "products": [],
+    "shopType": "AH",
+    "bonusPeriodDescription": "vandaag",
+    "exampleHasListPrice": false,
+    "isStapelBonus": false,
+    "discountLabels": [
+     {
+      "code": "DISCOUNT_X_FOR_Y",
+      "defaultDescription": "3 voor 6.00",
+      "count": 3,
+      "price": 6.0
+     }
+    ],
+    "storeOnlyPromotion": false
+   }
+  }
+ ]
+}

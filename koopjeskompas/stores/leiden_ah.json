@@ -1,0 +1,56 @@
+[
+  {
+    "chain": "AH",
+    "name": "AH Breestraat",
+    "address": "Breestraat 130, Leiden",
+    "location": {
+      "latitude": 52.1570015,
+      "longitude": 4.4919905
+    }
+  },
+  {
+    "chain": "AH",
+    "name": "AH Hooigracht",
+    "address": "Hooigracht 85, Leiden",
+    "location": {
+      "latitude": 52.1597304,
+      "longitude": 4.4970911
+    }
+  },
+  {
+    "chain": "AH",
+    "name": "AH Kopermolen",
+    "address": "Kopermolen 44, Leiden",
+    "location": {
+      "latitude": 52.1767919,
+      "longitude": 4.5050317
+    }
+  },
+  {
+    "chain": "AH",
+    "name": "AH Soestdijkkade",
+    "address": "Soestdijkkade 82, Leiden",
+    "location": {
+      "latitude": 52.1664579,
+      "longitude": 4.5060488
+    }
+  },
+  {
+    "chain": "AH",
+    "name": "AH Stevensbloem",
+    "address": "Stevensbloem 11, Leiden",
+    "location": {
+      "latitude": 52.1510683,
+      "longitude": 4.4530751
+    }
+  },
+  {
+    "chain": "AH",
+    "name": "AH XL Bevrijdingsplein",
+    "address": "Bevrijdingsplein 50, Leiden",
+    "location": {
+      "latitude": 52.1466915,
+      "longitude": 4.4768239
+    }
+  }
+]

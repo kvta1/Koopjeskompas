@@ -24,6 +24,14 @@ VEGAN = Preferences(diet=Diet.VEGAN)
         ("Ansjovis in olijfolie", False, False),
         ("Garnalen", False, False),
         ("Groentekroket", False, False),  # unknown filling: excluded to be safe
+        # Keywords in the middle of a compound (real AH deal names).
+        ("AH Scharrelkipfiletreepjes", False, False),
+        ("AH Scharrelkipschnitzels Hongaars of Wiener", False, False),
+        ("Geitenkaasjes", True, False),
+        ("Kastanjechampignons", True, True),
+        ("Champignonsoep", True, True),
+        ("Spekkoek", True, True),
+        ("Paneermeel", True, True),
         ("Geitenkaas", True, False),
         ("Halfvolle melk", True, False),
         ("Scharreleieren 10 stuks", True, False),
@@ -55,6 +63,8 @@ def test_diet_hard_filter(product: str, vegetarian: bool, vegan: bool) -> None:
         ("Volkoren brood", True, False),
         ("Glutenvrij brood", True, True),
         ("Spaghetti", True, False),
+        ("Bananen", True, True),
+        ("Banaan", True, True),
         ("Appels", True, True),
     ],
 )
@@ -86,6 +96,34 @@ def test_cuisine_tags(product: str, cuisine: Cuisine) -> None:
 
 def test_unrelated_product_has_no_cuisine() -> None:
     assert not tag_product("Appels") & set(Cuisine)
+
+
+@pytest.mark.parametrize(
+    ("product", "category", "vegetarian", "vegan"),
+    [
+        # A brand name says nothing; the category does.
+        ("Wahid", "Vlees", False, False),
+        ("Wahid", None, True, True),
+        ("AH Huismerk", "Vis", False, False),
+        ("AH Huismerk", "Zuivel, eieren", True, False),
+        ("AH Spruitjes", "Groente, aardappelen", True, True),
+        # A category never *adds* a label: this one also holds non-vegan items.
+        ("Vegetarische schijven", "Vegetarisch, vegan en plantaardig", True, False),
+        ("Kaasburger", "Vegetarisch, vegan en plantaardig", False, False),
+    ],
+)
+def test_category_adds_animal_product_evidence(
+    product: str, category: str | None, vegetarian: bool, vegan: bool
+) -> None:
+    tags = tag_product(product, category)
+    assert passes_hard_filters(tags, VEGETARIAN) is vegetarian
+    assert passes_hard_filters(tags, VEGAN) is vegan
+
+
+def test_oyster_mushrooms_are_not_fish() -> None:
+    tags = tag_product("Combideal voor 7.50: AH Verspakket fusilli met oesterzwam")
+    assert Tag.FISH not in tags
+    assert Tag.VEGETARIAN in tags
 
 
 def test_short_keywords_only_match_whole_words() -> None:

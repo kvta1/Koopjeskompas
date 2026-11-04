@@ -11,12 +11,22 @@ class UnknownMechanicError(ValueError):
 _FIXED_FRACTION_MECHANICS: dict[str, Decimal] = {
     "2e halve prijs": Decimal("0.25"),
     "2e gratis": Decimal("0.50"),
-    "1+1 gratis": Decimal("0.50"),
-    "2+1 gratis": Decimal(1) / Decimal(3),
     "3 voor 2": Decimal(1) / Decimal(3),
 }
+# "1+1 gratis", "2 + 3 GRATIS": pay for n, get m more free.
+_PLUS_FREE_RE = re.compile(r"(?P<paid>\d+)\+(?P<free>\d+) gratis")
 _PERCENT_RE = re.compile(r"(\d+)\s*%\s*korting")
-_N_VOOR_PRICE_RE = re.compile(r"(\d+)\s*voor\s*€\s*(\d+(?:[.,]\d{1,2})?)")
+# A price: "€5", "€ 4.50", or AH's bare "5.99". Without a euro sign the price needs
+# decimals, otherwise "3 voor 2" (buy three, pay two) would read as three for €2.
+_PRICE = r"(?:€\s*(?P<euro>\d+(?:[.,]\d{1,2})?)|(?P<bare>\d+[.,]\d{1,2}))"
+# "2 voor €5", "3 VOOR 5.99", "4 stapelen voor 2.49" (buy 4 for €2.49), or just
+# "voor 0.99" (one item for €0.99).
+_N_VOOR_PRICE_RE = re.compile(rf"(?:(?P<n>\d+)\s*(?:stapelen\s*)?)?voor\s*{_PRICE}")
+# "1 euro korting", "€1,50 korting", "2.50 korting": a fixed amount off the normal
+# price. A bare number needs decimals, so it can't be confused with a percentage.
+_AMOUNT_OFF_RE = re.compile(
+    rf"(?:{_PRICE}|(?P<amount>\d+(?:[.,]\d{{1,2}})?)\s*euro)\s*korting"
+)
 
 
 def parse_deal_mechanic(
@@ -38,10 +48,16 @@ def parse_deal_mechanic(
             raise ValueError("deal_price is required when there is no mechanic")
         return _fraction_from_prices(_require_normal_price(normal_price), deal_price)
 
-    normalized = " ".join(mechanic.lower().split())
+    normalized = re.sub(r"\s*\+\s*", "+", " ".join(mechanic.lower().split()))
 
     if normalized in _FIXED_FRACTION_MECHANICS:
         return _FIXED_FRACTION_MECHANICS[normalized]
+
+    if match := _PLUS_FREE_RE.fullmatch(normalized):
+        paid, free = int(match["paid"]), int(match["free"])
+        if paid == 0:
+            raise UnknownMechanicError(mechanic)
+        return Decimal(free) / Decimal(paid + free)
 
     if match := _PERCENT_RE.fullmatch(normalized):
         percent = Decimal(match.group(1))
@@ -50,13 +66,26 @@ def parse_deal_mechanic(
         return percent / Decimal(100)
 
     if match := _N_VOOR_PRICE_RE.fullmatch(normalized):
-        n = Decimal(match.group(1))
+        n = Decimal(match["n"] or 1)
         if n == 0:
             raise UnknownMechanicError(mechanic)
-        total = Decimal(match.group(2).replace(",", "."))
+        total = _matched_price(match)
         return _fraction_from_prices(_require_normal_price(normal_price), total / n)
 
+    if match := _AMOUNT_OFF_RE.fullmatch(normalized):
+        normal = _require_normal_price(normal_price)
+        deal = max(Decimal(0), normal - _matched_price(match))
+        return _fraction_from_prices(normal, deal)
+
     raise UnknownMechanicError(mechanic)
+
+
+def _matched_price(match: re.Match[str]) -> Decimal:
+    groups = match.groupdict()
+    price = groups["euro"] or groups["bare"] or groups.get("amount")
+    if price is None:  # unreachable: every regex alternative captures a price
+        raise UnknownMechanicError(match.string)
+    return Decimal(price.replace(",", "."))
 
 
 def deal_discount(deal: Deal) -> Decimal | None:
