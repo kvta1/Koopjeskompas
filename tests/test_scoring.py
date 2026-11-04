@@ -281,6 +281,24 @@ def test_range_name_counts_as_evidence_for_every_product() -> None:
     assert score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY) == []
 
 
+def test_a_marker_in_the_range_name_does_not_vouch_for_every_product() -> None:
+    deal = make_range(
+        "Alle AH Terra plantaardige producten",
+        [("AH Terra plantaardige burger", "3.00"), ("AH Kipburger", "4.00")],
+    )
+    (scored,) = score_deals([deal], Preferences(diet=Diet.VEGAN), TODAY)
+    assert scored.products_counted == 1
+
+
+def test_a_range_name_listing_meat_excludes_the_whole_range() -> None:
+    # Fail-safe: the range name alone already fails the filter.
+    deal = make_range(
+        "Alle AH Terra plantaardige burgers en Scharrelkipburgers",
+        [("AH Terra plantaardige burger", "3.00")],
+    )
+    assert score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY) == []
+
+
 def test_range_products_without_a_discount_do_not_count() -> None:
     deal = make_range(
         "AH Yorkham van de versafdeling",

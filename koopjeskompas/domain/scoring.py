@@ -113,19 +113,24 @@ def _score_single(deal: Deal, preferences: Preferences) -> ScoredDeal | None:
 def _score_range(deal: Deal, preferences: Preferences) -> ScoredDeal | None:
     """Score a range deal by the median of the products you could actually buy.
 
-    Each product is tagged on the range name plus its own name, so a "kip" in
-    either still blocks it. Products failing the hard filters, or without a
-    determinable discount, don't count; if none are left, neither does the range.
-    The median rather than the best product: a range shouldn't be scored by its
-    one outlier.
+    A product counts only if both its own name and the range name pass the hard
+    filters, so a "kip" in either still blocks it. (They are tagged separately: a
+    "plantaardig" in the range name must not vouch for every product in it.)
+    Products without a determinable discount don't count either; if none are left,
+    neither does the range. The median rather than the best product: a range
+    shouldn't be scored by its one outlier.
     """
+    range_tags = tag_product(deal.product_name, deal.category)
+    if not passes_hard_filters(range_tags, preferences):
+        return None
     discounts: list[float] = []
     relevances: list[float] = []
     values: list[float] = []
     for product in deal.products:
-        tags = tag_product(f"{deal.product_name} {product.name}", deal.category)
+        tags = tag_product(product.name, deal.category)
         if not passes_hard_filters(tags, preferences):
             continue
+        tags |= range_tags  # e.g. a cuisine named only in the range name
         discount = product_discount(deal, product)
         if discount is None:
             continue

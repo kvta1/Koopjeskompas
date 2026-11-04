@@ -43,6 +43,8 @@ BASELINE_RELEVANCE = 0.2
 
 _MIN_COMPOUND_LEN = 3
 _TOKEN_RE = re.compile(r"[a-zà-ÿ]+")
+# Separates the items a name lists: "A, B en C", "A of B", "A & B", "A/B".
+_ITEM_SEPARATOR_RE = re.compile(r",|&|/|\b(?:en|of)\b")
 
 _MEAT = frozenset({
     "vlees", "kip", "rund", "varken", "kalf", "lam", "gehakt", "spek",
@@ -131,25 +133,42 @@ def tag_product(product_name: str, category: str | None = None) -> frozenset[str
     adds labels: AH's "Vegetarisch, vegan en plantaardig" also holds non-vegan items.
     """
     tokens = _TOKEN_RE.findall(product_name.lower())
-    evidence = tokens + _TOKEN_RE.findall((category or "").lower())
+    category_tokens = _TOKEN_RE.findall((category or "").lower())
     tags: set[str] = set()
 
-    is_vegan = _matches(tokens, _VEGAN_MARKERS)
-    is_vegetarian = is_vegan or _matches(tokens, _VEGETARIAN_MARKERS)
+    # A marker like "plantaardige" only vouches for the item it belongs to. A name
+    # can list several ("Greenfields beefburgers, Terra plantaardige hamburgers en
+    # Scharrelkipburgers"), so animal products are looked for item by item.
+    items = [
+        _TOKEN_RE.findall(item)
+        for item in _ITEM_SEPARATOR_RE.split(product_name.lower())
+    ]
+    items = [item for item in items if item] or [[]]
+    vegan_items = [_matches(item, _VEGAN_MARKERS) for item in items]
+    vegetarian_items = [
+        vegan or _matches(item, _VEGETARIAN_MARKERS)
+        for item, vegan in zip(items, vegan_items, strict=True)
+    ]
+    is_vegan = all(vegan_items)
+    is_vegetarian = all(vegetarian_items)
 
-    if not is_vegetarian:
-        if _matches(evidence, _MEAT, anywhere=True, ignore=_NOT_MEAT):
-            tags.add(Tag.MEAT)
-        if _matches(evidence, _FISH, anywhere=True, ignore=_NOT_FISH):
-            tags.add(Tag.FISH)
-    if not is_vegan:
-        animal_tokens = [t for t in evidence if not t.startswith(_PLANT_BASED_PREFIXES)]
-        if _matches(animal_tokens, _DAIRY, anywhere=True, ignore=("paneermeel",)):
-            tags.add(Tag.DAIRY)
-        if _matches(evidence, _EGG, anywhere=True):
-            tags.add(Tag.EGG)
-        if _matches(evidence, _HONEY, anywhere=True):
-            tags.add(Tag.HONEY)
+    for item, vegan, vegetarian in zip(
+        items, vegan_items, vegetarian_items, strict=True
+    ):
+        evidence = item + category_tokens
+        if not vegetarian:
+            if _matches(evidence, _MEAT, anywhere=True, ignore=_NOT_MEAT):
+                tags.add(Tag.MEAT)
+            if _matches(evidence, _FISH, anywhere=True, ignore=_NOT_FISH):
+                tags.add(Tag.FISH)
+        if not vegan:
+            animal = [t for t in evidence if not t.startswith(_PLANT_BASED_PREFIXES)]
+            if _matches(animal, _DAIRY, anywhere=True, ignore=("paneermeel",)):
+                tags.add(Tag.DAIRY)
+            if _matches(evidence, _EGG, anywhere=True):
+                tags.add(Tag.EGG)
+            if _matches(evidence, _HONEY, anywhere=True):
+                tags.add(Tag.HONEY)
     if _matches(tokens, _GLUTEN, ignore=_NOT_GLUTEN):
         tags.add(Tag.GLUTEN)
 

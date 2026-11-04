@@ -48,6 +48,17 @@ VEGAN = Preferences(diet=Diet.VEGAN)
         ("Havermelk", True, True),
         ("Kokosmelk", True, True),
         ("Vegetarische kipstuckjes", True, False),
+        # A marker only vouches for its own item when a name lists several.
+        (
+            "Alle AH Greenfields beefburgers, AH (Terra plantaardige) hamburgers "
+            "en AH Scharrelkipburgers 2 stuks",
+            False,
+            False,
+        ),
+        ("AH Terra plantaardige hamburgers", True, True),
+        ("Vegetarische burgers of kipschnitzels", False, False),
+        ("Vegan burgers en vegetarische kaasburgers", True, False),
+        ("Vegan burgers & falafel", True, True),
         ("Vegaburger", True, False),
         ("Vegan kaas", True, True),
         ("Plantaardige yoghurt", True, True),
