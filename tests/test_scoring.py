@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 import pytest
 from hypothesis import given
@@ -10,6 +11,7 @@ from koopjeskompas.domain.models import (
     Deal,
     Diet,
     Preferences,
+    RangeProduct,
     Store,
 )
 from koopjeskompas.domain.scoring import (
@@ -225,3 +227,140 @@ def test_vegetarian_rankings_never_contain_meat_or_fish(
     (ranking,) = rank_stores(stores, deals, prefs, LEIDEN, TODAY)
     shown = {d.deal.product_name for d in ranking.top_deals}
     assert not shown & {"Kipfilet", "Zalm"}
+
+
+# --- range deals ---------------------------------------------------------
+
+
+def make_range(
+    name: str, products: list[tuple[str, str]], mechanic: str = "2 voor €5"
+) -> Deal:
+    return Deal(
+        chain="AH",
+        product_name=name,
+        mechanic_string=mechanic,
+        valid_from=date(2026, 10, 12),
+        valid_to=date(2026, 10, 18),
+        products=tuple(
+            RangeProduct(name=product, normal_price=Decimal(price))
+            for product, price in products
+        ),
+    )
+
+
+def test_range_scores_the_median_of_its_products() -> None:
+    # 2 voor €5 is €2.50 each: nothing off €2.50, 1/6 off €3.00, 3/8 off €4.00.
+    deal = make_range(
+        "Alle soepen",
+        [("Tomatensoep", "2.50"), ("Groentesoep", "3.00"), ("Uiensoep", "4.00")],
+    )
+    (scored,) = score_deals([deal], Preferences(), TODAY)
+    assert scored.discount == pytest.approx(1 / 6)
+    assert scored.value == pytest.approx(1 / 6)  # no cuisine preference: relevance 1
+    assert scored.products_counted == 3
+
+
+def test_range_only_counts_products_that_pass_the_diet() -> None:
+    deal = make_range(
+        "Alle soepen", [("Groentesoep", "3.00"), ("Erwtensoep met rookworst", "4.00")]
+    )
+    (scored,) = score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY)
+    assert scored.discount == pytest.approx(1 / 6)
+    assert scored.products_counted == 1
+
+
+def test_range_without_eligible_products_is_left_out() -> None:
+    deal = make_range("Alle vleeswaren", [("Kipfilet", "3.00"), ("Ham", "4.00")])
+    assert score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY) == []
+    assert len(score_deals([deal], Preferences(), TODAY)) == 1
+
+
+def test_range_name_counts_as_evidence_for_every_product() -> None:
+    # "Gelderse" alone says nothing; the range name says rookworst.
+    deal = make_range("Alle Unox rookworsten", [("Unox Gelderse", "3.00")])
+    assert score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY) == []
+
+
+def test_a_marker_in_the_range_name_does_not_vouch_for_every_product() -> None:
+    deal = make_range(
+        "Alle AH Terra plantaardige producten",
+        [("AH Terra plantaardige burger", "3.00"), ("AH Kipburger", "4.00")],
+    )
+    (scored,) = score_deals([deal], Preferences(diet=Diet.VEGAN), TODAY)
+    assert scored.products_counted == 1
+
+
+def test_a_range_name_listing_meat_excludes_the_whole_range() -> None:
+    # Fail-safe: the range name alone already fails the filter.
+    deal = make_range(
+        "Alle AH Terra plantaardige burgers en Scharrelkipburgers",
+        [("AH Terra plantaardige burger", "3.00")],
+    )
+    assert score_deals([deal], Preferences(diet=Diet.VEGETARIAN), TODAY) == []
+
+
+def test_range_products_without_a_discount_do_not_count() -> None:
+    deal = make_range(
+        "AH Yorkham van de versafdeling",
+        [("AH Yorkham", "3.49")],  # no kilo price, so per-weight can't be compared
+        mechanic="100 GRAM VOOR 1.99",
+    )
+    assert score_deals([deal], Preferences(), TODAY) == []
+    priced = deal.model_copy(
+        update={
+            "products": (
+                RangeProduct(
+                    name="AH Yorkham",
+                    normal_price=Decimal("3.49"),
+                    normal_price_per_kg=Decimal("31.73"),
+                ),
+            )
+        }
+    )
+    (scored,) = score_deals([priced], Preferences(), TODAY)
+    assert scored.discount == pytest.approx(1 - 19.90 / 31.73)
+
+
+range_products = st.lists(
+    st.tuples(
+        product_names,
+        st.decimals(min_value="0.50", max_value="20", places=2).map(str),
+    ),
+    min_size=1,
+    max_size=8,
+)
+
+
+@given(range_products, prefs_strategy)
+def test_a_range_never_beats_its_best_product(
+    products: list[tuple[str, str]], prefs: Preferences
+) -> None:
+    ranged = score_deals([make_range("Alle producten", products)], prefs, TODAY)
+    singles = score_deals(
+        [
+            Deal(
+                chain="AH",
+                product_name=f"Alle producten {name}",
+                normal_price=Decimal(price),
+                mechanic_string="2 voor €5",
+                valid_from=date(2026, 10, 12),
+                valid_to=date(2026, 10, 18),
+            )
+            for name, price in products
+        ],
+        prefs,
+        TODAY,
+    )
+    if ranged:
+        assert ranged[0].value <= max(s.value for s in singles)
+
+
+@given(range_products, st.decimals(min_value="0.50", max_value="20", places=2))
+def test_meat_in_a_range_never_changes_its_vegetarian_score(
+    products: list[tuple[str, str]], meat_price: Decimal
+) -> None:
+    prefs = Preferences(diet=Diet.VEGETARIAN)
+    before = score_deals([make_range("Alle producten", products)], prefs, TODAY)
+    with_meat = make_range("Alle producten", [*products, ("Kipfilet", str(meat_price))])
+    after = score_deals([with_meat], prefs, TODAY)
+    assert [s.value for s in after] == [s.value for s in before]

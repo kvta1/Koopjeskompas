@@ -17,7 +17,8 @@ data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before
 decisions. Current status: **MVP steps 1–2 are done** — the pure domain core
 (`koopjeskompas/domain/`), real AH bonus deals fetched and cached as JSON
 (`koopjeskompas/ingestion/`), a hardcoded Leiden store list (`koopjeskompas/stores/`) and a
-`koopjeskompas` CLI that prints a ranking. Next is MVP step 3 (a minimal `POST /api/rank`).
+`koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
+product and per-weight deals are scored. Next is MVP step 3 (a minimal `POST /api/rank`).
 
 ## Commands
 
@@ -31,13 +32,14 @@ uv run ruff check .        # lint
 uv run ruff format --check .   # format check (use `uv run ruff format .` to fix)
 uv run mypy .              # type check
 
-uv run koopjeskompas fetch-deals               # fetch this week's AH bonus (live, ~20 requests)
+uv run koopjeskompas fetch-deals               # fetch this week's AH bonus (live, ~65 requests)
 uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw responses, no network
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
 ```
 
-`fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` and parsed deals to
-`data/deals/ah.json` (`data/` is gitignored). It hits AH's unofficial mobile API: run it at most about
+`fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
+`section_<category>.json` per food category and one `range_<segmentId>.json` per looked-up range) and
+parsed deals to `data/deals/ah.json` (`data/` is gitignored). It hits AH's unofficial mobile API: run it at most about
 once a week, never in tests or CI. Tests replay captured responses from `tests/fixtures/ah/` and mock
 HTTP with `respx`. If AH changes its API, use `--from-raw` while fixing the parser rather than
 refetching.
@@ -63,8 +65,10 @@ The intended design is a modular monolith with a strict separation between the d
   into validated internal `Deal` models immediately at the boundary — never let scraped JSON shapes
   leak into domain code. Failures in one source must not take down others (graceful degradation).
   For now (MVP) there is one source, AH, as plain modules in `ingestion/ah/`: `client.py` (HTTP,
-  saves raw responses), `payloads.py` (Pydantic models of AH's JSON) and `parser.py` (pure,
-  payload → `Deal`); the `DealSource` interface waits until a second chain exists. Deals go to a
+  saves raw responses; REST for the bonus sections, GraphQL `bonusPromotions` for range products),
+  `payloads.py` (Pydantic models of AH's JSON) and `parser.py` (pure, payload → `Deal`); the
+  `DealSource` interface waits until a second chain exists. A range deal is a `Deal` with
+  `products`; scoring values it at the median of its products that pass the diet filters. Deals go to a
   JSON cache (`ingestion/cache.py`) instead of a DB.
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
   scrapes or hits external sources synchronously in a request.

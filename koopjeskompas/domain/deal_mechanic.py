@@ -1,7 +1,7 @@
 import re
 from decimal import Decimal
 
-from koopjeskompas.domain.models import Deal
+from koopjeskompas.domain.models import Deal, RangeProduct
 
 
 class UnknownMechanicError(ValueError):
@@ -27,21 +27,33 @@ _N_VOOR_PRICE_RE = re.compile(rf"(?:(?P<n>\d+)\s*(?:stapelen\s*)?)?voor\s*{_PRIC
 _AMOUNT_OFF_RE = re.compile(
     rf"(?:{_PRICE}|(?P<amount>\d+(?:[.,]\d{{1,2}})?)\s*euro)\s*korting"
 )
+# "100 GRAM VOOR 2.99", "per 100 gram voor €1.39", "1 kilo voor 5.99": a price per
+# weight, compared with the normal price per kilo.
+_PER_WEIGHT_RE = re.compile(
+    rf"(?:per\s*)?(?P<qty>\d+(?:[.,]\d+)?)\s*(?P<unit>gram|gr|g|kilo|kg)\s*voor\s*{_PRICE}"
+)
+_GRAMS_PER_UNIT = {"gram": 1, "gr": 1, "g": 1, "kilo": 1000, "kg": 1000}
 
 
 def parse_deal_mechanic(
     mechanic: str | None,
     normal_price: Decimal | None = None,
     deal_price: Decimal | None = None,
+    normal_price_per_kg: Decimal | None = None,
 ) -> Decimal:
     """Normalize a Dutch deal mechanic into a discount fraction in [0, 1].
 
     The fraction is the share of the normal price you save: "25% korting" -> 0.25,
     "2e halve prijs" -> 0.25 (half off one of two items). Mechanics defined by a
-    price ("2 voor €5", or no mechanic but a deal price) need ``normal_price``.
+    price ("2 voor €5", or no mechanic but a deal price) need ``normal_price``;
+    per-weight mechanics ("100 gram voor 1.39") need ``normal_price_per_kg``.
     """
-    if normal_price is not None and normal_price <= 0:
-        raise ValueError("normal_price must be positive")
+    for name, price in [
+        ("normal_price", normal_price),
+        ("normal_price_per_kg", normal_price_per_kg),
+    ]:
+        if price is not None and price <= 0:
+            raise ValueError(f"{name} must be positive")
 
     if mechanic is None or not mechanic.strip():
         if deal_price is None:
@@ -77,6 +89,15 @@ def parse_deal_mechanic(
         deal = max(Decimal(0), normal - _matched_price(match))
         return _fraction_from_prices(normal, deal)
 
+    if match := _PER_WEIGHT_RE.fullmatch(normalized):
+        grams = Decimal(match["qty"].replace(",", ".")) * _GRAMS_PER_UNIT[match["unit"]]
+        if grams == 0:
+            raise UnknownMechanicError(mechanic)
+        if normal_price_per_kg is None:
+            raise ValueError("normal_price_per_kg is required for per-weight mechanics")
+        deal_per_kg = _matched_price(match) * 1000 / grams
+        return _fraction_from_prices(normal_price_per_kg, deal_per_kg)
+
     raise UnknownMechanicError(mechanic)
 
 
@@ -92,10 +113,33 @@ def deal_discount(deal: Deal) -> Decimal | None:
     """Discount fraction of a deal, or None if it cannot be determined."""
     try:
         return parse_deal_mechanic(
-            deal.mechanic_string, deal.normal_price, deal.deal_price
+            deal.mechanic_string,
+            deal.normal_price,
+            deal.deal_price,
+            deal.normal_price_per_kg,
         )
     except ValueError:
         return None
+
+
+def product_discount(deal: Deal, product: RangeProduct) -> Decimal | None:
+    """Discount fraction of one product of a range deal, or None if undeterminable."""
+    try:
+        return parse_deal_mechanic(
+            deal.mechanic_string,
+            product.normal_price,
+            deal.deal_price,
+            product.normal_price_per_kg,
+        )
+    except ValueError:
+        return None
+
+
+def is_scorable(deal: Deal) -> bool:
+    """Whether the deal itself, or at least one of its products, has a discount."""
+    return deal_discount(deal) is not None or any(
+        product_discount(deal, product) is not None for product in deal.products
+    )
 
 
 def _require_normal_price(normal_price: Decimal | None) -> Decimal:

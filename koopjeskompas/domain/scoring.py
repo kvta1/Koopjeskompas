@@ -6,15 +6,19 @@
 
 Only the top k deals count, so a chain with a huge promotion folder does not win
 on volume alone. Stores further away than ``max_distance_km`` are left out.
+
+A range deal counts once, valued at the median over its products that pass your
+diet filters (see ``_score_range``).
 """
 
 import heapq
 from collections.abc import Iterable, Sequence
 from datetime import date
+from statistics import median
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from koopjeskompas.domain.deal_mechanic import deal_discount
+from koopjeskompas.domain.deal_mechanic import deal_discount, product_discount
 from koopjeskompas.domain.distance import haversine_km
 from koopjeskompas.domain.models import Coordinates, Deal, Preferences, Store
 from koopjeskompas.domain.tagging import passes_hard_filters, relevance, tag_product
@@ -36,6 +40,8 @@ class ScoredDeal(BaseModel):
     discount: float
     relevance: float
     value: float
+    # For a range deal: how many of its products counted towards the median.
+    products_counted: int = 0
 
 
 class StoreRanking(BaseModel):
@@ -77,22 +83,70 @@ def score_deals(
     for deal in deals:
         if not deal.is_active_on(today):
             continue
-        tags = tag_product(deal.product_name, deal.category)
+        result = (
+            _score_range(deal, preferences)
+            if deal.products
+            else _score_single(deal, preferences)
+        )
+        if result is not None and result.value > 0:
+            scored.append(result)
+    scored.sort(key=lambda s: s.value, reverse=True)
+    return scored
+
+
+def _score_single(deal: Deal, preferences: Preferences) -> ScoredDeal | None:
+    tags = tag_product(deal.product_name, deal.category)
+    if not passes_hard_filters(tags, preferences):
+        return None
+    discount = deal_discount(deal)
+    if discount is None:
+        return None
+    rel = relevance(tags, preferences)
+    return ScoredDeal(
+        deal=deal,
+        discount=float(discount),
+        relevance=rel,
+        value=deal_value(float(discount), rel),
+    )
+
+
+def _score_range(deal: Deal, preferences: Preferences) -> ScoredDeal | None:
+    """Score a range deal by the median of the products you could actually buy.
+
+    A product counts only if both its own name and the range name pass the hard
+    filters, so a "kip" in either still blocks it. (They are tagged separately: a
+    "plantaardig" in the range name must not vouch for every product in it.)
+    Products without a determinable discount don't count either; if none are left,
+    neither does the range. The median rather than the best product: a range
+    shouldn't be scored by its one outlier.
+    """
+    range_tags = tag_product(deal.product_name, deal.category)
+    if not passes_hard_filters(range_tags, preferences):
+        return None
+    discounts: list[float] = []
+    relevances: list[float] = []
+    values: list[float] = []
+    for product in deal.products:
+        tags = tag_product(product.name, deal.category)
         if not passes_hard_filters(tags, preferences):
             continue
-        discount = deal_discount(deal)
+        tags |= range_tags  # e.g. a cuisine named only in the range name
+        discount = product_discount(deal, product)
         if discount is None:
             continue
         rel = relevance(tags, preferences)
-        value = deal_value(float(discount), rel)
-        if value > 0:
-            scored.append(
-                ScoredDeal(
-                    deal=deal, discount=float(discount), relevance=rel, value=value
-                )
-            )
-    scored.sort(key=lambda s: s.value, reverse=True)
-    return scored
+        discounts.append(float(discount))
+        relevances.append(rel)
+        values.append(deal_value(float(discount), rel))
+    if not values:
+        return None
+    return ScoredDeal(
+        deal=deal,
+        discount=median(discounts),
+        relevance=median(relevances),
+        value=median(values),
+        products_counted=len(values),
+    )
 
 
 def rank_stores(

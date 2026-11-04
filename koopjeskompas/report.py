@@ -24,4 +24,8 @@ def _format_store(position: int, ranking: StoreRanking) -> str:
 
 def _format_deal(scored: ScoredDeal) -> str:
     mechanic = scored.deal.mechanic_string or "deal price"
-    return f"   {scored.discount:4.0%}  {scored.deal.product_name}  [{mechanic}]"
+    line = f"   {scored.discount:4.0%}  {scored.deal.product_name}  [{mechanic}]"
+    if scored.products_counted:
+        plural = "s" if scored.products_counted > 1 else ""
+        line += f"  median of {scored.products_counted} product{plural}"
+    return line

@@ -1,8 +1,10 @@
 """HTTP access to Albert Heijn's (unofficial) mobile API.
 
 Fetches the national bonus sections for one bonus week: an anonymous token, the bonus
-metadata (which lists one section URL per category), then each NATIONAL section. Every
-raw response is written to disk before anything parses it, so a parser bug never
+metadata (which lists one section URL per category), then each NATIONAL section.
+Ranges whose discount depends on a price ("Alle AH Verse pizza's: 2 voor 12.00") come
+without products, so each of those is looked up once more through AH's GraphQL API.
+Every raw response is written to disk before anything parses it, so a parser bug never
 forces a refetch.
 
 Politeness: one run per week, a fixed delay between requests, a timeout, no retries.
@@ -25,6 +27,7 @@ from koopjeskompas.ingestion.ah.payloads import (
     BonusPeriod,
     BonusWeek,
     SectionMetadata,
+    ranges_needing_prices,
 )
 
 logger = logging.getLogger(__name__)
@@ -38,6 +41,39 @@ TOKEN_PATH = "/mobile-auth/v1/auth/token/anonymous"
 METADATA_PATH = "/mobile-services/bonuspage/v3/metadata"
 SECTION_PREFIX = "/mobile-services/"
 METADATA_FILE = "metadata.json"
+GRAPHQL_PATH = "/graphql"
+
+# The products of one range and their prices. The ``bonusPromotions`` field and its
+# input were learned from appie-go (github.com/gwillem/appie-go); this query asks
+# for only the fields the parser uses.
+RANGE_QUERY = """
+query RangeProducts($id: String, $periodStart: String, $periodEnd: String) {
+  bonusPromotions(
+    input: {
+      id: $id
+      periodStart: $periodStart
+      periodEnd: $periodEnd
+      filterUnavailableProducts: true
+      forcePromotionVisibility: true
+      showAllPromotionSegments: true
+    }
+  ) {
+    id
+    products {
+      title
+      salesUnitSize
+      priceV2(
+        periodStart: $periodStart
+        periodEnd: $periodEnd
+        forcePromotionVisibility: true
+      ) {
+        was { amount }
+        now { amount }
+      }
+    }
+  }
+}
+"""
 
 
 class AhApiError(RuntimeError):
@@ -73,7 +109,31 @@ class AhClient:
                 # One broken category should not cost us the rest of the week.
                 logger.warning("skipping section %r: %s", meta.description, error)
                 week.failed_sections.append(meta.description)
+
+        for segment_id in ranges_needing_prices(week.sections):
+            try:
+                week.ranges[segment_id] = self._fetch_range(segment_id, period)
+            except AhApiError as error:
+                # Without its products the range just stays unscored.
+                logger.warning("skipping range %s: %s", segment_id, error)
+                week.failed_ranges.append(segment_id)
         return week
+
+    def _fetch_range(self, segment_id: int, period: BonusPeriod) -> Any:
+        variables = {
+            "id": str(segment_id),
+            "periodStart": period.bonus_start_date.isoformat(),
+            "periodEnd": period.bonus_end_date.isoformat(),
+        }
+        payload = self._request(
+            "POST", GRAPHQL_PATH, json={"query": RANGE_QUERY, "variables": variables}
+        )
+        # GraphQL reports errors in a 200 response rather than through the status.
+        if not isinstance(payload, dict) or payload.get("errors"):
+            errors = payload.get("errors") if isinstance(payload, dict) else payload
+            raise AhApiError(f"range {segment_id} lookup failed: {errors}")
+        self._save_raw(range_filename(segment_id), payload)
+        return payload
 
     def _authenticate(self) -> None:
         payload = self._request("POST", TOKEN_PATH, json={"clientId": "appie"})
@@ -122,11 +182,20 @@ def load_raw_week(raw_dir: Path, day: date) -> BonusWeek:
             week.sections.append(_read_json(raw_dir / section_filename(meta)))
         except FileNotFoundError:
             week.failed_sections.append(meta.description)
+    for segment_id in ranges_needing_prices(week.sections):
+        try:
+            week.ranges[segment_id] = _read_json(raw_dir / range_filename(segment_id))
+        except FileNotFoundError:
+            week.failed_ranges.append(segment_id)
     return week
 
 
 def section_filename(meta: SectionMetadata) -> str:
     return f"section_{_slug(meta.description)}.json"
+
+
+def range_filename(segment_id: int) -> str:
+    return f"range_{segment_id}.json"
 
 
 def _read_json(path: Path) -> Any:

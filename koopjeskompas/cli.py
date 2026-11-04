@@ -96,8 +96,18 @@ def _fetch_deals(args: argparse.Namespace) -> int:
         f"AH bonus {period.bonus_start_date} to {period.bonus_end_date}: "
         f"{len(result.deals)} deals saved to {path}"
     )
+    if result.ranges_priced:
+        print(
+            f"Range deals priced per product: {result.ranges_priced} "
+            f"({result.range_products} products)"
+        )
     if week.failed_sections:
         print(f"Sections that failed: {', '.join(week.failed_sections)}")
+    if week.failed_ranges:
+        print(
+            f"Range lookups that failed or are missing: {len(week.failed_ranges)}; "
+            "those ranges stay unscored"
+        )
     if result.skipped:
         print(f"Skipped {len(result.skipped)} malformed items (see warnings above)")
     if result.no_discount:

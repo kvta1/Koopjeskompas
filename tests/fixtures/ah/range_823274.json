@@ -1,0 +1,254 @@
+{
+  "data": {
+    "bonusPromotions": [
+      {
+        "id": "823274",
+        "title": "Alle AH Verse pizza's",
+        "productCount": 10,
+        "products": [
+          {
+            "id": 597793,
+            "title": "AH Verse pizza Amerikaans spicy salami",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "450 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.99
+              },
+              "was": {
+                "amount": 6.99
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 597790,
+            "title": "AH Verse pizza Amerikaans cheese onion",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "460 g",
+            "icons": [
+              "NUTRISCORE_C",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.99
+              },
+              "was": {
+                "amount": 6.99
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 192738,
+            "title": "AH Pizza prosciutto",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "425 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.89
+              },
+              "was": {
+                "amount": 6.89
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 435155,
+            "title": "AH Pizza mozzarella pesto",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "445 g",
+            "icons": [
+              "NUTRISCORE_C",
+              "VEGETARIAN",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.89
+              },
+              "was": {
+                "amount": 6.89
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 442179,
+            "title": "AH Verse pizza tonno",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "460 g",
+            "icons": [
+              "NUTRISCORE_C",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.89
+              },
+              "was": {
+                "amount": 6.89
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 475855,
+            "title": "AH Verse pizza meatlovers",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "485 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.99
+              },
+              "was": {
+                "amount": 6.99
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 487006,
+            "title": "AH Verse pizza bianca",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "408 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.89
+              },
+              "was": {
+                "amount": 6.89
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 487010,
+            "title": "AH Verse pizza salami piccante",
+            "brand": "AH",
+            "category": "Maaltijden, salades/Verse Pizza",
+            "salesUnitSize": "415 g",
+            "icons": [
+              "NUTRISCORE_D",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": false
+            },
+            "priceV2": {
+              "now": {
+                "amount": 6.89
+              },
+              "was": {
+                "amount": 6.89
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "X_FOR_Y",
+                    "description": "2 voor 12.00"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

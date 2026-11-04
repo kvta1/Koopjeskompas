@@ -27,6 +27,23 @@ VEGAN = Preferences(diet=Diet.VEGAN)
         # Keywords in the middle of a compound (real AH deal names).
         ("AH Scharrelkipfiletreepjes", False, False),
         ("AH Scharrelkipschnitzels Hongaars of Wiener", False, False),
+        # Pizza names from an AH range lookup, partly Italian or English.
+        ("AH Verse pizza tonno", False, False),
+        ("AH Verse pizza meatlovers", False, False),
+        ("AH Pizza pepperoni", False, False),
+        ("AH Verse pizza Amerikaans cheese onion", True, False),
+        # Ready meals and snacks from range lookups.
+        ("AH Uit eigen keuken butter chicken", False, False),
+        ("AH Uit eigen keuken beef teriyaki", False, False),
+        ("AH Uit eigen keuken boeuf bourguignon", False, False),
+        ("AH Uit eigen keuken pasta carbonara", False, False),
+        ("AH Uit eigen keuken moussaka", False, False),
+        ("AH Uit eigen keuken rendang", False, False),
+        ("AH Stamppot hutspot hachee", False, False),
+        ("Hebro Saté ajam", False, False),
+        ("Hebro Saté babi", False, False),
+        ("Mora Veggie sate in pindasaus", True, False),
+        ("AH Uit eigen keuken chili sin carne", True, True),
         ("Geitenkaasjes", True, False),
         ("Kastanjechampignons", True, True),
         ("Champignonsoep", True, True),
@@ -43,6 +60,17 @@ VEGAN = Preferences(diet=Diet.VEGAN)
         ("Havermelk", True, True),
         ("Kokosmelk", True, True),
         ("Vegetarische kipstuckjes", True, False),
+        # A marker only vouches for its own item when a name lists several.
+        (
+            "Alle AH Greenfields beefburgers, AH (Terra plantaardige) hamburgers "
+            "en AH Scharrelkipburgers 2 stuks",
+            False,
+            False,
+        ),
+        ("AH Terra plantaardige hamburgers", True, True),
+        ("Vegetarische burgers of kipschnitzels", False, False),
+        ("Vegan burgers en vegetarische kaasburgers", True, False),
+        ("Vegan burgers & falafel", True, True),
         ("Vegaburger", True, False),
         ("Vegan kaas", True, True),
         ("Plantaardige yoghurt", True, True),

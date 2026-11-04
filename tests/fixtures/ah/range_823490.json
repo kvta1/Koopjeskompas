@@ -1,0 +1,75 @@
+{
+  "data": {
+    "bonusPromotions": [
+      {
+        "id": "823490",
+        "title": "Unox soep in zak romige of Chinese tomatensoep 570 ml",
+        "productCount": 2,
+        "products": [
+          {
+            "id": 123848,
+            "title": "Unox Romige tomatensoep",
+            "brand": "Unox",
+            "category": "Soepen, sauzen, kruiden, olie/Tomatensoep in zak",
+            "salesUnitSize": "570 ml",
+            "icons": [
+              "NUTRISCORE_B",
+              "VEGETARIAN",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 1.49
+              },
+              "was": {
+                "amount": 3.29
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "FIXED_PRICE",
+                    "description": "voor 1.49"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "id": 191060,
+            "title": "Unox Chinese tomatensoep",
+            "brand": "Unox",
+            "category": "Soepen, sauzen, kruiden, olie/Tomatensoep in zak",
+            "salesUnitSize": "570 ml",
+            "icons": [
+              "NUTRISCORE_B",
+              "VEGETARIAN",
+              "AVAILABLE_IN_STORE"
+            ],
+            "availability": {
+              "isOrderable": true
+            },
+            "priceV2": {
+              "now": {
+                "amount": 1.49
+              },
+              "was": {
+                "amount": 3.85
+              },
+              "promotionLabel": {
+                "tiers": [
+                  {
+                    "mechanism": "FIXED_PRICE",
+                    "description": "voor 1.49"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

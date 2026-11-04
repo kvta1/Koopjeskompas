@@ -19,17 +19,19 @@ Albert Heijn data for Leiden. The web API and frontend come next.
 | ✅ | Real Albert Heijn bonus deals, cached as JSON | done (`fetch-deals`) |
 | ✅ | Leiden store list (6 AH supermarkets, from OpenStreetMap) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
+| ✅ | Range deals priced product by product, per-weight deals | done |
 | ⏳ | Web API (`POST /api/rank`, FastAPI) | next |
 | ⏳ | Web page (React + TypeScript) | planned |
 | ⏳ | Public demo on AWS | planned |
 
 **Known limitations:**
-- **About half of AH's deals can't be scored yet.** Range deals such as "Alle AH Rauwkost: 2 voor
-  €4,00" come without a normal price, so there's nothing to compare the deal price against. They
-  are kept but score zero.
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
-  non-matching deal is excluded, not just ranked lower. But a range deal whose name doesn't reveal
-  its ingredients ("Alle Unox soep in zak") can still slip through the vegan filter.
+  non-matching deal is excluded, not just ranked lower. But a name that doesn't reveal its
+  ingredients can still slip through:
+  - ready meals such as "lasagne" or "tikka masala";
+  - ranges whose discount doesn't depend on a price ("Alle A-merk diepvriesmaaltijden: 25%
+    korting"), because those aren't looked up product by product.
+- **A failed range lookup leaves that range unscored.** It's kept, but it scores zero.
 - **Only one chain.** Every store has the same deals, so for now the ranking comes down to distance.
 
 ## How it works
@@ -53,6 +55,8 @@ store score  = (sum of its top-k deal values) / k − weight × distance penalty
 - **Discount fraction:** Dutch deal mechanics are normalised into a fraction of the price you save,
   e.g. "2e halve prijs" is 0.25 and "3 voor 5,99" depends on the normal price.
 - **Top-k deals only:** stores aren't rewarded for simply having a huge promotion folder.
+- **Range deals count once:** "2 voor €12 on all fresh pizzas" is valued at the median discount of
+  the pizzas that pass your diet filters, not by its single best pizza.
 - **Diet as a hard filter:** a great deal on chicken is worth nothing to a vegetarian, not "a bit
   less".
 
@@ -84,9 +88,14 @@ uv run koopjeskompas --help
 uv run koopjeskompas fetch-deals
 ```
 
-This fetches this week's national bonus deals from Albert Heijn: about 20 requests, spaced one
-second apart. It saves the raw responses under `data/raw/ah/<date>/` and the parsed deals to
-`data/deals/ah.json`, then prints a summary of deals it couldn't score.
+This fetches this week's national bonus deals from Albert Heijn, in about 65 requests spaced one
+second apart (roughly a minute):
+- about 20 requests for the food categories;
+- about 45 lookups for the products of range deals like "Alle AH Verse pizza's: 2 voor €12",
+  which AH lists without prices.
+
+It saves the raw responses under `data/raw/ah/<date>/` and the parsed deals to
+`data/deals/ah.json`, then prints a summary, including any deals it couldn't score.
 
 Run it at most about once a week; AH's bonus changes weekly. To re-parse earlier responses
 without contacting AH again (useful after changing the parser), use:
@@ -101,15 +110,19 @@ uv run koopjeskompas fetch-deals --from-raw
 uv run koopjeskompas rank --diet vegetarian --cuisine italian
 ```
 
-Example output (top deals shortened):
+Example output (top deals shortened). Deals are ordered by their value to you, the discount
+times how well it fits your cuisines, so a 58% soup deal can rank below a 13% pizza deal when
+you asked for Italian. "median of 3 products" means three of the eight pizzas in that range are
+vegetarian, and the range is scored on those three:
 
 ```
-1. AH Breestraat (Breestraat 130, Leiden) | 1.3 km | score 0.063
-    35%  Combideal voor 7.50: AH Verspakket fusilli met oesterzwam  [deal price]
-    50%  AH Rode druiven pitloos 500 gram  [1 + 1 GRATIS]
-    50%  Alle AH Pancakes en poffertjes 24 stuks  [1 + 1 GRATIS]
+1. AH Breestraat (Breestraat 130, Leiden) | 1.3 km | score 0.050
+    50%  Alle AH Pizzadeeg  [2e GRATIS]
+    17%  AH Ongesneden verspakketten  [1 EURO KORTING]  median of 3 products
+    13%  Alle AH Verse pizza's  [2 VOOR 12.00]  median of 3 products
+    58%  Unox soep in zak romige of Chinese tomatensoep 570 ml  [VOOR 1.49]  median of 2 products
 
-2. AH Hooigracht (Hooigracht 85, Leiden) | 1.3 km | score 0.061
+2. AH Hooigracht (Hooigracht 85, Leiden) | 1.3 km | score 0.048
     ...
 ```
 
@@ -182,7 +195,8 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
    - designed to stay within the AWS free plan.
 
 After the MVP:
-- **Score range deals:** look up each range's products, so the deals currently scoring zero count.
+- **Use AH's own diet labels:** AH's product data includes fields like "vegetarisch" and "geen
+  gluten". They could replace much of the name-based tagging.
 - **Second chain:** add Jumbo behind a common `DealSource` interface, so rankings differ by more
   than distance.
 - **Database:** SQLite/PostgreSQL with migrations, replacing the JSON cache.
