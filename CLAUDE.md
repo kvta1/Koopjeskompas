@@ -28,7 +28,7 @@ This project uses `uv` for packaging/dependency management (Python >=3.14, pinne
 ```bash
 uv sync --dev              # install dependencies (including dev group: pytest, ruff, mypy, pre-commit)
 uv run pytest              # run the full test suite
-uv run pytest path/to/test_file.py::test_name   # run a single test
+uv run pytest tests/domain/test_scoring.py::test_name   # run a single test
 uv run ruff check .        # lint
 uv run ruff format --check .   # format check (use `uv run ruff format .` to fix)
 uv run mypy .              # type check
@@ -42,7 +42,9 @@ uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swag
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
 `section_<category>.json` per food category and one `range_<segmentId>.json` per looked-up range) and
 parsed deals to `data/deals/ah.json` (`data/` is gitignored). It hits AH's unofficial mobile API: run it at most about
-once a week, never in tests or CI. Tests replay captured responses from `tests/fixtures/ah/` and mock
+once a week, never in tests or CI. `tests/` mirrors the package (`tests/domain/test_scoring.py` tests
+`koopjeskompas/domain/scoring.py`; every test folder has an `__init__.py`). Tests replay captured
+responses from `tests/fixtures/ah/` (loaded through `tests/ah_fixtures.py`) and mock
 HTTP with `respx`. If AH changes its API, use `--from-raw` while fixing the parser rather than
 refetching.
 

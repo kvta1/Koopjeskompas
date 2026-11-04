@@ -214,7 +214,8 @@ koopjeskompas/
 ├── stores/        the Leiden store list and the OpenStreetMap query that produced it
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
-tests/             one test module per module, plus captured AH fixtures
+tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
+                   and so on; fixtures/ah/ holds the captured AH responses
 ```
 
 The domain layer never imports HTTP or file-handling code. External data, such as AH's JSON, is
