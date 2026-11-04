@@ -1,9 +1,7 @@
 """Parser tests against real AH responses captured on 2026-10-18 (images trimmed)."""
 
-import json
 from datetime import date
 from decimal import Decimal
-from pathlib import Path
 from typing import Any
 
 import pytest
@@ -18,18 +16,14 @@ from koopjeskompas.ingestion.ah.payloads import (
     BonusPeriod,
     BonusWeek,
 )
+from tests.ah_fixtures import load_ah_fixture
 
-FIXTURES = Path(__file__).parent / "fixtures" / "ah"
 SECTIONS = ["section_groente_aardappelen.json", "section_vlees.json"]
-
-
-def load(name: str) -> Any:
-    return json.loads((FIXTURES / name).read_text())
 
 
 @pytest.fixture
 def period() -> BonusPeriod:
-    return BonusMetadata.model_validate(load("metadata.json")).periods[0]
+    return BonusMetadata.model_validate(load_ah_fixture("metadata.json")).periods[0]
 
 
 def week_of(period: BonusPeriod, *sections: Any) -> BonusWeek:
@@ -51,7 +45,7 @@ def test_metadata_lists_only_national_food_sections(period: BonusPeriod) -> None
 
 
 def test_parses_every_item_of_the_real_sections(period: BonusPeriod) -> None:
-    result = parse_bonus_week(week_of(period, *(load(n) for n in SECTIONS)))
+    result = parse_bonus_week(week_of(period, *(load_ah_fixture(n) for n in SECTIONS)))
     assert len(result.deals) == 23
     assert result.skipped == []
     assert {d.chain for d in result.deals} == {"AH"}
@@ -90,7 +84,7 @@ def test_maps_items_to_deals(
     deal_price: str | None,
     discount: str,
 ) -> None:
-    result = parse_bonus_week(week_of(period, *(load(n) for n in SECTIONS)))
+    result = parse_bonus_week(week_of(period, *(load_ah_fixture(n) for n in SECTIONS)))
     deal = by_name(result.deals)[name]
     assert deal.mechanic_string == mechanic
     assert deal.normal_price == (Decimal(normal_price) if normal_price else None)
@@ -116,14 +110,14 @@ def test_price_per_kg(description: str | None, expected: Decimal | None) -> None
 
 
 def test_deals_carry_their_section_category(period: BonusPeriod) -> None:
-    result = parse_bonus_week(week_of(period, *(load(n) for n in SECTIONS)))
+    result = parse_bonus_week(week_of(period, *(load_ah_fixture(n) for n in SECTIONS)))
     deals = by_name(result.deals)
     assert deals["Wahid"].category == "Vlees"
     assert deals["AH Spruitjes 500 gram"].category == "Groente, aardappelen"
 
 
 def test_counts_deals_without_a_determinable_discount(period: BonusPeriod) -> None:
-    result = parse_bonus_week(week_of(period, *(load(n) for n in SECTIONS)))
+    result = parse_bonus_week(week_of(period, *(load_ah_fixture(n) for n in SECTIONS)))
     assert result.no_discount == {
         # Group deals priced per pack, with no normal price to compare against.
         "2 VOOR 2.49": 1,
@@ -136,7 +130,7 @@ def test_counts_deals_without_a_determinable_discount(period: BonusPeriod) -> No
 
 
 def test_malformed_items_are_skipped_not_fatal(period: BonusPeriod) -> None:
-    section = load("section_vlees.json")
+    section = load_ah_fixture("section_vlees.json")
     section["bonusGroupOrProducts"] += [
         {"product": {"bonusMechanism": "25% KORTING"}},  # no title
         {"somethingNew": {}},
@@ -191,7 +185,7 @@ def test_nested_group_products_fall_back_to_the_group_mechanic(
 
 
 def test_duplicate_deals_across_sections_are_kept_once(period: BonusPeriod) -> None:
-    section = load("section_vlees.json")
+    section = load_ah_fixture("section_vlees.json")
     result = parse_bonus_week(week_of(period, section, section))
     assert len(result.deals) == 10
 
@@ -204,9 +198,11 @@ RANGE_IDS = {"pizzas": 823274, "unox": 823490, "yorkham": 817938}
 
 def range_week(period: BonusPeriod, ranges: dict[int, Any] | None = None) -> BonusWeek:
     if ranges is None:
-        ranges = {seg: load(f"range_{seg}.json") for seg in RANGE_IDS.values()}
+        ranges = {
+            seg: load_ah_fixture(f"range_{seg}.json") for seg in RANGE_IDS.values()
+        }
     return BonusWeek(
-        period=period, sections=[load("section_ranges.json")], ranges=ranges
+        period=period, sections=[load_ah_fixture("section_ranges.json")], ranges=ranges
     )
 
 
@@ -275,7 +271,7 @@ def test_range_deals_score_the_median_of_their_products(
 
 
 def test_bad_lookups_leave_the_range_without_products(period: BonusPeriod) -> None:
-    lookup = load("range_823490.json")
+    lookup = load_ah_fixture("range_823490.json")
     unox_products = lookup["data"]["bonusPromotions"][0]["products"]
     unox_products[0]["priceV2"] = {"was": None, "now": None}  # no price
     del unox_products[1]["title"]  # malformed
