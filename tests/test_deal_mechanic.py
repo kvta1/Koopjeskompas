@@ -75,6 +75,27 @@ def test_parse_deal_mechanic(
 
 
 @pytest.mark.parametrize(
+    ("mechanic", "normal_price_per_kg", "expected"),
+    [
+        # Cucina kipshoarma: €1.39 per 100 g is €13.90/kg, normally €14.98/kg.
+        ("100 GRAM VOOR 1.39", "14.98", 1 - Decimal("13.90") / Decimal("14.98")),
+        ("per 100 GRAM voor €1.39", "14.98", 1 - Decimal("13.90") / Decimal("14.98")),
+        ("500 g voor €2", "5.00", Decimal("0.2")),
+        ("1 kilo voor 5.99", "5.99", Decimal(0)),
+        ("1,5 kg voor 6,00", "5.00", Decimal("0.2")),
+        ("250 gram voor 2.00", "4.00", Decimal(0)),  # dearer per kilo: no discount
+    ],
+)
+def test_per_weight_mechanic(
+    mechanic: str, normal_price_per_kg: str, expected: Decimal
+) -> None:
+    found = parse_deal_mechanic(
+        mechanic, normal_price_per_kg=Decimal(normal_price_per_kg)
+    )
+    assert found.quantize(Decimal("1e-12")) == expected.quantize(Decimal("1e-12"))
+
+
+@pytest.mark.parametrize(
     # "2 voor 3" is ambiguous without a euro sign or decimals, so it is not guessed.
     "mechanic",
     [
@@ -84,7 +105,7 @@ def test_parse_deal_mechanic(
         "2 voor 3",
         "0+1 gratis",
         "2 korting",  # 2 euro or 2 percent? Not guessed.
-        "100 GRAM VOOR 2.99",  # a per-weight price says nothing about the pack price
+        "0 gram voor 1.00",
         "BONUS",
     ],
 )
@@ -99,6 +120,8 @@ def test_unknown_mechanic(mechanic: str) -> None:
         ("2 voor €5", None, None),  # price-based mechanic needs a normal price
         ("voor 0.99", None, None),
         ("1 euro korting", None, None),
+        # A per-weight price says nothing about the pack price; it needs a kilo price.
+        ("100 GRAM VOOR 2.99", Decimal("9.86"), None),
         (None, Decimal("1.00"), None),  # no mechanic needs a deal price
         (None, None, Decimal("1.00")),
         ("25% korting", Decimal(0), None),

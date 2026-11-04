@@ -72,6 +72,8 @@ class Product(_AhModel):
     bonus_mechanism: str | None = None
     price_before_bonus: Decimal | None = None
     current_price: Decimal | None = None
+    # e.g. "normale prijs per kg €14.98"; the parser reads the kilo price from it.
+    unit_price_description: str | None = None
     bonus_start_date: date | None = None
     bonus_end_date: date | None = None
     promotion_type: str | None = None

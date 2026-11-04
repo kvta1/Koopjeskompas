@@ -10,7 +10,7 @@ import pytest
 
 from koopjeskompas.domain.deal_mechanic import deal_discount
 from koopjeskompas.domain.models import Deal
-from koopjeskompas.ingestion.ah.parser import parse_bonus_week
+from koopjeskompas.ingestion.ah.parser import parse_bonus_week, price_per_kg
 from koopjeskompas.ingestion.ah.payloads import (
     NON_FOOD_SECTIONS,
     BonusMetadata,
@@ -67,6 +67,8 @@ def test_parses_every_item_of_the_real_sections(period: BonusPeriod) -> None:
         # A "stapel" deal: four for 2.49 at 0.95 each.
         ("AH Paprika rood", "4 stapelen voor 2.49", "0.95", None, "0.3447"),
         ("AH Witlof zak 4 stuks", "30% korting", "2.29", "1.6", "0.3"),
+        # A per-weight price: €29.90/kg against a normal €36.50/kg.
+        ("AH Kogelbiefstuk 2 stuks", "100 GRAM VOOR 2.99", "9.49", None, "0.1808"),
         # A bonus group: a whole range, no prices.
         ("Alle Unox rookworsten", "25% KORTING", None, None, "0.25"),
         # A combideal: labelled "BONUS", priced through the example prices.
@@ -97,6 +99,21 @@ def test_maps_items_to_deals(
     assert found.quantize(Decimal("0.0001")) == Decimal(discount)
 
 
+@pytest.mark.parametrize(
+    ("description", "expected"),
+    [
+        ("normale prijs per kg €14.98", Decimal("14.98")),
+        ("Normale prijs per KG € 9,50", Decimal("9.50")),
+        ("normale prijs per kilo €3", Decimal("3")),
+        ("normale prijs per liter €2.40", None),  # not a weight
+        ("normale prijs per kg €0.00", None),
+        (None, None),
+    ],
+)
+def test_price_per_kg(description: str | None, expected: Decimal | None) -> None:
+    assert price_per_kg(description) == expected
+
+
 def test_deals_carry_their_section_category(period: BonusPeriod) -> None:
     result = parse_bonus_week(week_of(period, *(load(n) for n in SECTIONS)))
     deals = by_name(result.deals)
@@ -114,8 +131,6 @@ def test_counts_deals_without_a_determinable_discount(period: BonusPeriod) -> No
         "3 VOOR 6.00": 1,
         "VOOR 2.49": 1,
         "1 EURO KORTING": 1,
-        # A per-weight price: unrecognised on purpose.
-        "100 GRAM VOOR 2.99": 1,
     }
 
 

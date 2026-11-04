@@ -58,7 +58,7 @@ def test_fetch_then_rank(
     assert main([*base, "fetch-deals"]) == 0
     out = capsys.readouterr().out
     assert "23 deals saved" in out
-    assert "100 GRAM VOOR 2.99" in out
+    assert "1 EURO KORTING" in out  # a range deal without a normal price
     assert (tmp_path / "deals" / "ah.json").exists()
     assert (tmp_path / "raw" / "ah" / TODAY / "section_vlees.json").exists()
 

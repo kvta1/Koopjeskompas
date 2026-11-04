@@ -7,6 +7,7 @@ no normal price) are kept, logged and counted, so the mechanic table in
 """
 
 import logging
+import re
 from collections import Counter
 from collections.abc import Iterator
 from dataclasses import dataclass, field
@@ -141,6 +142,7 @@ def _deals_from_product(
         deal_price=product.current_price,
         valid_from=product.bonus_start_date or period.bonus_start_date,
         valid_to=product.bonus_end_date or period.bonus_end_date,
+        normal_price_per_kg=price_per_kg(product.unit_price_description),
     )
 
 
@@ -152,6 +154,7 @@ def _make_deal(
     deal_price: Decimal | None,
     valid_from: date,
     valid_to: date,
+    normal_price_per_kg: Decimal | None = None,
 ) -> Deal:
     if mechanic is not None and mechanic.strip().upper() in _PRICE_ONLY_MECHANICS:
         mechanic = None
@@ -161,10 +164,28 @@ def _make_deal(
         category=category,
         mechanic_string=mechanic,
         normal_price=normal_price,
+        normal_price_per_kg=normal_price_per_kg,
         deal_price=deal_price,
         valid_from=valid_from,
         valid_to=valid_to,
     )
+
+
+_PER_KG_RE = re.compile(r"per (?:kg|kilo)\s*€\s*(?P<price>\d+(?:[.,]\d{1,2})?)")
+
+
+def price_per_kg(unit_price_description: str | None) -> Decimal | None:
+    """The kilo price in AH's "normale prijs per kg €14.98", or None.
+
+    Other units ("per liter") are left out: AH's per-weight deals are all in grams.
+    """
+    if unit_price_description is None:
+        return None
+    match = _PER_KG_RE.search(unit_price_description.lower())
+    if match is None:
+        return None
+    price = Decimal(match["price"].replace(",", "."))
+    return price if price > 0 else None
 
 
 def _is_national(promotion_type: str | None) -> bool:

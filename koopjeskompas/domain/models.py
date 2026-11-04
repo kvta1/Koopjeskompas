@@ -38,6 +38,9 @@ class Deal(BaseModel):
     # alone says nothing ("Wahid" is a halal meat brand).
     category: str | None = None
     normal_price: Decimal | None = Field(default=None, gt=0)
+    # Needed for per-weight mechanics ("100 gram voor 1.39"): the pack price can't be
+    # compared with a price per 100 g, the normal price per kilo can.
+    normal_price_per_kg: Decimal | None = Field(default=None, gt=0)
     deal_price: Decimal | None = Field(default=None, ge=0)
     mechanic_string: str | None = None
     valid_from: date
