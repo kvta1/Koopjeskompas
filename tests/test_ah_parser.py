@@ -9,7 +9,8 @@ from typing import Any
 import pytest
 
 from koopjeskompas.domain.deal_mechanic import deal_discount
-from koopjeskompas.domain.models import Deal
+from koopjeskompas.domain.models import Deal, Diet, Preferences
+from koopjeskompas.domain.scoring import score_deals
 from koopjeskompas.ingestion.ah.parser import parse_bonus_week, price_per_kg
 from koopjeskompas.ingestion.ah.payloads import (
     NON_FOOD_SECTIONS,
@@ -193,3 +194,99 @@ def test_duplicate_deals_across_sections_are_kept_once(period: BonusPeriod) -> N
     section = load("section_vlees.json")
     result = parse_bonus_week(week_of(period, section, section))
     assert len(result.deals) == 10
+
+
+# --- range deals, with products from a range lookup --------------------------
+# Real AH responses captured on 2026-11-04: three ranges, and their lookups.
+
+RANGE_IDS = {"pizzas": 823274, "unox": 823490, "yorkham": 817938}
+
+
+def range_week(period: BonusPeriod, ranges: dict[int, Any] | None = None) -> BonusWeek:
+    if ranges is None:
+        ranges = {seg: load(f"range_{seg}.json") for seg in RANGE_IDS.values()}
+    return BonusWeek(
+        period=period, sections=[load("section_ranges.json")], ranges=ranges
+    )
+
+
+def range_deal(result_deals: list[Deal], key: str) -> Deal:
+    names = {
+        "pizzas": "Alle AH Verse pizza's",
+        "unox": "Unox soep in zak romige of Chinese tomatensoep 570 ml",
+        "yorkham": "AH Yorkham van de versafdeling",
+    }
+    return by_name(result_deals)[names[key]]
+
+
+def test_ranges_get_the_products_of_their_lookup(period: BonusPeriod) -> None:
+    result = parse_bonus_week(range_week(period))
+
+    assert result.skipped == []
+    assert result.no_discount == {}
+    assert (result.ranges_priced, result.range_products) == (3, 12)
+    pizzas = range_deal(result.deals, "pizzas")
+    assert pizzas.category == "Maaltijden, salades"
+    assert len(pizzas.products) == 8
+    assert {p.normal_price for p in pizzas.products} == {
+        Decimal("6.99"),
+        Decimal("6.89"),
+    }
+    # Unox's fixed price: "was" is the normal price, "now" the deal price.
+    unox = range_deal(result.deals, "unox")
+    assert [p.normal_price for p in unox.products] == [Decimal("3.29"), Decimal("3.85")]
+
+
+@pytest.mark.parametrize(
+    ("key", "size_price_per_kg"),
+    [
+        ("yorkham", Decimal("31.73")),  # €3.49 for "ca. 110 g"
+        ("pizzas", Decimal("15.53")),  # €6.99 for "450 g"
+        ("unox", None),  # "570 ml" is not a weight
+    ],
+)
+def test_range_products_get_a_kilo_price_from_their_size(
+    period: BonusPeriod, key: str, size_price_per_kg: Decimal | None
+) -> None:
+    deal = range_deal(parse_bonus_week(range_week(period)).deals, key)
+    assert deal.products[0].normal_price_per_kg == size_price_per_kg
+
+
+@pytest.mark.parametrize(
+    ("key", "diet", "discount", "counted"),
+    [
+        # 2 voor 12.00 is €6.00 a pizza: 12.9% off €6.89, 14.2% off €6.99.
+        ("pizzas", Diet.NONE, "0.1292", 8),
+        # Vegetarian: no salami, prosciutto, tonno or meatlovers.
+        ("pizzas", Diet.VEGETARIAN, "0.1292", 3),
+        # Voor 1.49: 54.7% off €3.29 and 61.3% off €3.85.
+        ("unox", Diet.NONE, "0.5800", 2),
+        # €1.99 per 100 g is €19.90/kg, against €31.73/kg.
+        ("yorkham", Diet.NONE, "0.3728", 2),
+    ],
+)
+def test_range_deals_score_the_median_of_their_products(
+    period: BonusPeriod, key: str, diet: Diet, discount: str, counted: int
+) -> None:
+    deal = range_deal(parse_bonus_week(range_week(period)).deals, key)
+    (scored,) = score_deals([deal], Preferences(diet=diet), deal.valid_from)
+    assert round(scored.discount, 4) == float(discount)
+    assert scored.products_counted == counted
+
+
+def test_bad_lookups_leave_the_range_without_products(period: BonusPeriod) -> None:
+    lookup = load("range_823490.json")
+    unox_products = lookup["data"]["bonusPromotions"][0]["products"]
+    unox_products[0]["priceV2"] = {"was": None, "now": None}  # no price
+    del unox_products[1]["title"]  # malformed
+
+    ranges = {RANGE_IDS["pizzas"]: {"unexpected": "shape"}, RANGE_IDS["unox"]: lookup}
+
+    result = parse_bonus_week(range_week(period, ranges))
+
+    assert len(result.deals) == 3, "the ranges themselves are kept"
+    assert range_deal(result.deals, "pizzas").products == ()
+    assert range_deal(result.deals, "unox").products == ()
+    assert range_deal(result.deals, "yorkham").products == ()  # no lookup at all
+    assert len(result.skipped) == 3
+    assert result.ranges_priced == 0

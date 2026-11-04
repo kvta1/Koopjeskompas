@@ -83,7 +83,9 @@ def test_fetch_then_rank(
     assert main([*base, "fetch-deals"]) == 0
     out = capsys.readouterr().out
     assert "23 deals saved" in out
-    assert "1 EURO KORTING" in out  # a range deal without a normal price
+    assert "Range deals priced per product: 1 (2 products)" in out
+    assert "1 EURO KORTING" in out  # a range whose lookup returned no products
+    assert "2 VOOR 4.00" not in out  # Alle AH Rauwkost, now priced per product
     assert (tmp_path / "deals" / "ah.json").exists()
     assert (tmp_path / "raw" / "ah" / TODAY / "section_vlees.json").exists()
 
@@ -92,6 +94,7 @@ def test_fetch_then_rank(
     # All stores share AH's deals, so the one nearest Leiden Centraal comes first.
     assert out.startswith("1. AH Breestraat")
     assert "AH Spruitjes 500 gram" in out
+    assert "Alle AH Rauwkost  [2 VOOR 4.00]  median of 2 products" in out
     for meat in ["rookworst", "kip", "bacon", "wahid"]:
         assert meat not in out.lower()
 
@@ -110,6 +113,16 @@ def test_fetch_deals_from_raw_reuses_saved_responses(
     assert len(ah_api.calls) == calls
     assert "23 deals saved" in capsys.readouterr().out
     assert (tmp_path / "deals" / "ah.json").exists()
+
+
+def test_fetch_deals_reports_failed_range_lookups(
+    ah_api: respx.MockRouter, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    ah_api.post(GRAPHQL_PATH).respond(500)
+    assert main(["--data-dir", str(tmp_path), "--today", TODAY, "fetch-deals"]) == 0
+    out = capsys.readouterr().out
+    assert "23 deals saved" in out
+    assert "Range lookups that failed or are missing: 6" in out
 
 
 def test_fetch_deals_reports_api_failure(
