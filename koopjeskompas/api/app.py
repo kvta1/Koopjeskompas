@@ -44,8 +44,9 @@ def create_app(data_dir: Path) -> FastAPI:
     app.state.stores = load_stores()  # packaged and fixed: load once
     app.include_router(router)
 
-    # Until the web page (MVP step 4) lives at "/", send visitors to the API docs
-    # rather than a bare 404. Left out of the OpenAPI schema: it's not part of the API.
+    # The web page is served elsewhere (Vite's dev server locally, CloudFront later),
+    # so a visitor to the API itself gets its docs rather than a bare 404. Left out of
+    # the OpenAPI schema: it's not part of the API.
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
         return RedirectResponse(url="/docs")
