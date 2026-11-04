@@ -9,7 +9,7 @@ from pathlib import Path
 
 import uvicorn
 
-from koopjeskompas.api.app import create_app, get_today
+from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
 from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
 from koopjeskompas.ingestion.ah.client import AhApiError, AhClient, load_raw_week
@@ -19,6 +19,7 @@ from koopjeskompas.report import format_ranking
 from koopjeskompas.stores import load_stores
 
 DEFAULT_DATA_DIR = Path("data")
+DEFAULT_OPENAPI_PATH = Path("frontend/openapi.json")
 LEIDEN_CENTRAAL = Coordinates(latitude=52.1664, longitude=4.4817)
 
 
@@ -82,6 +83,17 @@ def _build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default="127.0.0.1")
     serve.add_argument("--port", type=int, default=8000)
     serve.set_defaults(handler=_serve)
+
+    openapi = subcommands.add_parser(
+        "openapi", help="write the API's OpenAPI schema, for the web page's types"
+    )
+    openapi.add_argument(
+        "--output",
+        type=Path,
+        default=DEFAULT_OPENAPI_PATH,
+        help="where to write it (default: %(default)s)",
+    )
+    openapi.set_defaults(handler=_openapi)
 
     return parser
 
@@ -168,4 +180,11 @@ def _serve(args: argparse.Namespace) -> int:
         fixed_day: date = args.today
         app.dependency_overrides[get_today] = lambda: fixed_day
     uvicorn.run(app, host=args.host, port=args.port)
+    return 0
+
+
+def _openapi(args: argparse.Namespace) -> int:
+    path: Path = args.output
+    path.write_text(openapi_json(create_app(data_dir=args.data_dir)), encoding="utf-8")
+    print(f"OpenAPI schema written to {path}")
     return 0

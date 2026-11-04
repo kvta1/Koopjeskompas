@@ -1,0 +1,5 @@
+dist
+package-lock.json
+# Generated: openapi.json by `koopjeskompas openapi`, schema.d.ts by `npm run gen:api`.
+openapi.json
+src/api/schema.d.ts

@@ -12,7 +12,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from koopjeskompas.api.app import get_today
+from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.cli import main
 from koopjeskompas.ingestion.ah.client import (
     BASE_URL,
@@ -164,3 +164,16 @@ def test_serve_runs_the_api_on_the_given_address(
     assert response.status_code == 503  # nothing cached in tmp_path yet
     app: FastAPI = started["app"]
     assert app.dependency_overrides[get_today]() == date(2026, 10, 15)
+
+
+def test_openapi_writes_the_schema(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    output = tmp_path / "openapi.json"
+
+    assert main(["openapi", "--output", str(output)]) == 0
+
+    schema = json.loads(output.read_text(encoding="utf-8"))
+    assert "/api/rank" in schema["paths"]
+    assert output.read_text(encoding="utf-8") == openapi_json(create_app(tmp_path))
+    assert str(output) in capsys.readouterr().out

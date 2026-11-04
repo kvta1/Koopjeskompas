@@ -12,6 +12,7 @@ reading the cache is a small local file, so there is nothing to await; FastAPI r
 sync endpoints in a thread pool, so they don't block the server either.
 """
 
+import json
 from datetime import date
 from pathlib import Path
 from typing import Annotated
@@ -43,13 +44,23 @@ def create_app(data_dir: Path) -> FastAPI:
     app.state.stores = load_stores()  # packaged and fixed: load once
     app.include_router(router)
 
-    # Until the web page (MVP step 4) lives at "/", send visitors to the API docs
-    # rather than a bare 404. Left out of the OpenAPI schema: it's not part of the API.
+    # The web page is served elsewhere (Vite's dev server locally, CloudFront later),
+    # so a visitor to the API itself gets its docs rather than a bare 404. Left out of
+    # the OpenAPI schema: it's not part of the API.
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:
         return RedirectResponse(url="/docs")
 
     return app
+
+
+def openapi_json(app: FastAPI) -> str:
+    """The app's OpenAPI schema as text, the way ``frontend/openapi.json`` stores it.
+
+    The web page generates its TypeScript types from that file, so the frontend can't
+    drift from the request and response models in ``schemas.py`` unnoticed.
+    """
+    return json.dumps(app.openapi(), indent=2, ensure_ascii=False) + "\n"
 
 
 # --- dependencies: what an endpoint needs, swappable in tests ---------------

@@ -1,0 +1,437 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Koopjeskompas",
+    "summary": "Ranks nearby supermarkets by how good their deals are for you.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rank": {
+      "post": {
+        "summary": "Rank",
+        "description": "Rank the stores within ``radius_km`` of ``location``, best first.\n\nEach store comes with the deals that earned its score.",
+        "operationId": "rank_api_rank_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RankRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RankResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No deals cached yet"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Cuisine": {
+        "type": "string",
+        "enum": [
+          "middle_eastern",
+          "italian",
+          "asian",
+          "mexican",
+          "indian"
+        ],
+        "title": "Cuisine"
+      },
+      "DealOut": {
+        "properties": {
+          "product_name": {
+            "type": "string",
+            "title": "Product Name"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "mechanic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mechanic",
+            "description": "The chain's own text, e.g. \"2 VOOR 4.00\""
+          },
+          "discount": {
+            "type": "number",
+            "title": "Discount",
+            "description": "Share of the normal price saved, 0–1"
+          },
+          "relevance": {
+            "type": "number",
+            "title": "Relevance",
+            "description": "Fit with the preferred cuisines, 0–1"
+          },
+          "value": {
+            "type": "number",
+            "title": "Value",
+            "description": "What the deal is worth: discount × relevance, or for a range deal the median of its products' values"
+          },
+          "products_counted": {
+            "type": "integer",
+            "title": "Products Counted",
+            "description": "For a range deal, the products its median is taken over; else 0"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid To"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "product_name",
+          "category",
+          "mechanic",
+          "discount",
+          "relevance",
+          "value",
+          "products_counted",
+          "valid_from",
+          "valid_to"
+        ],
+        "title": "DealOut"
+      },
+      "Diet": {
+        "type": "string",
+        "enum": [
+          "none",
+          "vegetarian",
+          "vegan"
+        ],
+        "title": "Diet"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "Health"
+      },
+      "Location": {
+        "properties": {
+          "lat": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Lat",
+            "examples": [
+              52.1664
+            ]
+          },
+          "lon": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Lon",
+            "examples": [
+              4.4817
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "lat",
+          "lon"
+        ],
+        "title": "Location"
+      },
+      "RankRequest": {
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/Location"
+          },
+          "diet": {
+            "$ref": "#/components/schemas/Diet",
+            "description": "A hard filter: non-matching deals are excluded, not ranked lower.",
+            "default": "none"
+          },
+          "cuisines": {
+            "items": {
+              "$ref": "#/components/schemas/Cuisine"
+            },
+            "type": "array",
+            "title": "Cuisines",
+            "default": [],
+            "examples": [
+              [
+                "middle_eastern"
+              ]
+            ]
+          },
+          "gluten_free": {
+            "type": "boolean",
+            "title": "Gluten Free",
+            "default": false
+          },
+          "lactose_free": {
+            "type": "boolean",
+            "title": "Lactose Free",
+            "default": false
+          },
+          "radius_km": {
+            "type": "number",
+            "maximum": 50.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius Km",
+            "default": 5.0
+          },
+          "top_k": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "description": "How many of a store's best deals count towards its score.",
+            "default": 10
+          },
+          "distance_weight": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Distance Weight",
+            "description": "How much distance counts against a store; 0 ignores distance.",
+            "default": 0.4
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "location"
+        ],
+        "title": "RankRequest"
+      },
+      "RankResponse": {
+        "properties": {
+          "ranked_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Ranked On",
+            "description": "Only deals active on this day count"
+          },
+          "stores": {
+            "items": {
+              "$ref": "#/components/schemas/RankedStore"
+            },
+            "type": "array",
+            "title": "Stores"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ranked_on",
+          "stores"
+        ],
+        "title": "RankResponse"
+      },
+      "RankedStore": {
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "store": {
+            "$ref": "#/components/schemas/StoreOut"
+          },
+          "score": {
+            "type": "number",
+            "title": "Score"
+          },
+          "basket_score": {
+            "type": "number",
+            "title": "Basket Score",
+            "description": "Sum of the values of the top deals"
+          },
+          "distance_km": {
+            "type": "number",
+            "title": "Distance Km"
+          },
+          "top_deals": {
+            "items": {
+              "$ref": "#/components/schemas/DealOut"
+            },
+            "type": "array",
+            "title": "Top Deals"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "rank",
+          "store",
+          "score",
+          "basket_score",
+          "distance_km",
+          "top_deals"
+        ],
+        "title": "RankedStore"
+      },
+      "StoreOut": {
+        "properties": {
+          "chain": {
+            "type": "string",
+            "title": "Chain"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "lat": {
+            "type": "number",
+            "title": "Lat"
+          },
+          "lon": {
+            "type": "number",
+            "title": "Lon"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "chain",
+          "name",
+          "address",
+          "lat",
+          "lon"
+        ],
+        "title": "StoreOut"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
