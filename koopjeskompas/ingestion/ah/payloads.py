@@ -180,7 +180,6 @@ class RangeProductPayload(_AhModel):
 
 
 class BonusPromotion(_AhModel):
-    id: str
     products: list[Any] = []  # validated one by one by the parser
 
 
