@@ -222,6 +222,18 @@ MVP steps:
    `rank_stores()`.
    ✅ Milestone: running the script against real AH data produces a real ranked list of Leiden
    stores, printed to the terminal.
+   - **2b. Range and per-weight deals.** Added after step 2: in real data about 40% of AH's deals
+     scored zero. A range deal ("Alle AH Verse pizza's: 2 voor €12") comes without products or
+     prices, and a per-weight price ("100 gram voor €1.39") can't be compared with a pack price.
+     Fixes:
+     - per-weight deals use the per-kilo price AH already sends;
+     - each price-dependent range is looked up once through AH's GraphQL API (about 44 extra
+       requests a week);
+     - a range counts once, valued at the **median** over its products that pass the diet filters.
+
+     Product-level names also made the diet filters stricter: a marker like "plantaardig" now only
+     vouches for its own listed item.
+     ✅ Milestone: every deal of the week of 2026-11-02 gets a discount (44 ranges, 451 products).
 3. **Minimal API** — a single `POST /api/rank` FastAPI endpoint reading from the cached JSON
    (no DB session, no other endpoints yet).
    ✅ Milestone: `POST /api/rank` returns real ranked results in Swagger UI.
