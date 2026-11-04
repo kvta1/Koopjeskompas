@@ -10,11 +10,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from koopjeskompas.api.app import create_app, get_today
+from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Deal, RangeProduct
 from koopjeskompas.ingestion.cache import deals_path, save_deals
 
 TODAY = date(2026, 11, 4)
+FRONTEND_SCHEMA = Path(__file__).parents[2] / "frontend" / "openapi.json"
 LEIDEN_CENTRAAL = {"lat": 52.1664, "lon": 4.4817}
 
 
@@ -189,3 +190,10 @@ def test_openapi_documents_the_endpoints(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
     assert {"/api/health", "/api/rank"} <= set(schema["paths"])
     assert "503" in schema["paths"]["/api/rank"]["post"]["responses"]
+
+
+def test_the_frontend_has_the_current_openapi_schema(app: FastAPI) -> None:
+    # The web page's TypeScript types are generated from this file. If this fails,
+    # the API changed: run `uv run koopjeskompas openapi`, then in frontend/
+    # `npm run gen:api`, and commit both files.
+    assert FRONTEND_SCHEMA.read_text(encoding="utf-8") == openapi_json(app)
