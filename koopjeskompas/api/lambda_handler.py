@@ -33,9 +33,10 @@ from mangum.types import LambdaContext, LambdaEvent
 
 from koopjeskompas.api.app import CHAIN, create_app
 from koopjeskompas.ingestion.cache import deals_path
+from koopjeskompas.publish import DEALS_PREFIX
 
 DATA_DIR = Path("/tmp/koopjeskompas")
-DEFAULT_DEALS_KEY = "deals/ah.json"
+DEFAULT_DEALS_KEY = f"{DEALS_PREFIX}{CHAIN.lower()}.json"  # where publish-deals puts it
 
 logger = logging.getLogger(__name__)
 

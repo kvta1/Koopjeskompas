@@ -100,7 +100,7 @@ Design the system so it degrades gracefully: if the Jumbo scraper breaks, AH res
 
 ### 4.3 Geocoding user location
 
-- **PDOK Locatieserver** — free official Dutch government geocoding API. Turns "Leiden" or a postcode into coordinates. No API key needed. This is the easy win of building for NL specifically.
+- **PDOK Locatieserver** — free official Dutch government geocoding API. Turns "Leiden" or a postcode into coordinates. No API key needed. This is the easy win of building for NL specifically. It allows calls straight from the browser (`Access-Control-Allow-Origin: *`); its `suggest` endpoint autocompletes places and its `centroide_ll` field is `POINT(lon lat)`, longitude first. Planned in §9.4, step 2.
 
 ### 4.4 Schema sketch
 
@@ -329,13 +329,147 @@ Steps:
 3. **Lambda-ready API.** ✅ Code: the Mangum entry point (`api/lambda_handler.py`) with the
    snapshot downloaded from S3, the nearest-day fallback, `scripts/build-lambda.sh` for the
    arm64 zip, and the body hash in the page. Tests use a fake S3; never real AWS in CI.
-   Then by hand: the data bucket, the function, its Function URL and the `/api/*` behaviour.
-   ✅ Milestone: the app works at its `*.cloudfront.net` URL.
-4. **CDK stack**, replacing the hand-made resources, plus a laptop deploy script and a
-   `koopjeskompas publish-deals` command that uploads the local snapshot.
-   ✅ Milestone: one command recreates the whole demo.
+   ✅ By hand: the data bucket, the function (arm64, 512 MB, reserved concurrency 5), its
+   Function URL and the `/api/*` behaviour.
+   ✅ Milestone: the app works at its `*.cloudfront.net` URL (live since 2026-11-06).
+4. ✅ **CDK stack and one-command deploy** (code): see §9.4, step 1.
 5. **Interview polish.** A README section with the architecture diagram and the reasons for each
    choice above, and a footer link from the page to the repository.
+
+### 9.4 Next steps after the demo went live
+
+Four steps, in this order. Each ends in something that can be shown, and each is its own branch
+and PR.
+
+| # | Step | Why at this point |
+|---|---|---|
+| 1 | Infrastructure as code + one-command deploy | Everything after it has to be deployed; and the hand-made setup is still fresh in mind |
+| 2 | Your own location, anywhere in the Netherlands | Low risk, free official data, high demo value; its nationwide store import is reused by Jumbo |
+| 3 | Jumbo as a second chain | Without it the ranking comes down to distance, so the app's core idea isn't visible yet |
+| 4 | Continuous deployment, run inside AWS | Needs step 1; worth least to the demo, and its services still have to be checked on this plan |
+
+Step 4 depends only on step 1, so it can move forward if the pipeline matters more than features.
+
+#### Step 1 — Infrastructure as code and one-command deploy
+
+Replace the console clicks with an **AWS CDK stack in Python** that recreates the demo exactly.
+
+- **`infra/`:** a CDK app with one stack: the page bucket and the data bucket (versioned and
+  `RETAIN`, so tearing down the stack never deletes snapshot history), the Lambda function (code
+  from `build/lambda.zip`, python3.14, arm64, 512 MB, 10 s, reserved concurrency 5,
+  `DEALS_BUCKET`), its log group (7 days), the Function URL (`AWS_IAM`) and the CloudFront
+  distribution with both origins behind OAC, the `/api/*` behaviour (all methods, CachingDisabled,
+  AllViewerExceptHostHeader) and `index.html` as the default root object.
+- **Both Lambda permissions:** since October 2025 a Function URL needs `lambda:InvokeFunctionUrl`
+  *and* `lambda:InvokeFunction`. Check that CDK's OAC helper for Function URL origins grants both;
+  if not, add the second explicitly. A missing one is a 403, as seen by hand.
+- **Tests without AWS:** `aws_cdk.assertions.Template` tests on the synthesised template (bucket
+  public access blocked, the URL's auth type, the behaviour's methods and policies, the source-ARN
+  condition on each permission), run in CI with `cdk synth`. They need no credentials.
+- **`scripts/deploy.sh`:** build the Lambda zip, build the page, `cdk deploy` (which uploads both
+  and invalidates `/index.html`). Run from the laptop after `aws login`.
+- **`koopjeskompas publish-deals`:** uploads `data/deals/<chain>.json` to the data bucket (the
+  bucket name read from the stack's outputs), so the weekly refresh is `fetch-deals` +
+  `publish-deals`. New environments pick it up; warm ones within hours.
+- **Cutover:** the CDK distribution gets a new `*.cloudfront.net` address. Once it works, delete
+  the hand-made distribution, OACs, function, role and buckets, from a written checklist so
+  nothing is left behind. The budget stays as it is.
+- **Pitfalls to expect:** `cdk bootstrap` creates its own roles and bucket in eu-north-1 (allowed
+  by this project's policies; only `managed/*` roles are protected). CloudFront is global, but the
+  stack itself lives in eu-north-1. Lambda@Edge and cross-Region references are off limits.
+
+✅ Milestone: `scripts/deploy.sh` on a fresh checkout recreates the whole demo, and the hand-made
+resources are gone.
+
+Built: `infra/` (stack, app, pinned CDK CLI, README with the cutover checklist), template tests in
+`tests/infra/`, `koopjeskompas/publish.py` and `scripts/deploy.sh`. CDK's helper for Function URL
+origins does grant both Lambda permissions (checked in the synthesised template, and pinned by a
+test). Next: the user bootstraps, deploys and cuts over.
+
+#### Step 2 — Your own location, anywhere in the Netherlands
+
+Today the page offers four places in Leiden plus the browser's location, and the store list holds
+Leiden's 6 AHs. The API already takes any coordinates, so the work is in two places: **stores
+nationwide** and **a place search in the page**. Deals need no change: they are national per
+chain (§4.4), so every AH in the country already has them.
+
+- **Stores nationwide.** One Overpass query for every AH in the Netherlands (about 1,100), written
+  by a `koopjeskompas fetch-stores` command instead of by hand: query, keep `shop=supermarket`,
+  map OSM tags to `Store` (name from `addr:street`, address from `addr:*`, the centre of a way or
+  relation as its location), validate, write `koopjeskompas/stores/nl_ah.json`. The file stays
+  committed and packaged (about 200 kB) and is refreshed now and then, like the Leiden list now.
+  Tests run the conversion on a captured Overpass response; tests never call Overpass.
+- **Scoring at that size.** `rank_stores` computes a haversine distance per store per request:
+  about 1,100 is well under a millisecond, so no spatial index. (One would matter with all chains
+  and a database, e.g. PostGIS.)
+- **Place search in the page,** with PDOK Locatieserver (§4.3), the Dutch government's free
+  geocoder: no key, and it allows browser calls from any origin (`Access-Control-Allow-Origin: *`,
+  checked 2026-11-06).
+  - A search box that suggests places as you type (`suggest`), e.g. "utrecht oudegr" →
+    "Oudegracht, Utrecht". Choosing one fetches its coordinates (`lookup`). A postcode alone
+    (`2311EZ`) works too.
+  - **The browser calls PDOK directly,** not through our API. That's no Lambda work, no AWS cost
+    and nothing of ours to keep running; the trade-off is a second origin the page talks to, and
+    that PDOK sees what's typed (a government service; mention it in the page footer). The
+    alternative, an `/api/geocode` endpoint, keeps one origin but makes every search a Lambda call
+    to an outside service.
+  - **Pitfall:** PDOK returns `centroide_ll` as `POINT(lon lat)`, longitude first. Parse it in one
+    tested function.
+  - Be polite to PDOK: wait about 250 ms after the last keystroke, and only search from 2
+    characters.
+  - Accessibility: the box is a combobox (keyboard navigation, the chosen place announced), tested
+    the way the page's tests already work: by label and role.
+  - "Use my location" stays. The Leiden presets go; Leiden Centraal stays the default example.
+- **When no store is near:** the API already returns an empty list; the page suggests a larger
+  radius (up to 50 km).
+
+✅ Milestone: an interviewer types their own postcode and sees their nearest AHs, ranked.
+
+#### Step 3 — Jumbo as a second chain
+
+- **Live check first** (a handful of requests), as for AH's range deals: does Jumbo's unofficial
+  mobile API answer without login, and what do its deals look like? **Stop condition:** if it's
+  blocked (Jumbo has used bot protection), stop and record why; scraping around it is out of scope
+  (§4.1).
+- **`DealSource` interface,** now that there are two (CLAUDE.md said to wait for this): AH becomes
+  the first implementation, then a `JumboSource` with its own client, payload models and parser in
+  `ingestion/jumbo/`. Raw responses saved and replayed in tests, as for AH.
+- **Graceful degradation:** `fetch-deals` runs every source; one failing source is reported and the
+  others are still saved. The API serves whichever snapshots exist.
+- **Stores:** step 2's `fetch-stores` with a second brand, so Jumbo stores come nationwide at once.
+- **Deploy:** one snapshot per chain in the data bucket; `publish-deals` uploads both, and the
+  Lambda downloads both.
+- **The page:** the hint "every AH has the same deals, so the nearest store wins" goes. Now the
+  deals decide.
+
+✅ Milestone: an AH and a Jumbo next to each other rank differently for "vegetarian, Middle
+Eastern" than for "no preference".
+
+#### Step 4 — Continuous deployment, run inside AWS
+
+GitHub Actions can't deploy here: it would log in through OIDC, which this project's managed
+policies block, and storing long-lived AWS keys in GitHub is the practice OIDC exists to avoid.
+So the pipeline runs inside AWS instead:
+
+- **AWS CodePipeline + CodeBuild,** connected to the GitHub repository through **CodeConnections**
+  (a GitHub app; no keys). A merge to `main` starts CodeBuild, which runs `scripts/deploy.sh`. The
+  pipeline is a second CDK stack.
+- **Check first:** that CodePipeline, CodeBuild and CodeConnections are available on this
+  project's plan (`aws freetier get-account-plan-state` and AWS's supported-services list), and
+  their free monthly allowances.
+- **Security:** CodeBuild's role can deploy the stack, so it's scoped to CDK's bootstrap roles,
+  not admin.
+- **If it's not available:** the laptop deploy script stays. That's fine for a demo, and the
+  reason is worth telling in an interview.
+
+✅ Milestone: merging a PR to `main` updates the live demo with no manual step.
+
+#### Along the way
+
+- **The weekly snapshot:** the AH week starts on Monday; after it starts, run `fetch-deals` and
+  upload (later `publish-deals`). Until then the API falls back to the old snapshot's last day.
+- **The budget** stays at zero spend with credits excluded; check Cost Explorer after each step
+  that adds a service.
 
 ### 9.2 Full roadmap (phased)
 

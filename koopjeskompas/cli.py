@@ -7,7 +7,14 @@ from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 
+import boto3
 import uvicorn
+from botocore.exceptions import (
+    BotoCoreError,
+    ClientError,
+    CredentialRetrievalError,
+    NoCredentialsError,
+)
 
 from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
@@ -15,6 +22,14 @@ from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
 from koopjeskompas.ingestion.ah.client import AhApiError, AhClient, load_raw_week
 from koopjeskompas.ingestion.ah.parser import parse_bonus_week
 from koopjeskompas.ingestion.cache import deals_path, load_deals, save_deals
+from koopjeskompas.publish import (
+    REGION,
+    STACK_NAME,
+    PublishError,
+    find_data_bucket,
+    publish_deals,
+    snapshots,
+)
 from koopjeskompas.report import format_ranking
 from koopjeskompas.stores import load_stores
 
@@ -94,6 +109,21 @@ def _build_parser() -> argparse.ArgumentParser:
         help="where to write it (default: %(default)s)",
     )
     openapi.set_defaults(handler=_openapi)
+
+    publish = subcommands.add_parser(
+        "publish-deals",
+        help="upload the cached deals to the AWS demo (needs `aws login`)",
+    )
+    publish.add_argument(
+        "--bucket",
+        help="the data bucket (default: read from the deployed stack's outputs)",
+    )
+    publish.add_argument(
+        "--stack",
+        default=STACK_NAME,
+        help="the CDK stack to read it from (default: %(default)s)",
+    )
+    publish.set_defaults(handler=_publish_deals)
 
     return parser
 
@@ -181,6 +211,45 @@ def _serve(args: argparse.Namespace) -> int:
         app.dependency_overrides[get_today] = lambda: fixed_day
     uvicorn.run(app, host=args.host, port=args.port)
     return 0
+
+
+def _publish_deals(args: argparse.Namespace) -> int:
+    try:
+        files = snapshots(args.data_dir / "deals")
+        bucket = args.bucket or find_data_bucket(
+            boto3.client("cloudformation", region_name=REGION), args.stack
+        )
+        keys = publish_deals(boto3.client("s3", region_name=REGION), bucket, files)
+    except PublishError as error:
+        print(error, file=sys.stderr)
+        return 1
+    except (BotoCoreError, ClientError) as error:
+        print(f"Talking to AWS failed: {error}", file=sys.stderr)
+        if _signed_out(error):
+            print(
+                "Your AWS session is missing or expired: run 'aws login'.",
+                file=sys.stderr,
+            )
+        return 1
+    for key in keys:
+        print(f"Uploaded s3://{bucket}/{key}")
+    print(
+        "New Lambda environments use it at once; warm ones keep the previous snapshot "
+        "until AWS recycles them, within hours."
+    )
+    return 0
+
+
+# Error codes AWS answers with when the credentials are stale or invalid.
+_EXPIRED_CODES = {"ExpiredToken", "ExpiredTokenException", "InvalidClientTokenId"}
+
+
+def _signed_out(error: BotoCoreError | ClientError) -> bool:
+    """Whether signing in again would help; other errors, such as a missing
+    dependency or a stack that doesn't exist, get no misleading 'aws login' hint."""
+    if isinstance(error, ClientError):
+        return error.response.get("Error", {}).get("Code") in _EXPIRED_CODES
+    return isinstance(error, (NoCredentialsError, CredentialRetrievalError))
 
 
 def _openapi(args: argparse.Namespace) -> int:
