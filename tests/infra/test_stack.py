@@ -95,6 +95,14 @@ def test_the_api_function(template: Template) -> None:
     template.has_resource_properties("AWS::Logs::LogGroup", {"RetentionInDays": 7})
 
 
+def test_every_log_group_of_the_stack_expires(template: Template) -> None:
+    # The API's and the page upload's; logs kept forever cost a little each month.
+    groups = resources(template, "AWS::Logs::LogGroup").values()
+    assert len(groups) == 2
+    assert all(g["Properties"]["RetentionInDays"] == 7 for g in groups)
+    assert all(g["DeletionPolicy"] == "Delete" for g in groups)
+
+
 def test_the_api_may_only_read_the_snapshots(template: Template) -> None:
     policies = [
         statement

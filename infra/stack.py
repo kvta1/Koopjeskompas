@@ -154,6 +154,14 @@ class KoopjeskompasStack(Stack):
             destination_bucket=site_bucket,
             distribution=distribution,
             distribution_paths=["/index.html"],
+            # The upload runs as a helper Lambda; without its own log group, Lambda
+            # makes one that keeps every deploy's logs forever and outlives the stack.
+            log_group=logs.LogGroup(
+                self,
+                "SiteDeploymentLogs",
+                retention=logs.RetentionDays.ONE_WEEK,
+                removal_policy=RemovalPolicy.DESTROY,
+            ),
         )
 
         CfnOutput(
