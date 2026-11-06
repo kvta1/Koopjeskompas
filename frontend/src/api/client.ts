@@ -29,12 +29,19 @@ export class ApiError extends Error {
 const START_THE_API = "Is the API running? Start it with `uv run koopjeskompas serve`.";
 
 export async function rankStores(request: RankRequest): Promise<RankResponse> {
+  const body = JSON.stringify(request);
   let response: Response;
   try {
     response = await fetch("/api/rank", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(request),
+      headers: {
+        "Content-Type": "application/json",
+        // On AWS, CloudFront signs each request to the API's Lambda function, but
+        // leaves hashing a POST body to the sender. Without the hash, Lambda refuses
+        // the request. Locally the header is passed on and ignored.
+        "x-amz-content-sha256": await sha256Hex(body),
+      },
+      body,
     });
   } catch {
     // fetch only rejects when there is no HTTP response at all.
@@ -45,6 +52,12 @@ export async function rankStores(request: RankRequest): Promise<RankResponse> {
   }
   // Trusted rather than validated: the API's response model guarantees this shape.
   return (await response.json()) as RankResponse;
+}
+
+/** The SHA-256 of a text's UTF-8 bytes, as lowercase hex. */
+export async function sha256Hex(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 /** FastAPI's reason for an error, from the JSON body's `detail`. */
