@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -19,6 +19,7 @@ from koopjeskompas.domain.scoring import (
     basket_score,
     deal_value,
     rank_stores,
+    ranking_day,
     score_deals,
     store_score,
 )
@@ -103,6 +104,66 @@ def test_score_is_non_increasing_in_distance(
 ) -> None:
     near, far = sorted((d1, d2))
     assert store_score(basket, near, weights) >= store_score(basket, far, weights)
+
+
+# --- the day to rank on ---------------------------------------------------
+
+WEEK = (date(2026, 10, 12), date(2026, 10, 18))  # make_deal's default week
+
+
+@pytest.mark.parametrize(
+    ("today", "expected"),
+    [
+        (date(2026, 10, 15), date(2026, 10, 15)),  # in the week: today
+        (date(2026, 10, 25), date(2026, 10, 18)),  # after it: its last day
+        (date(2026, 10, 1), date(2026, 10, 12)),  # before it: its first day
+    ],
+)
+def test_ranking_day_falls_back_to_the_snapshots_week(
+    today: date, expected: date
+) -> None:
+    assert ranking_day([make_deal("Hummus")], today) == expected
+
+
+def test_ranking_day_picks_the_nearest_day_with_deals() -> None:
+    hummus = make_deal("Hummus")  # 12 to 18 Oct
+    tahin = make_deal(
+        "Tahin", valid_from=date(2026, 10, 22), valid_to=date(2026, 10, 28)
+    )
+    falafel = make_deal(
+        "Falafel", valid_from=date(2026, 10, 1), valid_to=date(2026, 10, 30)
+    )
+    # Falafel runs on the 19th, so that is a day with deals: no fallback.
+    assert ranking_day([hummus, tahin, falafel], date(2026, 10, 19)) == date(
+        2026, 10, 19
+    )
+    # Without it, the 18th (one day back) is nearer than the 22nd (three ahead).
+    assert ranking_day([hummus, tahin], date(2026, 10, 19)) == date(2026, 10, 18)
+    # The 20th is two days from both: on a tie the earlier day wins.
+    assert ranking_day([hummus, tahin], date(2026, 10, 20)) == date(2026, 10, 18)
+
+
+def test_without_deals_ranking_day_is_today() -> None:
+    assert ranking_day([], TODAY) == TODAY
+
+
+days = st.dates(min_value=date(2026, 9, 1), max_value=date(2026, 12, 31))
+dated_deal_strategy = st.builds(
+    lambda start, length: make_deal(
+        "Hummus", valid_from=start, valid_to=start + timedelta(days=length)
+    ),
+    days,
+    st.integers(0, 14),
+)
+
+
+@given(st.lists(dated_deal_strategy, min_size=1, max_size=10), days)
+def test_some_deal_is_active_on_the_ranking_day(deals: list[Deal], today: date) -> None:
+    day = ranking_day(deals, today)
+    assert any(deal.is_active_on(day) for deal in deals)
+    # And it only moves away from today when nothing is active today.
+    if any(deal.is_active_on(today) for deal in deals):
+        assert day == today
 
 
 # --- deal scoring --------------------------------------------------------

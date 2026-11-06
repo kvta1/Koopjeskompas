@@ -46,6 +46,10 @@ jobs:
 
       - name: Tests (pytest)
         run: uv run pytest
+
+      # Catches a dependency without a Linux arm64 wheel before it breaks a deploy.
+      - name: Lambda zip builds
+        run: scripts/build-lambda.sh
  
 
 

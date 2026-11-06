@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { RANKING } from "../test/fixtures";
-import { ApiError, rankStores } from "./client";
+import { ApiError, rankStores, sha256Hex } from "./client";
 
 function respondWith(response: Response) {
   const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response);
@@ -9,6 +9,25 @@ function respondWith(response: Response) {
 }
 
 const REQUEST = { location: { lat: 52.1664, lon: 4.4817 }, diet: "vegetarian" } as const;
+
+describe("sha256Hex", () => {
+  it("matches the published test vectors", async () => {
+    // From FIPS 180-2, and the hash of nothing.
+    expect(await sha256Hex("abc")).toBe(
+      "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+    );
+    expect(await sha256Hex("")).toBe(
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    );
+  });
+
+  it("hashes UTF-8 bytes, not characters", async () => {
+    // "é" is two bytes in UTF-8; hashing UTF-16 code units would differ.
+    expect(await sha256Hex("é")).toBe(
+      "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
+    );
+  });
+});
 
 describe("rankStores", () => {
   it("posts the request as JSON and returns the ranking", async () => {
@@ -19,8 +38,12 @@ describe("rankStores", () => {
     const [url, init] = fetchMock.mock.calls[0] ?? [];
     expect(url).toBe("/api/rank");
     expect(init?.method).toBe("POST");
-    expect(init?.headers).toEqual({ "Content-Type": "application/json" });
     expect(JSON.parse(init?.body as string)).toEqual(REQUEST);
+    expect(init?.headers).toEqual({
+      "Content-Type": "application/json",
+      // The hash of exactly the bytes sent: CloudFront's signature covers them.
+      "x-amz-content-sha256": await sha256Hex(init?.body as string),
+    });
   });
 
   it("passes on the API's reason for a 503", async () => {

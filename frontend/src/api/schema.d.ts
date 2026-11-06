@@ -34,7 +34,9 @@ export interface paths {
          * Rank
          * @description Rank the stores within ``radius_km`` of ``location``, best first.
          *
-         *     Each store comes with the deals that earned its score.
+         *     Each store comes with the deals that earned its score. If the cached deals have
+         *     all ended (or not yet begun), they are ranked as of their nearest day instead,
+         *     and ``ranked_on`` says which day that was.
          */
         post: operations["rank_api_rank_post"];
         delete?: never;
@@ -171,7 +173,7 @@ export interface components {
             /**
              * Ranked On
              * Format: date
-             * @description Only deals active on this day count
+             * @description Only deals active on this day count: today, or the nearest day with deals when the cached deals have all ended or not yet begun
              */
             ranked_on: string;
             /** Stores */

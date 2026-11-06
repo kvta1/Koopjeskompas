@@ -72,6 +72,25 @@ def store_score(basket: float, distance_km: float, weights: ScoringWeights) -> f
     )
 
 
+def ranking_day(deals: Iterable[Deal], today: date) -> date:
+    """Today, or if no deal is active today, the nearest day on which one is.
+
+    A deal snapshot ages: the AH week ends, and until a new snapshot arrives every
+    deal would count as expired and every store would score zero. Ranking on the
+    snapshot's last day shows the most recent deals instead; the caller reports the
+    day it ranked on, so nobody mistakes them for today's. If the snapshot is still
+    to come (fetched before its week starts), its first day is the nearest. On a tie
+    the earlier day wins.
+    """
+    deals = list(deals)
+    if not deals or any(deal.is_active_on(today) for deal in deals):
+        return today
+    nearest = [
+        deal.valid_to if deal.valid_to < today else deal.valid_from for deal in deals
+    ]
+    return min(nearest, key=lambda day: (abs(day - today), day))
+
+
 def score_deals(
     deals: Iterable[Deal], preferences: Preferences, today: date
 ) -> list[ScoredDeal]:
