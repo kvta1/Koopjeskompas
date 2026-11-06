@@ -32,8 +32,27 @@ uv pip install --quiet --target "$BUILD" --requirements build/requirements.txt \
 uv build --wheel --out-dir build/wheel --quiet
 uv pip install --quiet --target "$BUILD" --no-deps build/wheel/*.whl \
   --python-platform "$PLATFORM" --python-version "$PYTHON"
+# uv notes the install time in the package's metadata (uv_cache.json, also listed in
+# RECORD). The Lambda never reads it, and it would make every zip different.
+rm "$BUILD"/koopjeskompas-*.dist-info/uv_cache.json
+sed -i '/uv_cache\.json/d' "$BUILD"/koopjeskompas-*.dist-info/RECORD
 
-# Python's own zipfile module: no dependency on the zip tool.
-uv run --no-sync python -m zipfile --create build/lambda.zip "$BUILD"/*
+# A reproducible zip: the same code gives byte-for-byte the same file. Entries are
+# sorted and get a fixed timestamp and permissions instead of each file's own, which
+# change with every install. Otherwise every deploy would upload a "new" 20 MB zip
+# and replace the function, even when nothing changed.
+uv run --no-sync python - "$BUILD" build/lambda.zip <<'PY'
+import sys
+import zipfile
+from pathlib import Path
+
+source, target = Path(sys.argv[1]), sys.argv[2]
+with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as archive:
+    for path in sorted(p for p in source.rglob("*") if p.is_file()):
+        entry = zipfile.ZipInfo(str(path.relative_to(source)), date_time=(1980, 1, 1, 0, 0, 0))
+        entry.external_attr = 0o644 << 16  # rw-r--r--: readable by the Lambda runtime
+        entry.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(entry, path.read_bytes())
+PY
 
 echo "Built build/lambda.zip ($(du -h build/lambda.zip | cut -f1))"

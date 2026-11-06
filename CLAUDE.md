@@ -113,7 +113,10 @@ The intended design is a modular monolith with a strict separation between the d
   openapi-typescript don't support TypeScript 7 yet.
 - **Infrastructure** (`infra/`): an AWS CDK app in Python (`stack.py`, `app.py`; the `cdk` CLI is
   pinned in `infra/package.json`). Its libraries are the `infra` dependency group, a default
-  group, so `uv sync` installs it, while `build-lambda.sh` exports no groups at all. The stack
+  group, so `uv sync` installs it, while `build-lambda.sh` exports no groups at all. The group
+  also holds `botocore[crt]`: boto3 needs it to use `aws login` credentials (for
+  `publish-deals`); the Lambda uses its role and doesn't. `build-lambda.sh` makes a reproducible
+  zip (sorted entries, fixed timestamps), so an unchanged build doesn't redeploy the function. The stack
   takes the Lambda code and page files as parameters; `tests/infra/` synthesises it with stand-ins
   and checks the template, with no AWS. Names shared with the app (Region, stack name, `deals/`
   prefix, the bucket output) live in `koopjeskompas/publish.py`; `infra/` imports them, never the
