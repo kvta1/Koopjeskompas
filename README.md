@@ -11,7 +11,7 @@ CI, applied to messy real-world data.
 ## Status
 
 **The MVP is done.** The app works end to end on real Albert Heijn data for Leiden: in the
-browser, from the command line and through a web API. A public demo on AWS is in progress.
+browser, from the command line, through a web API and as a public demo on AWS.
 
 | | Feature | Status |
 |---|---|---|
@@ -22,7 +22,8 @@ browser, from the command line and through a web API. A public demo on AWS is in
 | ✅ | Range deals priced product by product, per-weight deals | done |
 | ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
-| ⏳ | Public demo on AWS | in progress: the page is live, the API's Lambda code is ready |
+| ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda, set up by hand) |
+| ⏳ | Infrastructure as code (CDK), your own location anywhere in NL, Jumbo | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -303,17 +304,21 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
 2. ✅ **One real source:** AH deals for Leiden, ranked in the terminal.
 3. ✅ **Web API:** `POST /api/rank` with FastAPI, reading the cached deals.
 4. ✅ **Web page:** a React + TypeScript page with location, preferences and the ranked stores.
-5. **Public demo on AWS** ([PLAN.md §9.3](PLAN.md)):
-   - S3 + CloudFront for the page, Lambda for the API;
-   - defined with AWS CDK and deployed from the laptop;
-   - designed to stay within the AWS free plan.
+5. ✅ **Public demo on AWS** ([PLAN.md §9.3](PLAN.md)): S3 + CloudFront for the page, Lambda for
+   the API, within the AWS free plan.
 
-After the MVP:
-- **Postcode search:** turn a Dutch postcode into coordinates, e.g. with PDOK's free Locatieserver.
+Next, in this order ([PLAN.md §9.4](PLAN.md)):
+1. **Infrastructure as code:** the AWS setup as a CDK stack, deployed with one command.
+2. **Your own location, anywhere in the Netherlands:** every AH in the country from OpenStreetMap,
+   and a place and postcode search in the page with PDOK's free Locatieserver.
+3. **Second chain:** Jumbo behind a common `DealSource` interface, so rankings differ by more than
+   distance.
+4. **Continuous deployment** with AWS CodePipeline, since this AWS project can't use GitHub
+   Actions' OIDC login.
+
+Later:
 - **Use AH's own diet labels:** AH's product data includes fields like "vegetarisch" and "geen
   gluten". They could replace much of the name-based tagging.
-- **Second chain:** add Jumbo behind a common `DealSource` interface, so rankings differ by more
-  than distance.
 - **Database:** SQLite/PostgreSQL with migrations, replacing the JSON cache.
 - **Better matching:** LLM-based tagging at ingestion time, so diet filters can use ingredients
   rather than product names.

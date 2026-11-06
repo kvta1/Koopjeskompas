@@ -20,8 +20,10 @@ decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
-progress: the user builds the AWS side by hand in the console to learn it (page on S3 +
-CloudFront is live), and the code for the Lambda is done. CDK comes after.
+live, built by hand in the console by the user to learn it (the user does the AWS steps
+themselves; Claude explains and checks read-only). Next is PLAN.md §9.4: CDK + one-command
+deploy, then your own location anywhere in NL (nationwide stores + PDOK search), then Jumbo,
+then continuous deployment run inside AWS.
 
 ## Commands
 
