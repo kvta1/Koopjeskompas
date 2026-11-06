@@ -123,7 +123,12 @@ class RankedStore(_ApiModel):
 
 
 class RankResponse(_ApiModel):
-    ranked_on: date = Field(description="Only deals active on this day count")
+    ranked_on: date = Field(
+        description=(
+            "Only deals active on this day count: today, or the nearest day with "
+            "deals when the cached deals have all ended or not yet begun"
+        )
+    )
     stores: list[RankedStore]
 
 

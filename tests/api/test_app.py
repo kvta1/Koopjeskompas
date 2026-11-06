@@ -178,6 +178,15 @@ def test_without_cached_deals_the_api_says_what_to_do(tmp_path: Path) -> None:
     assert client.get("/api/health").status_code == 200
 
 
+def test_an_old_snapshot_is_ranked_on_its_last_day(app: FastAPI) -> None:
+    app.dependency_overrides[get_today] = lambda: date(2026, 11, 20)
+    result = rank(TestClient(app))
+
+    # Without the fallback every deal would have expired and every score be zero.
+    assert result["ranked_on"] == "2026-11-08"
+    assert "AH Hummus naturel" in deal_names(result["stores"][0])
+
+
 def test_a_new_fetch_is_picked_up_without_a_restart(
     client: TestClient, tmp_path: Path
 ) -> None:

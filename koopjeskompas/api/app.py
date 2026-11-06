@@ -22,7 +22,7 @@ from fastapi.responses import RedirectResponse
 
 from koopjeskompas.api.schemas import Health, RankedStore, RankRequest, RankResponse
 from koopjeskompas.domain.models import Coordinates, Deal, Preferences, Store
-from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
+from koopjeskompas.domain.scoring import ScoringWeights, rank_stores, ranking_day
 from koopjeskompas.ingestion.cache import deals_path, load_deals
 from koopjeskompas.stores import load_stores
 
@@ -113,8 +113,11 @@ def health() -> Health:
 def rank(body: RankRequest, deals: Deals, stores: Stores, today: Today) -> RankResponse:
     """Rank the stores within ``radius_km`` of ``location``, best first.
 
-    Each store comes with the deals that earned its score.
+    Each store comes with the deals that earned its score. If the cached deals have
+    all ended (or not yet begun), they are ranked as of their nearest day instead,
+    and ``ranked_on`` says which day that was.
     """
+    day = ranking_day(deals, today)
     rankings = rank_stores(
         stores=stores,
         deals=deals,
@@ -125,7 +128,7 @@ def rank(body: RankRequest, deals: Deals, stores: Stores, today: Today) -> RankR
             lactose_free=body.lactose_free,
         ),
         location=Coordinates(latitude=body.location.lat, longitude=body.location.lon),
-        today=today,
+        today=day,
         weights=ScoringWeights(
             top_k=body.top_k,
             distance_weight=body.distance_weight,
@@ -133,7 +136,7 @@ def rank(body: RankRequest, deals: Deals, stores: Stores, today: Today) -> RankR
         ),
     )
     return RankResponse(
-        ranked_on=today,
+        ranked_on=day,
         stores=[
             RankedStore.from_ranking(position, ranking)
             for position, ranking in enumerate(rankings, start=1)
