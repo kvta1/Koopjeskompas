@@ -41,6 +41,7 @@ dev = [
 ]
 infra = [
     "aws-cdk-lib>=2.275.0",
+    "botocore[crt]>=1.43.125",
     "constructs>=10.8.1",
 ]
 

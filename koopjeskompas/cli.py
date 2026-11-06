@@ -9,7 +9,12 @@ from pathlib import Path
 
 import boto3
 import uvicorn
-from botocore.exceptions import BotoCoreError, ClientError
+from botocore.exceptions import (
+    BotoCoreError,
+    ClientError,
+    CredentialRetrievalError,
+    NoCredentialsError,
+)
 
 from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
@@ -219,8 +224,12 @@ def _publish_deals(args: argparse.Namespace) -> int:
         print(error, file=sys.stderr)
         return 1
     except (BotoCoreError, ClientError) as error:
-        # Expired credentials and a stack that doesn't exist both end up here.
-        print(f"AWS refused: {error}. Signed in? Try 'aws login'.", file=sys.stderr)
+        print(f"Talking to AWS failed: {error}", file=sys.stderr)
+        if _signed_out(error):
+            print(
+                "Your AWS session is missing or expired: run 'aws login'.",
+                file=sys.stderr,
+            )
         return 1
     for key in keys:
         print(f"Uploaded s3://{bucket}/{key}")
@@ -229,6 +238,18 @@ def _publish_deals(args: argparse.Namespace) -> int:
         "until AWS recycles them, within hours."
     )
     return 0
+
+
+# Error codes AWS answers with when the credentials are stale or invalid.
+_EXPIRED_CODES = {"ExpiredToken", "ExpiredTokenException", "InvalidClientTokenId"}
+
+
+def _signed_out(error: BotoCoreError | ClientError) -> bool:
+    """Whether signing in again would help; other errors, such as a missing
+    dependency or a stack that doesn't exist, get no misleading 'aws login' hint."""
+    if isinstance(error, ClientError):
+        return error.response.get("Error", {}).get("Code") in _EXPIRED_CODES
+    return isinstance(error, (NoCredentialsError, CredentialRetrievalError))
 
 
 def _openapi(args: argparse.Namespace) -> int:

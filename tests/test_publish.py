@@ -6,7 +6,11 @@ from typing import Any
 
 import boto3
 import pytest
-from botocore.exceptions import ClientError
+from botocore.exceptions import (
+    ClientError,
+    MissingDependencyException,
+    NoCredentialsError,
+)
 
 from koopjeskompas.cli import main
 from koopjeskompas.publish import (
@@ -121,9 +125,41 @@ def test_publish_deals_to_a_named_bucket(data_dir: Path, fake_aws: FakeS3) -> No
     assert {u["bucket"] for u in fake_aws.uploads} == {"other"}
 
 
-def test_publish_deals_explains_an_aws_refusal(
+def test_a_missing_stack_is_reported_without_blaming_the_login(
     data_dir: Path, fake_aws: FakeS3, capsys: pytest.CaptureFixture[str]
 ) -> None:
     assert main(["--data-dir", str(data_dir), "publish-deals", "--stack", "Nope"]) == 1
-    assert "aws login" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "does not exist" in err
+    assert "aws login" not in err
     assert fake_aws.uploads == []
+
+
+@pytest.mark.parametrize(
+    ("error", "says_log_in"),
+    [
+        (NoCredentialsError(), True),
+        (
+            ClientError(
+                {"Error": {"Code": "ExpiredToken", "Message": "expired"}}, "PutObject"
+            ),
+            True,
+        ),
+        # What happened for real: boto3 without botocore[crt] can't read the
+        # credentials of `aws login`. Logging in again doesn't help with that.
+        (MissingDependencyException(msg='pip install "botocore[crt]"'), False),
+    ],
+)
+def test_only_credential_errors_suggest_logging_in(
+    data_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    error: Exception,
+    says_log_in: bool,
+) -> None:
+    def refuse(service: str, **_: Any) -> Any:
+        raise error
+
+    monkeypatch.setattr(boto3, "client", refuse)
+    assert main(["--data-dir", str(data_dir), "publish-deals", "--bucket", "b"]) == 1
+    assert ("aws login" in capsys.readouterr().err) is says_log_in
