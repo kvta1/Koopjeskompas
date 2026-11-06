@@ -1,0 +1,11 @@
+{
+  "name": "koopjeskompas-infra",
+  "private": true,
+  "description": "The AWS CDK command-line tool, pinned. The stack itself is Python (stack.py).",
+  "scripts": {
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.1148.0"
+  }
+}

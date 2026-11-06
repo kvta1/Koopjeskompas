@@ -21,9 +21,9 @@ PYTHON=3.14
 rm -rf "$BUILD" build/lambda.zip build/wheel
 mkdir -p "$BUILD"
 
-# The locked versions of the runtime dependencies (no dev tools), with hashes, so
-# the zip holds exactly what the tests ran against.
-uv export --frozen --no-dev --no-emit-project --output-file build/requirements.txt --quiet
+# The locked versions of the runtime dependencies (no dependency groups: no dev or
+# infrastructure tools), with hashes, so the zip holds exactly what the tests ran against.
+uv export --frozen --no-default-groups --no-emit-project --output-file build/requirements.txt --quiet
 
 uv pip install --quiet --target "$BUILD" --requirements build/requirements.txt \
   --python-platform "$PLATFORM" --python-version "$PYTHON" --only-binary :all:

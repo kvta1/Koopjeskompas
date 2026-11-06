@@ -219,3 +219,7 @@ __marimo__/
 
 # Runtime cache: raw AH responses and parsed deals
 /data/
+
+# AWS CDK: the CLI and its synthesised templates
+/infra/node_modules/
+/infra/cdk.out/
