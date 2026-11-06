@@ -332,7 +332,7 @@ Steps:
    ✅ By hand: the data bucket, the function (arm64, 512 MB, reserved concurrency 5), its
    Function URL and the `/api/*` behaviour.
    ✅ Milestone: the app works at its `*.cloudfront.net` URL (live since 2026-11-06).
-4. **CDK stack and one-command deploy:** see §9.4, step 1.
+4. ✅ **CDK stack and one-command deploy** (code): see §9.4, step 1.
 5. **Interview polish.** A README section with the architecture diagram and the reasons for each
    choice above, and a footer link from the page to the repository.
 
@@ -380,6 +380,11 @@ Replace the console clicks with an **AWS CDK stack in Python** that recreates th
 
 ✅ Milestone: `scripts/deploy.sh` on a fresh checkout recreates the whole demo, and the hand-made
 resources are gone.
+
+Built: `infra/` (stack, app, pinned CDK CLI, README with the cutover checklist), template tests in
+`tests/infra/`, `koopjeskompas/publish.py` and `scripts/deploy.sh`. CDK's helper for Function URL
+origins does grant both Lambda permissions (checked in the synthesised template, and pinned by a
+test). Next: the user bootstraps, deploys and cuts over.
 
 #### Step 2 — Your own location, anywhere in the Netherlands
 

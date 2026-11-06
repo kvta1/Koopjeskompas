@@ -20,9 +20,9 @@ decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
-live, built by hand in the console by the user to learn it (the user does the AWS steps
-themselves; Claude explains and checks read-only). Next is PLAN.md §9.4: CDK + one-command
-deploy, then your own location anywhere in NL (nationwide stores + PDOK search), then Jumbo,
+live, first built by hand in the console by the user to learn it (the user does the AWS steps
+themselves; Claude explains and checks read-only). PLAN.md §9.4 step 1 (CDK in `infra/`,
+`scripts/deploy.sh`, `publish-deals`) is written; then your own location anywhere in NL (nationwide stores + PDOK search), then Jumbo,
 then continuous deployment run inside AWS.
 
 ## Commands
@@ -51,6 +51,9 @@ npm run lint && npm run format:check && npm run typecheck && npm run build
 npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
 
 scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
+scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
+uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket
+cd infra && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -108,6 +111,13 @@ The intended design is a modular monolith with a strict separation between the d
   colour tokens; components hold no fetch logic (`src/api/client.ts` does); tests sit next to the
   code (`*.test.ts(x)`) and stub `fetch`. TypeScript stays on 5.9 because typescript-eslint and
   openapi-typescript don't support TypeScript 7 yet.
+- **Infrastructure** (`infra/`): an AWS CDK app in Python (`stack.py`, `app.py`; the `cdk` CLI is
+  pinned in `infra/package.json`). Its libraries are the `infra` dependency group, a default
+  group, so `uv sync` installs it, while `build-lambda.sh` exports no groups at all. The stack
+  takes the Lambda code and page files as parameters; `tests/infra/` synthesises it with stand-ins
+  and checks the template, with no AWS. Names shared with the app (Region, stack name, `deals/`
+  prefix, the bucket output) live in `koopjeskompas/publish.py`; `infra/` imports them, never the
+  other way round. Only eu-north-1 (CloudFront is global); no Lambda@Edge.
 
 Key invariant carried through every layer: vegetarian/vegan preference is a **hard filter**, not a
 soft relevance score.
