@@ -11,7 +11,7 @@ CI, applied to messy real-world data.
 ## Status
 
 **The MVP is done.** The app works end to end on real Albert Heijn data for Leiden: in the
-browser, from the command line and through a web API. A public demo on AWS comes next.
+browser, from the command line and through a web API. A public demo on AWS is in progress.
 
 | | Feature | Status |
 |---|---|---|
@@ -22,7 +22,7 @@ browser, from the command line and through a web API. A public demo on AWS comes
 | ✅ | Range deals priced product by product, per-weight deals | done |
 | ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
-| ⏳ | Public demo on AWS | next |
+| ⏳ | Public demo on AWS | in progress: the page is live, the API's Lambda code is ready |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -234,6 +234,15 @@ npm run build                  # production build into frontend/dist/
 GitHub Actions runs all of these on every push and pull request to `main`, in two jobs: one for
 the Python backend and one for the frontend.
 
+**The API on AWS Lambda** runs the same app behind [Mangum](https://mangum.fastapiexpert.com/)
+(`koopjeskompas/api/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
+
+```bash
+scripts/build-lambda.sh                   # writes build/lambda.zip
+```
+
+CI builds it too, so a dependency without a Linux arm64 build fails on the pull request.
+
 **When the API's request or response models change**, regenerate the page's types and commit
 both files (a test and CI fail until you do):
 
@@ -263,12 +272,14 @@ Testing approach:
 koopjeskompas/
 ├── domain/        pure logic, no I/O: models, deal mechanics, tagging, scoring, distance
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
-├── api/           the web API: request/response models (schemas.py) and endpoints (app.py)
+├── api/           the web API: request/response models (schemas.py), endpoints (app.py)
+│                  and the AWS Lambda entry point (lambda_handler.py)
 ├── stores/        the Leiden store list and the OpenStreetMap query that produced it
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
                    and so on; fixtures/ah/ holds the captured AH responses
+scripts/           build-lambda.sh: packages the API for AWS Lambda
 frontend/          the web page (React + TypeScript + Vite)
 ├── openapi.json   the API's schema, written by `koopjeskompas openapi`
 └── src/
@@ -294,7 +305,7 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
 4. ✅ **Web page:** a React + TypeScript page with location, preferences and the ranked stores.
 5. **Public demo on AWS** ([PLAN.md §9.3](PLAN.md)):
    - S3 + CloudFront for the page, Lambda for the API;
-   - defined with AWS CDK and deployed from GitHub Actions;
+   - defined with AWS CDK and deployed from the laptop;
    - designed to stay within the AWS free plan.
 
 After the MVP:

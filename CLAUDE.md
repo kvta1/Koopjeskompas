@@ -19,8 +19,9 @@ decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain
 (`koopjeskompas/ingestion/`), a hardcoded Leiden store list (`koopjeskompas/stores/`) and a
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
-`POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). Next is the AWS
-demo (PLAN.md §9.3).
+`POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
+progress: the user builds the AWS side by hand in the console to learn it (page on S3 +
+CloudFront is live), and the code for the Lambda is done. CDK comes after.
 
 ## Commands
 
@@ -46,6 +47,8 @@ npm run dev                # page on localhost:5173; proxies /api to 127.0.0.1:8
 npm test                   # Vitest + React Testing Library
 npm run lint && npm run format:check && npm run typecheck && npm run build
 npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
+
+scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -87,7 +90,9 @@ The intended design is a modular monolith with a strict separation between the d
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
   scrapes or hits external sources synchronously in a request. Built so far: `api/app.py`
   (`create_app(data_dir)` factory; deals, stores and today are FastAPI dependencies, so tests swap
-  them via `dependency_overrides`) and `api/schemas.py` (the HTTP contract, deliberately separate
+  them via `dependency_overrides`), `api/lambda_handler.py` (the same app behind Mangum for AWS
+  Lambda; downloads the deals snapshot from S3 into `/tmp` per cold start, configured by
+  `DEALS_BUCKET`/`DEALS_KEY`) and `api/schemas.py` (the HTTP contract, deliberately separate
   from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its

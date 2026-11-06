@@ -270,9 +270,10 @@ Browser ──► CloudFront ──┬─► S3 bucket: React build (static file
   API Gateway, because Function URLs cost nothing beyond the Lambda calls themselves.
 - **One domain:** CloudFront routes `/api/*` to the Lambda and everything else to S3. The browser
   only ever talks to one origin, so CORS never comes up in production.
-- **Data:** the parsed deals (`data/deals/ah.json`) and the Leiden store list as objects in S3,
-  loaded once per Lambda cold start. This is the JSON cache from MVP step 2, moved to S3; the code
-  change is one storage adapter behind `ingestion/cache.py`. No database.
+- **Data:** the parsed deals (`data/deals/ah.json`) as an object in a second, private S3 bucket.
+  `api/lambda_handler.py` downloads it into `/tmp` once per Lambda cold start, where `create_app`
+  reads it exactly as it reads `data/` locally, so the app needs no storage adapter. The Leiden
+  store list is packaged with the code. No database.
 
 **Demo-specific decision: a deals snapshot, no scraping from AWS.**
 `fetch-deals` keeps running on your own machine, about once a week (or just before an interview),
@@ -283,9 +284,9 @@ and the result is uploaded to S3. AWS never contacts AH. This:
   moment;
 - removes the scheduler, a second Lambda and their failure modes from the setup.
 
-Because the snapshot can be stale, the API ranks against the **snapshot's bonus week** when that
-week has ended (instead of returning nothing), and the page says so: *"Deals of AH bonus week 42
-(snapshot)"*. A stale but honest demo beats an empty one.
+Because the snapshot can be stale, the API ranks on the **nearest day with deals** when none is
+active today (`domain.scoring.ranking_day`), instead of returning nothing, and the page shows that
+day: *"Albert Heijn bonus deals on Sun 8 Nov"*. A stale but honest demo beats an empty one.
 
 **Cost: the AWS Free plan.** Since July 2025 a new AWS account can choose a *Free account plan*.
 In AWS's own words, you "will not incur any charges" on it; it ends after six months or when the
@@ -302,28 +303,38 @@ or the account closes. ([AWS docs](https://docs.aws.amazon.com/awsaccountbilling
 - **Guardrails:** an AWS Budget with an alert at USD 1, and 7-day retention on Lambda's CloudWatch
   logs.
 
-**Infrastructure as code:** define everything with **AWS CDK in Python** (one stack:
-both buckets, the Lambda, the CloudFront distribution and its two origins). Nothing is clicked
-together in the console, so the whole setup can be destroyed and recreated with one command, and
-it's readable in an interview. Python keeps it in one language with the rest of the backend.
+**Learn in the console first, then codify.** Each piece is first created by hand in the AWS
+console, to see every setting and why it exists, and then defined with **AWS CDK in Python** (one
+stack: both buckets, the Lambda, the CloudFront distribution and its two origins). The hand-made
+resources are deleted before the first CDK deploy. With CDK the whole setup can be destroyed and
+recreated with one command, and it's readable in an interview. Python keeps it in one language
+with the rest of the backend.
 
-**Deployment from CI:** a GitHub Actions workflow that runs after CI passes on `main`: build the
-frontend, package the Lambda, `cdk deploy`. It authenticates to AWS through **OIDC** (a role that
-trusts GitHub), so no AWS keys are stored in the repository or its secrets.
+**Deployment from the laptop, not CI.** A GitHub Actions deploy would authenticate through
+**OIDC** (a role that trusts GitHub), but this AWS project's managed policies don't allow creating
+an OIDC identity provider. So deploys run from the laptop after `aws login`, whose credentials
+expire, and no AWS keys are stored anywhere.
+
+**Locked down behind CloudFront.** The page's bucket only answers CloudFront (origin access
+control), and the Function URL will too (auth type `AWS_IAM`, OAC for Lambda), so nobody can call
+the Lambda directly and spend credits. Reserved concurrency caps how many copies run at once. One
+consequence: through OAC, Lambda only accepts a POST whose body hash the browser sends in
+`x-amz-content-sha256`, so the page computes it (`frontend/src/api/client.ts`).
 
 Steps:
 
-1. **Lambda-ready API.** Add Mangum, an S3 storage adapter next to the file-based cache (chosen by
-   config via `pydantic-settings`), and the snapshot-week fallback. Test the adapter against a
-   mocked S3 ([moto](https://github.com/getmoto/moto)); never real AWS in CI.
-   ✅ Milestone: the API runs locally against a mocked S3 with the snapshot fallback.
-2. **CDK stack, deployed by hand once.** Buckets, Lambda + Function URL, CloudFront with both
-   origins, the budget alert. Plus a small `koopjeskompas publish-deals` command that uploads the
-   local snapshot.
+1. ✅ **Guardrails.** A zero-spend budget (credits excluded, so it shows real usage) and the
+   Region confirmed (eu-north-1).
+2. ✅ **The page on S3 + CloudFront, by hand.** A private bucket, read by CloudFront through OAC.
+3. **Lambda-ready API.** ✅ Code: the Mangum entry point (`api/lambda_handler.py`) with the
+   snapshot downloaded from S3, the nearest-day fallback, `scripts/build-lambda.sh` for the
+   arm64 zip, and the body hash in the page. Tests use a fake S3; never real AWS in CI.
+   Then by hand: the data bucket, the function, its Function URL and the `/api/*` behaviour.
    ✅ Milestone: the app works at its `*.cloudfront.net` URL.
-3. **Deploy from GitHub Actions** via OIDC, after CI passes.
-   ✅ Milestone: merging to `main` updates the live demo with no manual steps.
-4. **Interview polish.** A README section with the architecture diagram and the reasons for each
+4. **CDK stack**, replacing the hand-made resources, plus a laptop deploy script and a
+   `koopjeskompas publish-deals` command that uploads the local snapshot.
+   ✅ Milestone: one command recreates the whole demo.
+5. **Interview polish.** A README section with the architecture diagram and the reasons for each
    choice above, and a footer link from the page to the repository.
 
 ### 9.2 Full roadmap (phased)
