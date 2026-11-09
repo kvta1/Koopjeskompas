@@ -20,6 +20,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
+import re
+
 import httpx
 from pydantic import BaseModel, ConfigDict, ValidationError
 
@@ -32,6 +34,10 @@ HEADERS = {"User-Agent": "koopjeskompas/0.1 (+https://github.com/kvta1/Koopjesko
 CHAIN = "AH"
 # A store mapped twice (as a point and as its building) shows up twice, close together.
 DUPLICATE_WITHIN_KM = 0.1
+# Collection points for online orders, sometimes tagged as supermarkets: no shopping.
+_PICKUP = re.compile(r"pick\s*-?up", re.IGNORECASE)
+# The large stores: brand "Albert Heijn XL", or "XL" in the name.
+_XL = re.compile(r"\bXL\b")
 
 
 class OverpassError(RuntimeError):
@@ -133,6 +139,8 @@ def _store_from(element: _Element) -> Store | str:
     tags = element.tags
     if tags.get("shop") != "supermarket":
         return "not a supermarket"  # e.g. an "AH to go", with a smaller assortment
+    if _PICKUP.search(tags.get("name", "")):
+        return "a pickup point, not a store"
     location = _location(element)
     if location is None:
         return "no location"
@@ -140,9 +148,10 @@ def _store_from(element: _Element) -> Store | str:
     place = street or tags.get("branch") or city
     if place is None:
         return "no street, branch or town to name it by"
+    xl = any(_XL.search(tags.get(key, "")) for key in ("brand", "name"))
     return Store(
         chain=CHAIN,
-        name=f"AH {place}",
+        name=f"AH XL {place}" if xl else f"AH {place}",
         address=_address(street, tags.get("addr:housenumber"), city),
         location=location,
     )

@@ -1,8 +1,8 @@
 """Turning OpenStreetMap's answer into stores, and asking Overpass for it.
 
 The fixture is built by hand in Overpass's documented JSON format, one element per
-rule (Overpass was too busy to answer when this was written); HTTP is mocked with
-respx, so no test contacts Overpass.
+rule, modelled on what the real answer contains; HTTP is mocked with respx, so no
+test contacts Overpass.
 """
 
 import json
@@ -56,6 +56,11 @@ def test_a_store_without_a_street_is_named_by_branch_or_town(
     assert names["AH Leiderdorp"] == "Leiderdorp"
 
 
+def test_xl_stores_say_so(overpass_answer: Any) -> None:
+    names = {s.address: s.name for s in stores_from_overpass(overpass_answer).stores}
+    assert names["Bevrijdingsplein 50, Leiden"] == "AH XL Bevrijdingsplein"
+
+
 def test_a_store_mapped_twice_counts_once(overpass_answer: Any) -> None:
     result = stores_from_overpass(overpass_answer)
     kopermolen = [s for s in result.stores if s.name == "AH Kopermolen"]
@@ -79,6 +84,7 @@ def test_what_is_left_out_is_reported_with_a_reason(overpass_answer: Any) -> Non
     assert skipped == [
         "node/1007: no street, branch or town to name it by",
         "node/1008: not a supermarket",
+        "node/1009: a pickup point, not a store",
         "relation/3001: no location",
     ]
 
@@ -174,13 +180,13 @@ def test_fetch_stores_writes_the_list_and_keeps_the_raw_answer(
     assert fetch_stores(tmp_path) == 0
 
     stores = load_stores(tmp_path / "stores.json")
-    assert len(stores) == 6
+    assert len(stores) == 7
     raw = tmp_path / "data" / "raw" / "osm" / "2026-11-10" / "nl_ah.json"
     assert json.loads(raw.read_text()) == overpass_answer
     out = capsys.readouterr().out
-    assert "6 stores written" in out
+    assert "7 stores written" in out
     assert "Merged 1" in out
-    assert "Skipped 3" in out
+    assert "Skipped 4" in out
 
 
 @respx.mock
@@ -193,7 +199,7 @@ def test_fetch_stores_from_raw_asks_nobody(
 
     assert fetch_stores(tmp_path, "--from-raw") == 0
     assert route.call_count == 1  # only the first run asked Overpass
-    assert len(load_stores(tmp_path / "stores.json")) == 6
+    assert len(load_stores(tmp_path / "stores.json")) == 7
 
 
 @respx.mock

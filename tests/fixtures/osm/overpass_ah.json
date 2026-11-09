@@ -60,6 +60,17 @@
       "tags": {"shop": "convenience", "brand": "AH to go", "addr:street": "Stationsplein"}
     },
     {
+      "type": "way", "id": 2004, "center": {"lat": 52.1466915, "lon": 4.4768239},
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn XL", "name": "Albert Heijn XL",
+        "addr:street": "Bevrijdingsplein", "addr:housenumber": "50", "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "node", "id": 1009, "lat": 52.16, "lon": 4.50,
+      "tags": {"shop": "supermarket", "name": "AH Pickup point", "addr:street": "Lammenschansweg"}
+    },
+    {
       "type": "relation", "id": 3001,
       "tags": {"shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Nergens"}
     }
