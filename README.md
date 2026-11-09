@@ -10,21 +10,23 @@ CI, applied to messy real-world data.
 
 ## Status
 
-**The MVP is done.** The app works end to end on real Albert Heijn data for Leiden: in the
-browser, from the command line, through a web API and as a public demo on AWS.
+**The MVP is done.** The app works end to end on real Albert Heijn data, for any postcode or place
+in the Netherlands: in the browser, from the command line, through a web API and as a public demo
+on AWS.
 
 | | Feature | Status |
 |---|---|---|
 | ✅ | Domain core: deal parsing, diet/cuisine tagging, scoring, distance | done, fully unit-tested |
 | ✅ | Real Albert Heijn bonus deals, cached as JSON | done (`fetch-deals`) |
-| ✅ | Leiden store list (6 AH supermarkets, from OpenStreetMap) | done |
+| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`) |
+| ✅ | Postcode and place search (PDOK Locatieserver) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
 | ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
-| ⏳ | Your own location anywhere in NL, Jumbo, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
+| ⏳ | Jumbo, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -35,8 +37,8 @@ browser, from the command line, through a web API and as a public demo on AWS.
     korting"), because those aren't looked up product by product.
 - **A failed range lookup leaves that range unscored.** It's kept, but it scores zero.
 - **Only one chain.** Every store has the same deals, so for now the ranking comes down to distance.
-- **No postcode search yet.** The page offers a few places in Leiden and the browser's own
-  location; the API itself takes any coordinates.
+- **The store list is as complete as OpenStreetMap.** About 20 AHs are left out because nobody
+  mapped their street or town, and the list only changes when `fetch-stores` is run again.
 
 ## How it works
 
@@ -193,13 +195,29 @@ uv run koopjeskompas serve      # terminal 1: the API on port 8000
 cd frontend && npm run dev      # terminal 2: the page on http://localhost:5173
 ```
 
-Open <http://localhost:5173>, pick a place in Leiden (or "Use my location"), choose a diet and
-cuisines, and press **Find the best deals**. The stores come back best first; the best store's
+Open <http://localhost:5173>, type a postcode or place and pick one of the suggestions (or press
+"Use my location"), choose a diet and cuisines, and press **Find the best deals**. The stores come back best first; the best store's
 deals are shown, and the others open with a click.
 
 The development server forwards every `/api` request to the API on port 8000, so to the browser
 the page and the API are one site. That's also how the AWS demo will serve them, so the API needs
-no CORS settings.
+no CORS settings. The place search is the exception: the browser asks
+[PDOK Locatieserver](https://www.pdok.nl/introductie/-/article/pdok-locatieserver-1), the Dutch
+government's free geocoder, directly. It needs no key and allows any origin.
+
+### 5. Refresh the store list (now and then)
+
+The stores come from OpenStreetMap, packaged with the code. Stores open and close slowly, so a
+refresh every few months is plenty:
+
+```bash
+uv run koopjeskompas fetch-stores               # every AH in the Netherlands, via Overpass
+uv run koopjeskompas fetch-stores --from-raw    # re-convert the saved answer, no network
+```
+
+Overpass is free and often busy. If it answers 502 or 504, try later or another server with
+`--server` (a list is on the [OpenStreetMap wiki](https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances)).
+A run that finds no stores never overwrites the list.
 
 ### Global options
 
@@ -284,7 +302,8 @@ koopjeskompas/
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
 ├── api/           the web API: request/response models (schemas.py), endpoints (app.py)
 │                  and the AWS Lambda entry point (lambda_handler.py)
-├── stores/        the Leiden store list and the OpenStreetMap query that produced it
+├── stores/        every AH in NL (nl_ah.json), its OpenStreetMap query, and osm.py, which turns
+│                  Overpass's answer into stores (koopjeskompas fetch-stores)
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
@@ -320,7 +339,7 @@ Following the MVP roadmap in [PLAN.md §9.1](PLAN.md):
 
 Next, in this order ([PLAN.md §9.4](PLAN.md)):
 1. ✅ **Infrastructure as code:** the AWS setup as a CDK stack, deployed with one command.
-2. **Your own location, anywhere in the Netherlands:** every AH in the country from OpenStreetMap,
+2. ✅ **Your own location, anywhere in the Netherlands:** every AH in the country from OpenStreetMap,
    and a place and postcode search in the page with PDOK's free Locatieserver.
 3. **Second chain:** Jumbo behind a common `DealSource` interface, so rankings differ by more than
    distance.

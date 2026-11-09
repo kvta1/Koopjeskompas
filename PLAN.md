@@ -425,6 +425,14 @@ chain (§4.4), so every AH in the country already has them.
 
 ✅ Milestone: an interviewer types their own postcode and sees their nearest AHs, ranked.
 
+Built: `koopjeskompas fetch-stores` (`stores/osm.py`, `stores/nl_ah.overpassql`) wrote 1,000 stores
+to `stores/nl_ah.json`, replacing the Leiden list. Lessons from the real fetch: two of three public
+Overpass servers were too busy or lacked area data (so an empty answer is an error, never written);
+38 "Albert Heijn XL" stores carry their own brand value, so the query also matches on name; that
+brings in two pickup points, which are skipped. In the page, `PlaceSearch` asks PDOK directly
+(checked in Chrome: one `suggest` request per pause in typing, no CORS issues), and a 20 km radius
+was added for the countryside.
+
 #### Step 3 — Jumbo as a second chain
 
 - **Live check first** (a handful of requests), as for AH's range deals: does Jumbo's unofficial
