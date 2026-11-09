@@ -21,7 +21,8 @@ export const CUISINE_LABELS: Record<Cuisine, string> = {
   indian: "Indian",
 };
 
-export const RADIUS_OPTIONS_KM = [1, 2, 5, 10] as const;
+// 20 km, for the countryside, where the nearest AH can be well beyond 10 km.
+export const RADIUS_OPTIONS_KM = [1, 2, 5, 10, 20] as const;
 export const DEFAULT_RADIUS_KM = 5; // the API's default
 
 /** Typed `Object.keys`: TypeScript types it as `string[]` on purpose, since an

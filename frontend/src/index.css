@@ -128,21 +128,55 @@ input[type="checkbox"] {
 }
 
 select,
-button {
+button,
+input[type="text"] {
   font: inherit;
   min-height: 2.5rem;
   border-radius: 8px;
 }
 
-select {
+select,
+input[type="text"] {
   padding: 0 0.5rem;
   color: var(--text);
   background: var(--surface);
   border: 1px solid var(--border);
 }
 
-.location-row select {
-  flex: 1 1 12rem;
+/* The place search: the suggestions hang below the input, over the form. */
+.place-search {
+  position: relative;
+  flex: 1 1 14rem;
+}
+
+.place-search input {
+  width: 100%;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.15);
+}
+
+.suggestions [role="option"] {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+
+.suggestions [role="option"]:hover,
+.suggestions [aria-selected="true"] {
+  color: var(--accent-text);
+  background: var(--accent);
 }
 
 button {
@@ -308,4 +342,16 @@ summary {
 .deal-details {
   display: block;
   font-size: 0.8125rem;
+}
+
+/* --- sources ------------------------------------------------------------- */
+
+.sources {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.sources a {
+  color: inherit;
 }

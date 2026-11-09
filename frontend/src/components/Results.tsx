@@ -23,7 +23,8 @@ export function Results({ response, cuisinesChosen }: ResultsProps) {
       <ol className="stores">
         {response.stores.map((ranked) => (
           <StoreCard
-            key={`${ranked.store.chain} ${ranked.store.name}`}
+            // Names repeat across towns ("AH Breestraat" in Leiden and Utrecht).
+            key={`${ranked.store.name} ${ranked.store.lat} ${ranked.store.lon}`}
             ranked={ranked}
             cuisinesChosen={cuisinesChosen}
           />
