@@ -12,13 +12,13 @@ from koopjeskompas.domain.models import Store
 
 _STORES = TypeAdapter(list[Store])
 
-LEIDEN_AH = files(__package__) / "leiden_ah.json"
+NL_AH = files(__package__) / "nl_ah.json"
 NL_AH_QUERY = files(__package__) / "nl_ah.overpassql"
 
 
 def load_stores(path: Path | None = None) -> list[Store]:
-    """Load and validate a store list; defaults to the packaged Leiden AH stores."""
-    source = path if path is not None else LEIDEN_AH
+    """Load and validate a store list; defaults to every AH in the Netherlands."""
+    source = path if path is not None else NL_AH
     return _STORES.validate_json(source.read_bytes())
 
 
