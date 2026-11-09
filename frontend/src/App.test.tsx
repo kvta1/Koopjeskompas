@@ -26,6 +26,10 @@ function stubApi(response: Response): RankRequest[] {
         const docs = [BEGIJNHOF, RAPENBURG].map((p) => ({ id: p.id, weergavenaam: p.label }));
         return Response.json({ response: { docs } });
       }
+      if (url.pathname.endsWith("/reverse")) {
+        const docs = [{ weergavenaam: "Begijnhof 1, 2311EZ Leiden", afstand: 3.2 }];
+        return Response.json({ response: { docs } });
+      }
       if (url.pathname.endsWith("/lookup")) {
         const id = url.searchParams.get("id") ?? "";
         return Response.json({ response: { docs: [{ id, centroide_ll: POINTS[id] }] } });
@@ -148,20 +152,75 @@ describe("App", () => {
 
   it("can rank from the browser's location", async () => {
     const requests = stubApi(Response.json(RANKING));
-    vi.stubGlobal("navigator", {
-      ...navigator,
-      geolocation: {
-        getCurrentPosition: (onSuccess: PositionCallback) =>
-          onSuccess({ coords: { latitude: 52.15, longitude: 4.47 } } as GeolocationPosition),
-      },
-    });
+    const { options } = stubLocation({ latitude: 52.1564, longitude: 4.4869, accuracy: 20 });
     render(<App />);
 
     await userEvent.click(screen.getByRole("button", { name: "Use my location" }));
-    expect(screen.getByText("My location", { selector: "strong" })).toBeVisible();
-    await submit();
 
-    expect(requests[0]?.location).toEqual({ lat: 52.15, lon: 4.47 });
+    // The box names the spot, so a wrong guess would be plain to see.
+    expect(await screen.findByDisplayValue("Near Begijnhof 1, 2311EZ Leiden")).toBe(placeSearch());
+    expect(screen.queryByRole("status")).not.toBeInTheDocument(); // accurate: no warning
+    expect(options()?.maximumAge).toBeGreaterThan(0); // a second click reuses it
+    await submit();
+    expect(requests[0]?.location).toEqual({ lat: 52.1564, lon: 4.4869 });
+  });
+});
+
+/** Stub the browser's geolocation with a position, or with a failure code. */
+function stubLocation(outcome: Partial<GeolocationCoordinates> | { code: number }) {
+  let lastOptions: PositionOptions | undefined;
+  vi.stubGlobal("navigator", {
+    ...navigator,
+    geolocation: {
+      getCurrentPosition: (
+        onSuccess: PositionCallback,
+        onError: PositionErrorCallback,
+        options?: PositionOptions,
+      ) => {
+        lastOptions = options;
+        if ("code" in outcome) {
+          onError({
+            code: outcome.code,
+            PERMISSION_DENIED: 1,
+            POSITION_UNAVAILABLE: 2,
+            TIMEOUT: 3,
+          } as GeolocationPositionError);
+        } else {
+          onSuccess({ coords: outcome } as GeolocationPosition);
+        }
+      },
+    },
+  });
+  return { options: () => lastOptions };
+}
+
+describe("Use my location", () => {
+  it("warns when the browser only knows roughly where you are", async () => {
+    stubApi(Response.json(RANKING));
+    // What a laptop without GPS often reports: an IP-based guess, 25 km wide.
+    stubLocation({ latitude: 52.3728, longitude: 4.8936, accuracy: 25_000 });
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Use my location" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "only knows roughly where you are (within about 25 km)",
+    );
+  });
+
+  it.each([
+    [1, "Location access was denied"],
+    [2, "Your browser couldn't work out where you are"],
+    [3, "Finding your location took too long"],
+  ])("explains failure code %i", async (code, message) => {
+    stubApi(Response.json(RANKING));
+    stubLocation({ code });
+    render(<App />);
+
+    await userEvent.click(screen.getByRole("button", { name: "Use my location" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(message);
+    expect(screen.getByText("Leiden Centraal", { selector: "strong" })).toBeVisible();
   });
 });
 

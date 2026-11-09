@@ -4,7 +4,8 @@
  * The browser asks PDOK directly, not through our API: PDOK allows calls from any
  * origin and needs no key, so a search costs no Lambda call. Two steps, as PDOK
  * intends: `suggest` while typing (names only), then `lookup` for the one chosen
- * (with its coordinates).
+ * (with its coordinates). And the other way round, `reverse`: the address nearest
+ * to the browser's location, so "Use my location" can say where that is.
  */
 import type { Place } from "../places";
 
@@ -63,6 +64,33 @@ export async function lookupPlace(suggestion: Suggestion, signal?: AbortSignal):
     throw new PlaceSearchError(`PDOK no longer knows "${suggestion.label}". Try another.`);
   }
   return { name: suggestion.label, ...parsePoint(doc.centroide_ll) };
+}
+
+/** Beyond this, the nearest address says more about the map than about where you are. */
+const NEAR_ENOUGH_M = 500;
+
+/**
+ * The address nearest to a point, e.g. "Begijnhof 1, 2311EZ Leiden", or null when
+ * none is within 500 m (abroad, at sea, or in the middle of a polder).
+ */
+export async function nearestAddress(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal,
+): Promise<string | null> {
+  const params = new URLSearchParams({
+    lat: String(lat),
+    lon: String(lon),
+    type: "adres",
+    rows: "1",
+    fl: "weergavenaam,afstand",
+  });
+  const body = await getJson<PdokResponse<{ weergavenaam: string; afstand: number }>>(
+    `${PDOK}/reverse?${params}`,
+    signal,
+  );
+  const doc = body.response.docs[0];
+  return doc && doc.afstand <= NEAR_ENOUGH_M ? doc.weergavenaam : null;
 }
 
 /**

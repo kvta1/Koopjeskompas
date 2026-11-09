@@ -8,6 +8,8 @@ const MIN_CHARACTERS = 2;
 const TYPING_PAUSE_MS = 250;
 
 interface PlaceSearchProps {
+  /** The place ranked from; shown in the box when it was chosen elsewhere. */
+  value: Place;
   onChoose: (place: Place) => void;
 }
 
@@ -18,7 +20,7 @@ interface PlaceSearchProps {
  * `aria-activedescendant` tells screen readers which suggestion the arrow keys
  * point at, so the list works by keyboard and is announced properly.
  */
-export function PlaceSearch({ onChoose }: PlaceSearchProps) {
+export function PlaceSearch({ value, onChoose }: PlaceSearchProps) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   /** Whether the list may show: after typing, not after choosing or Escape. */
@@ -27,6 +29,16 @@ export function PlaceSearch({ onChoose }: PlaceSearchProps) {
   const [active, setActive] = useState(-1);
   const [error, setError] = useState<string | null>(null);
   const listId = useId();
+
+  // When the place changes from outside ("Use my location"), show it in the box.
+  // Done while rendering, React's pattern for adjusting state to a new prop, rather
+  // than in an effect, which would first paint the old text.
+  const [shownPlace, setShownPlace] = useState(value);
+  if (value !== shownPlace) {
+    setShownPlace(value);
+    setQuery(value.name);
+    setOpen(false);
+  }
 
   const text = query.trim();
   const shown = open && text.length >= MIN_CHARACTERS ? suggestions : [];

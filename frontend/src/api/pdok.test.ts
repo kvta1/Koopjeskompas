@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { PlaceSearchError, lookupPlace, parsePoint, suggestPlaces } from "./pdok";
+import { PlaceSearchError, lookupPlace, nearestAddress, parsePoint, suggestPlaces } from "./pdok";
 
 /** Shaped like PDOK's answers, trimmed to the fields asked for. */
 const SUGGEST = {
@@ -93,5 +93,35 @@ describe("lookupPlace", () => {
     await expect(lookupPlace({ id: "x", label: "Nowhere" })).rejects.toThrow(
       'PDOK no longer knows "Nowhere"',
     );
+  });
+});
+
+describe("nearestAddress", () => {
+  it("names the address at the browser's location", async () => {
+    const fetchMock = respondWith(
+      Response.json({
+        response: { docs: [{ weergavenaam: "Begijnhof 1, 2311EZ Leiden", afstand: 1.1 }] },
+      }),
+    );
+
+    expect(await nearestAddress(52.15639, 4.48692)).toBe("Begijnhof 1, 2311EZ Leiden");
+    const url = new URL(String(fetchMock.mock.calls[0]?.[0]));
+    expect(url.pathname.endsWith("/reverse")).toBe(true);
+    expect(url.searchParams.get("lat")).toBe("52.15639");
+    expect(url.searchParams.get("lon")).toBe("4.48692");
+  });
+
+  it("names nothing when the nearest address is far away", async () => {
+    // Off the coast, PDOK still finds an address: a beach 57 km away.
+    respondWith(
+      Response.json({
+        response: {
+          docs: [
+            { weergavenaam: "Strand Nieuw-Haamstede 1, 4328KL Burgh-Haamstede", afstand: 56898 },
+          ],
+        },
+      }),
+    );
+    expect(await nearestAddress(52, 3)).toBeNull();
   });
 });
