@@ -1,0 +1,78 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-10T09:00:00Z",
+    "timestamp_areas_base": "2026-11-10T08:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node", "id": 1001, "lat": 52.1570015, "lon": 4.4919905,
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn", "brand:wikidata": "Q1653985",
+        "name": "Albert Heijn", "addr:street": "Breestraat", "addr:housenumber": "130",
+        "addr:city": "Leiden", "addr:postcode": "2311CW"
+      }
+    },
+    {
+      "type": "way", "id": 2002, "center": {"lat": 52.1597304, "lon": 4.4970911},
+      "tags": {
+        "shop": "supermarket", "brand:wikidata": "Q1653985", "name": "Albert Heijn",
+        "addr:street": "Hooigracht", "addr:housenumber": "85", "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "node", "id": 1003, "lat": 52.1767919, "lon": 4.5050317,
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Kopermolen",
+        "addr:housenumber": "44", "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "way", "id": 2003, "center": {"lat": 52.1769, "lon": 4.5052},
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Kopermolen",
+        "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "node", "id": 1004, "lat": 52.0907, "lon": 5.1214,
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Breestraat",
+        "addr:housenumber": "2", "addr:city": "Utrecht"
+      }
+    },
+    {
+      "type": "node", "id": 1005, "lat": 52.1885, "lon": 4.4597,
+      "tags": {"shop": "supermarket", "brand": "Albert Heijn", "branch": "Oegstgeest Lange Voort"}
+    },
+    {
+      "type": "node", "id": 1006, "lat": 52.1612, "lon": 4.5419,
+      "tags": {"shop": "supermarket", "brand": "Albert Heijn", "addr:city": "Leiderdorp"}
+    },
+    {
+      "type": "node", "id": 1007, "lat": 52.17, "lon": 4.48,
+      "tags": {"shop": "supermarket", "brand": "Albert Heijn"}
+    },
+    {
+      "type": "node", "id": 1008, "lat": 52.1664, "lon": 4.4817,
+      "tags": {"shop": "convenience", "brand": "AH to go", "addr:street": "Stationsplein"}
+    },
+    {
+      "type": "way", "id": 2004, "center": {"lat": 52.1466915, "lon": 4.4768239},
+      "tags": {
+        "shop": "supermarket", "brand": "Albert Heijn XL", "name": "Albert Heijn XL",
+        "addr:street": "Bevrijdingsplein", "addr:housenumber": "50", "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "node", "id": 1009, "lat": 52.16, "lon": 4.50,
+      "tags": {"shop": "supermarket", "name": "AH Pickup point", "addr:street": "Lammenschansweg"}
+    },
+    {
+      "type": "relation", "id": 3001,
+      "tags": {"shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Nergens"}
+    }
+  ]
+}

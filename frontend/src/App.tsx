@@ -49,6 +49,17 @@ export function App() {
       {state.status === "done" && (
         <Results response={state.response} cuisinesChosen={state.cuisinesChosen} />
       )}
+
+      <footer className="sources">
+        <p>
+          Stores © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.
+          Place search by{" "}
+          <a href="https://www.pdok.nl/introductie/-/article/pdok-locatieserver-1">
+            PDOK Locatieserver
+          </a>
+          : what you type there is sent to PDOK, the Dutch government&rsquo;s map service.
+        </p>
+      </footer>
     </main>
   );
 }

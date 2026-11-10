@@ -16,14 +16,14 @@ choices. The full design doc and phased roadmap live in `PLAN.md` (concept, arch
 data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before making architectural
 decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain core
 (`koopjeskompas/domain/`), real AH bonus deals fetched and cached as JSON
-(`koopjeskompas/ingestion/`), a hardcoded Leiden store list (`koopjeskompas/stores/`) and a
+(`koopjeskompas/ingestion/`), a store list (`koopjeskompas/stores/`; now every AH in NL) and a
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
-themselves; Claude explains and checks read-only). PLAN.md §9.4 step 1 (CDK in `infra/`,
-`scripts/deploy.sh`, `publish-deals`) is written; then your own location anywhere in NL (nationwide stores + PDOK search), then Jumbo,
-then continuous deployment run inside AWS.
+themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/`,
+`scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
+search with PDOK in the page) are done; next is Jumbo, then continuous deployment run inside AWS.
 
 ## Commands
 
@@ -42,6 +42,7 @@ uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw response
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
 uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swagger UI at /docs
 uv run koopjeskompas openapi                   # write the API schema to frontend/openapi.json
+uv run koopjeskompas fetch-stores              # every AH in NL from OpenStreetMap (Overpass); now and then
 
 cd frontend                # Node 24 (.nvmrc), npm
 npm ci                     # install
@@ -100,6 +101,11 @@ The intended design is a modular monolith with a strict separation between the d
   `DEALS_BUCKET`/`DEALS_KEY`) and `api/schemas.py` (the HTTP contract, deliberately separate
   from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
+- **Stores** (`koopjeskompas/stores/`): packaged JSON from OpenStreetMap. `osm.py` sends
+  `nl_ah.overpassql` to Overpass and converts the answer (point or building centre, named by
+  street/branch/town, deduplicated within 100 m, sorted). Overpass is often busy and can answer
+  200 with a runtime error in `remark`; both are errors, and an empty result never overwrites the
+  list. Tests use a hand-built fixture in Overpass's format (`tests/fixtures/osm/`) and respx.
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its
   chain's active deals. See PLAN.md §4.4 for the schema sketch.
 - **Frontend** (`frontend/`): React + TypeScript + Vite, calling the FastAPI backend over HTTP.
@@ -109,7 +115,9 @@ The intended design is a modular monolith with a strict separation between the d
   and commit both. In development Vite proxies `/api` to the API, so the browser sees one origin
   and no CORS is configured (production will be one origin too, via CloudFront). Plain CSS with
   colour tokens; components hold no fetch logic (`src/api/client.ts` does); tests sit next to the
-  code (`*.test.ts(x)`) and stub `fetch`. TypeScript stays on 5.9 because typescript-eslint and
+  code (`*.test.ts(x)`) and stub `fetch`. The place search (`src/api/pdok.ts`,
+  `components/PlaceSearch.tsx`) calls PDOK Locatieserver straight from the browser
+  (`suggest`, then `lookup`; `centroide_ll` is `POINT(lon lat)`, longitude first). TypeScript stays on 5.9 because typescript-eslint and
   openapi-typescript don't support TypeScript 7 yet.
 - **Infrastructure** (`infra/`): an AWS CDK app in Python (`stack.py`, `app.py`; the `cdk` CLI is
   pinned in `infra/package.json`). Its libraries are the `infra` dependency group, a default
