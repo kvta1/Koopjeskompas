@@ -248,6 +248,12 @@ def _fetch_stores(args: argparse.Namespace) -> int:
     print(f"{len(result.stores)} stores written to {output} (was {before})")
     if result.duplicates:
         print(f"Merged {result.duplicates} stores that were mapped twice")
+    if result.other_chains:
+        biggest = ", ".join(
+            f"{brand} {n}" for brand, n in result.other_chains.most_common(5)
+        )
+        total = result.other_chains.total()
+        print(f"Other chains' supermarkets, not kept: {total} ({biggest}, ...)")
     if result.skipped:
         print(f"Skipped {len(result.skipped)}:")
         for reason in result.skipped:
