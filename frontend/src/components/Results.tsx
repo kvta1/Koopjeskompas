@@ -12,11 +12,17 @@ export function Results({ response, cuisinesChosen }: ResultsProps) {
   if (response.stores.length === 0) {
     return <p className="empty">No supermarket within this distance. Try a larger radius.</p>;
   }
+  // Only the chains with a store in range: "Deals of Lidl" means nothing without one.
+  const shown = new Set(response.stores.map(({ store }) => store.chain));
+  // The first store of each chain in the ranking is its best one.
+  const bestOfChain = new Set(
+    response.chains.map(({ chain }) => response.stores.find((s) => s.store.chain === chain)),
+  );
   return (
     <section className="results" aria-labelledby="results-heading">
       <h2 id="results-heading">Best stores for you</h2>
       <p className="hint">
-        {dealsSummary(response.chains)}
+        {dealsSummary(response.chains.filter(({ chain }) => shown.has(chain)))}
         {cuisinesChosen && " Deals that fit your cuisines count for more, so they come first."}
       </p>
       <ol className="stores">
@@ -26,6 +32,7 @@ export function Results({ response, cuisinesChosen }: ResultsProps) {
             key={`${ranked.store.name} ${ranked.store.lat} ${ranked.store.lon}`}
             ranked={ranked}
             cuisinesChosen={cuisinesChosen}
+            open={bestOfChain.has(ranked)}
           />
         ))}
       </ol>
