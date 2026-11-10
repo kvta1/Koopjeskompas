@@ -199,7 +199,7 @@ def test_fetch_jumbo_deals(
 
     out = capsys.readouterr().out
     assert "Jumbo deals 2026-11-04 to 2026-11-17: 4 deals saved" in out
-    assert "Promotions priced per product: 1 (15 products)" in out
+    assert "Promotions priced per product: 1 (17 products)" in out
     assert "Promotion pages that failed or are missing: 1" in out  # the mango
     assert "Left out: 2 not food, 2 online only" in out
     deals = load_deals(deals_path(tmp_path, "Jumbo"))

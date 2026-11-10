@@ -112,15 +112,9 @@ class Price(_JumboModel):
     promo_price: int | None = None  # cents: the price with the deal, when it has one
 
 
-class Availability(_JumboModel):
-    is_available: bool = True
-    reason: str | None = None  # e.g. "DELISTED": no longer sold
-
-
 class Product(_JumboModel):
     title: str
     price: Price | None = None
-    availability: Availability | None = None
 
 
 def promotion_products(page: Any) -> list[Any]:

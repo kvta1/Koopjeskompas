@@ -74,19 +74,20 @@ def test_only_promotions_that_need_a_price_are_looked_up() -> None:
 
 def test_a_looked_up_promotion_is_priced_per_product(week: JumboWeek) -> None:
     vla = deals_by_name(week)["Campina Vla"]
-    # 17 on the page; 2 no longer sold ("DELISTED") don't count.
-    assert len(vla.products) == 15
+    # All 17, including two "uit het online assortiment" (DELISTED): that's about
+    # the webshop, and stores are what's ranked.
+    assert len(vla.products) == 17
     first = vla.products[0]
-    assert first.name == "Campina Bolletjes Vla Vanille Smaak 1 L"
-    assert first.normal_price == Decimal("2.39")  # from 239 cents
-    # Two for 3,49 instead of 2 × 2,39 saves 27%.
-    assert product_discount(vla, first) == pytest.approx(Decimal("0.2699"), abs=1e-4)
+    assert first.name == "Campina Dubbelvla aardbei-vanille 1 L"
+    assert first.normal_price == Decimal("2.49")  # from 249 cents
+    # Two for 3,49 instead of 2 × 2,49 saves 30%.
+    assert product_discount(vla, first) == pytest.approx(Decimal("0.2992"), abs=1e-4)
 
 
 def test_what_scores_zero_is_counted(week: JumboWeek) -> None:
     result = parse_week(week)
     assert result.priced == 1
-    assert result.products == 15
+    assert result.products == 17
     # Mango's page wasn't fetched; per-kilo deals aren't understood yet.
     assert result.no_discount == {"voor 1,49": 1, "2,49 per kilo": 1}
 

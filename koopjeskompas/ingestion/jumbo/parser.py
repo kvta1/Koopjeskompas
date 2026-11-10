@@ -150,7 +150,12 @@ def _needs_price(mechanic: str | None) -> bool:
 
 
 def _products(page: Any, result: ParseResult) -> list[RangeProduct]:
-    """The products on a promotion's page that are still sold and have a price."""
+    """The products on a promotion's page that have a price.
+
+    Availability is ignored: it describes the webshop. "DELISTED" means "uit het
+    online assortiment", which is true of all spirits, while the in-store deal still
+    applies to them, and stores are what's ranked.
+    """
     if page is None:
         return []
     products = []
@@ -162,8 +167,7 @@ def _products(page: Any, result: ParseResult) -> list[RangeProduct]:
             result.skipped.append(f"product {raw!r:.40}")
             continue
         price = product.price.price if product.price else 0
-        delisted = product.availability and product.availability.reason == "DELISTED"
-        if price > 0 and not delisted:
+        if price > 0:
             products.append(
                 RangeProduct(name=product.title, normal_price=Decimal(price) / 100)
             )
