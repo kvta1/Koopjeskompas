@@ -138,6 +138,16 @@ The intended design is a modular monolith with a strict separation between the d
   deduplicated within 100 m; sorted). Overpass is often busy and can answer
   200 with a runtime error in `remark`; both are errors, and an empty result never overwrites the
   list. Tests use a hand-built fixture in Overpass's format (`tests/fixtures/osm/`) and respx.
+- **Beer** (PLAN.md §9.5): `domain/beer.py` (pure) turns beer deals into one `BeerOffer` per
+  product: crate/can/bottle (an explicit word first: krat, 24fl, bl., blik, fles, draaidop,
+  beugel; else by size: 24 x 25-30 cl crate, 25/30/45/75 cl bottle, 33/50 cl can), litres
+  (`parse_pack` reads size then title; `RangeProduct.litres`, from Jumbo's price per litre of the
+  price paid, wins when they differ >5%), deal price and price per litre; beer by word or brand,
+  also at the end of a Dutch compound, never with a wine/spirits word; alcohol-free marked. AH
+  (`ranges_to_look_up`) and Jumbo (`promotions_to_look_up`) also fetch beer deals' products, kept
+  with `unit_size`; AH products are keyed by title and size. `GET /api/beer` groups them per
+  packaging, each chain on its own day. The page's beer section (`pages/BeerPage.tsx`, `#/beer`
+  via `route.ts`) has WAI-ARIA tabs and NIX18. Fixtures: `tests/fixtures/beer/`.
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its
   chain's active deals. See PLAN.md §4.4 for the schema sketch.
 - **Frontend** (`frontend/`): React + TypeScript + Vite, calling the FastAPI backend over HTTP.

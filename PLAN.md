@@ -675,6 +675,21 @@ Steps, each its own commit:
 
 ✅ Milestone: the cheapest beer per litre this week, per packaging type, across AH, Jumbo and Lidl.
 
+Built (2026-11-10). Also decided: packaging by best guess with the exact pack always shown, and
+alcohol-free beer included with a "0.0" badge. What the real data taught:
+- **Far more beer than estimated.** Not 5 to 15 products a week but about 255 (this week AH 176,
+  Jumbo 79, Lidl 0): one deal like "Alle Hertog Jan, Amstel, Bavaria of Warsteiner multipacks"
+  covers 95 products.
+- **AH sells one title in several sizes**, and products were kept by title, so only the first
+  survived (now kept by title and size; this also affected scoring's range medians slightly).
+- **Jumbo's price per litre is of the price paid**, the deal's when there is one, so the volume
+  is (promoPrice or price) over it, and it beats a title when they disagree ("Corona Cero 330
+  ml" holds 1.32 l). `RangeProduct.litres` carries it.
+- **Dutch compounds**: "herfstbokbieren" holds beer words without word boundaries.
+Of 238 captured products, the rules place all but two (one titled "xx"). The cheapest this week:
+a crate of Bavaria 24 x 0,3 l at € 12,99 (€ 1,80 per litre), Amstel 50 cl cans at € 0,88
+(€ 1,76), and an Amstel 6-pack of bottles at € 3,74 (€ 2,08). Not yet: Lidl beer (none on
+offer when this was built; its tiles carry a packaging text to use when there is).
 ### 9.2 Full roadmap (phased)
 
 ### Phase 0 — Foundations (1 evening)
