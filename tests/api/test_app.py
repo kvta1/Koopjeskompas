@@ -271,3 +271,97 @@ def test_the_frontend_has_the_current_openapi_schema(app: FastAPI) -> None:
     # the API changed: run `uv run koopjeskompas openapi`, then in frontend/
     # `npm run gen:api`, and commit both files.
     assert FRONTEND_SCHEMA.read_text(encoding="utf-8") == openapi_json(app)
+
+
+# --- the beer section --------------------------------------------------------
+
+
+def beer_snapshots(data_dir: Path) -> None:
+    hertog_jan = make_deal(
+        "Alle Hertog Jan, Amstel, Bavaria of Warsteiner multipacks",
+        "25% KORTING",
+        products=(
+            RangeProduct(
+                name="Hertog Jan Pilsener bier krat",
+                normal_price=Decimal("21.32"),
+                unit_size="24 x 30 cl",
+            ),
+            RangeProduct(
+                name="Heineken Premium pilsener 0.0 6-pack",
+                normal_price=Decimal("6.65"),
+                unit_size="6 x 0,33 l",
+            ),
+        ),
+    )
+    save_deals(
+        deals_path(data_dir, "AH"), [hertog_jan, make_deal("AH Tahin", "1+1 gratis")]
+    )
+    leffe = make_deal(
+        "Leffe of Kasteelbier",
+        "2e halve prijs",
+        chain="Jumbo",
+        products=(
+            RangeProduct(
+                name="Leffe Blond Belgisch Abdijbier Flessen 6 x 30 cl",
+                normal_price=Decimal("8.79"),
+            ),
+        ),
+    )
+    save_deals(deals_path(data_dir, "Jumbo"), [leffe])
+
+
+def test_beer_per_packaging_cheapest_per_litre_first(
+    app: FastAPI, tmp_path: Path
+) -> None:
+    beer_snapshots(tmp_path)
+
+    response = TestClient(app).get("/api/beer")
+
+    assert response.status_code == 200
+    beer = response.json()
+    [crate] = beer["crates"]
+    assert crate == {
+        "chain": "AH",
+        "product": "Hertog Jan Pilsener bier krat",
+        "deal": "Alle Hertog Jan, Amstel, Bavaria of Warsteiner multipacks",
+        "mechanic": "25% KORTING",
+        "packaging": "krat",
+        "size": "24 x 30 cl",
+        "units": 24,
+        "litres": 7.2,
+        "normal_price": 21.32,
+        "deal_price": 15.99,
+        "price_per_litre": 2.22,
+        "discount": 0.25,
+        "alcohol_free": False,
+        "valid_from": "2026-11-02",
+        "valid_to": "2026-11-08",
+    }
+    [cans] = beer["cans"]
+    assert cans["alcohol_free"]
+    [bottles] = beer["bottles"]
+    assert (bottles["chain"], bottles["size"]) == ("Jumbo", "6 x 30 cl")
+    # Only beer: "AH Tahin" isn't in any list.
+    names = [o["product"] for kind in ("crates", "cans", "bottles") for o in beer[kind]]
+    assert "AH Tahin" not in names
+
+
+def test_a_stale_chains_beer_shows_as_of_its_last_day(
+    app: FastAPI, tmp_path: Path
+) -> None:
+    beer_snapshots(tmp_path)
+    app.dependency_overrides[get_today] = lambda: date(2026, 11, 20)
+
+    beer = TestClient(app).get("/api/beer").json()
+
+    assert beer["ranked_on"] == "2026-11-20"
+    assert {c["chain"]: c["deals_on"] for c in beer["chains"]} == {
+        "AH": "2026-11-08",
+        "Jumbo": "2026-11-08",
+    }
+    assert beer["crates"]  # not gone: shown as of 8 November
+
+
+def test_beer_without_cached_deals_is_a_503(tmp_path: Path) -> None:
+    response = TestClient(create_app(data_dir=tmp_path)).get("/api/beer")
+    assert response.status_code == 503

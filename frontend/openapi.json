@@ -65,10 +65,191 @@
           }
         }
       }
+    },
+    "/api/beer": {
+      "get": {
+        "summary": "Beer",
+        "description": "This week's beer deals of every chain, as crates, cans and bottles, each list\ncheapest per litre first. National: deals are the same in every store of a chain.\n\nEach chain's deals count on its own day, as in ``/api/rank``: a chain whose cached\ndeals have run out shows them as of their last day.",
+        "operationId": "beer_api_beer_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeerResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "No deals cached yet"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "BeerOfferOut": {
+        "properties": {
+          "chain": {
+            "type": "string",
+            "title": "Chain"
+          },
+          "product": {
+            "type": "string",
+            "title": "Product",
+            "examples": [
+              "Hertog Jan Pilsener bier krat"
+            ]
+          },
+          "deal": {
+            "type": "string",
+            "title": "Deal",
+            "description": "The deal it's part of, e.g. 'Alle Hertog Jan ... multipacks'"
+          },
+          "mechanic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mechanic",
+            "description": "The chain's own text, e.g. \"25% KORTING\""
+          },
+          "packaging": {
+            "$ref": "#/components/schemas/Packaging"
+          },
+          "size": {
+            "type": "string",
+            "title": "Size",
+            "description": "As the chain writes it, e.g. \"24 x 30 cl\"; may be empty"
+          },
+          "units": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Units",
+            "description": "How many cans or bottles, if known"
+          },
+          "litres": {
+            "type": "number",
+            "title": "Litres"
+          },
+          "normal_price": {
+            "type": "number",
+            "title": "Normal Price"
+          },
+          "deal_price": {
+            "type": "number",
+            "title": "Deal Price",
+            "description": "The price with the deal, for one product"
+          },
+          "price_per_litre": {
+            "type": "number",
+            "title": "Price Per Litre",
+            "description": "With the deal"
+          },
+          "discount": {
+            "type": "number",
+            "title": "Discount",
+            "description": "Share of the normal price saved, 0–1"
+          },
+          "alcohol_free": {
+            "type": "boolean",
+            "title": "Alcohol Free"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid To"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "chain",
+          "product",
+          "deal",
+          "mechanic",
+          "packaging",
+          "size",
+          "units",
+          "litres",
+          "normal_price",
+          "deal_price",
+          "price_per_litre",
+          "discount",
+          "alcohol_free",
+          "valid_from",
+          "valid_to"
+        ],
+        "title": "BeerOfferOut"
+      },
+      "BeerResponse": {
+        "properties": {
+          "ranked_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Ranked On",
+            "description": "The day of the request"
+          },
+          "chains": {
+            "items": {
+              "$ref": "#/components/schemas/ChainOut"
+            },
+            "type": "array",
+            "title": "Chains",
+            "description": "The chains with cached deals, and their day"
+          },
+          "crates": {
+            "items": {
+              "$ref": "#/components/schemas/BeerOfferOut"
+            },
+            "type": "array",
+            "title": "Crates"
+          },
+          "cans": {
+            "items": {
+              "$ref": "#/components/schemas/BeerOfferOut"
+            },
+            "type": "array",
+            "title": "Cans"
+          },
+          "bottles": {
+            "items": {
+              "$ref": "#/components/schemas/BeerOfferOut"
+            },
+            "type": "array",
+            "title": "Bottles"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "ranked_on",
+          "chains",
+          "crates",
+          "cans",
+          "bottles"
+        ],
+        "title": "BeerResponse",
+        "description": "This week's beer deals per packaging, each list cheapest per litre first."
+      },
       "ChainOut": {
         "properties": {
           "chain": {
@@ -240,6 +421,15 @@
           "lon"
         ],
         "title": "Location"
+      },
+      "Packaging": {
+        "type": "string",
+        "enum": [
+          "krat",
+          "blik",
+          "fles"
+        ],
+        "title": "Packaging"
       },
       "RankRequest": {
         "properties": {

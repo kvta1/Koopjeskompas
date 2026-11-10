@@ -21,12 +21,15 @@ from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 
 from koopjeskompas.api.schemas import (
+    BeerOfferOut,
+    BeerResponse,
     ChainOut,
     Health,
     RankedStore,
     RankRequest,
     RankResponse,
 )
+from koopjeskompas.domain.beer import Packaging, beer_offers
 from koopjeskompas.domain.models import Coordinates, Deal, Preferences, Store
 from koopjeskompas.domain.scoring import (
     ScoringWeights,
@@ -161,4 +164,40 @@ def rank(
             RankedStore.from_ranking(position, ranking)
             for position, ranking in enumerate(rankings, start=1)
         ],
+    )
+
+
+@router.get(
+    "/beer",
+    responses={
+        status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "No deals cached yet"}
+    },
+)
+def beer(snapshots: Snapshots, today: Today) -> BeerResponse:
+    """This week's beer deals of every chain, as crates, cans and bottles, each list
+    cheapest per litre first. National: deals are the same in every store of a chain.
+
+    Each chain's deals count on its own day, as in ``/api/rank``: a chain whose cached
+    deals have run out shows them as of their last day.
+    """
+    deals = [deal for chain_deals in snapshots.values() for deal in chain_deals]
+    days = {chain: today for chain in snapshots} | chain_ranking_days(deals, today)
+    offers = sorted(
+        (
+            offer
+            for chain, chain_deals in snapshots.items()
+            for offer in beer_offers(chain_deals, days[chain])
+        ),
+        key=lambda offer: (offer.price_per_litre, offer.product),
+    )
+
+    def of(kind: Packaging) -> list[BeerOfferOut]:
+        return [BeerOfferOut.from_offer(o) for o in offers if o.packaging is kind]
+
+    return BeerResponse(
+        ranked_on=today,
+        chains=[ChainOut(chain=chain, deals_on=day) for chain, day in days.items()],
+        crates=of(Packaging.CRATE),
+        cans=of(Packaging.CAN),
+        bottles=of(Packaging.BOTTLE),
     )
