@@ -18,7 +18,7 @@ on AWS.
 |---|---|---|
 | ✅ | Domain core: deal parsing, diet/cuisine tagging, scoring, distance | done, fully unit-tested |
 | ✅ | Real Albert Heijn bonus deals, cached as JSON | done (`fetch-deals`) |
-| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`; Jumbo and Lidl stores with the next fetch) |
+| ✅ | Every AH, Jumbo and Lidl in the Netherlands (2,138 stores, from OpenStreetMap) | done (`fetch-stores`) |
 | ✅ | Postcode and place search (PDOK Locatieserver) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
@@ -26,7 +26,7 @@ on AWS.
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
-| ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`; Jumbo stores with the next `fetch-stores`) |
+| ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
 | ⏳ | Lidl, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
@@ -221,8 +221,9 @@ uv run koopjeskompas fetch-stores               # every AH in the Netherlands, v
 uv run koopjeskompas fetch-stores --from-raw    # re-convert the saved answer, no network
 ```
 
-Overpass is free and often busy. If it answers 502 or 504, try later or another server with
-`--server` (a list is on the [OpenStreetMap wiki](https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances)).
+Overpass is free and often busy. `fetch-stores` asks once: it checks Overpass's status page for a
+free query slot first, and stops with a message rather than queue or retry. If it answers 502 or
+504, wait and try once more, or use another server with `--server` (a list is on the [OpenStreetMap wiki](https://wiki.openstreetmap.org/wiki/Overpass_API#Public_Overpass_API_instances)).
 A run that finds no stores never overwrites the list.
 
 ### Global options
