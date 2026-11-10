@@ -237,13 +237,15 @@ def _store_from(element: _Element, chain: Chain) -> Store | str:
     if location is None:
         return "no location"
     street, city = tags.get("addr:street"), tags.get("addr:city")
+    # Named by street, else branch, else town. A store mapped with none of those is
+    # still a store where it stands (the Jumbo by Leiden Centraal, for one): it keeps
+    # just the chain's name, and the page shows its distance.
     place = street or tags.get("branch") or city
-    if place is None:
-        return "no street, branch or town to name it by"
     xl = any(_XL.search(tags.get(key, "")) for key in ("brand", "name"))
+    prefix = f"{chain.name} XL" if xl else chain.name
     return Store(
         chain=chain.name,
-        name=f"{chain.name} XL {place}" if xl else f"{chain.name} {place}",
+        name=f"{prefix} {place}" if place else prefix,
         address=_address(street, tags.get("addr:housenumber"), city),
         location=location,
     )

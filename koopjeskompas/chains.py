@@ -28,15 +28,15 @@ CHAINS: tuple[Chain, ...] = (
     Chain(
         key="ah",
         name="AH",
-        wikidata=("Q1653985",),
-        # The XL stores carry their own brand value.
+        # The XL stores carry their own brand and Wikidata ID.
+        wikidata=("Q1653985", "Q78163765"),
         brands=("Albert Heijn", "Albert Heijn XL"),
         name_pattern="^(AH|Albert Heijn)( |$)",
     ),
     Chain(
         key="jumbo",
         name="Jumbo",
-        wikidata=("Q2194504",),
+        wikidata=("Q2262314",),
         brands=("Jumbo",),
         name_pattern="^Jumbo( |$)",
     ),

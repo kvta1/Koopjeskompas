@@ -55,7 +55,8 @@ def test_supermarkets_become_stores(overpass_answer: Any) -> None:
 
 def test_each_store_gets_its_chain(overpass_answer: Any) -> None:
     by_name = {s.name: s.chain for s in stores_from_overpass(overpass_answer).stores}
-    assert by_name["Jumbo Haarlemmerstraat"] == "Jumbo"  # by Wikidata ID
+    # By Wikidata ID alone: this one has no brand, and a name that says nothing.
+    assert by_name["Jumbo Haarlemmerstraat"] == "Jumbo"
     assert by_name["Lidl Lammenschansweg"] == "Lidl"  # by brand name
 
 
@@ -65,6 +66,8 @@ def test_a_store_without_a_street_is_named_by_branch_or_town(
     names = {s.name: s.address for s in stores_from_overpass(overpass_answer).stores}
     assert names["AH Oegstgeest Lange Voort"] is None  # no address known at all
     assert names["AH Leiderdorp"] == "Leiderdorp"
+    # Nothing to name it by: still a store where it stands.
+    assert names["AH"] is None
 
 
 def test_xl_stores_say_so(overpass_answer: Any) -> None:
@@ -93,7 +96,6 @@ def test_same_named_stores_in_different_towns_are_both_kept(
 def test_what_is_left_out_is_reported_with_a_reason(overpass_answer: Any) -> None:
     skipped = stores_from_overpass(overpass_answer).skipped
     assert skipped == [
-        "node/1007: no street, branch or town to name it by",
         "node/1008: not a supermarket",
         "node/1009: a pickup point, not a store",
         "relation/3001: no location",
@@ -277,14 +279,14 @@ def test_fetch_stores_writes_the_list_and_keeps_the_raw_answer(
     assert fetch_stores(tmp_path) == 0
 
     stores = load_stores(tmp_path / "stores.json")
-    assert len(stores) == 9
+    assert len(stores) == 10
     raw = tmp_path / "data" / "raw" / "osm" / "2026-11-10" / "nl_stores.json"
     assert json.loads(raw.read_text()) == overpass_answer
     out = capsys.readouterr().out
-    assert "9 stores written" in out
+    assert "10 stores written" in out
     assert "Merged 1" in out
     assert "Other chains' supermarkets, not kept: 1 (Plus 1, ...)" in out
-    assert "Skipped 4" in out
+    assert "Skipped 3" in out
 
 
 def test_fetch_stores_from_raw_asks_nobody(
@@ -296,7 +298,7 @@ def test_fetch_stores_from_raw_asks_nobody(
 
     assert fetch_stores(tmp_path, "--from-raw") == 0
     assert route.call_count == 1  # only the first run asked Overpass
-    assert len(load_stores(tmp_path / "stores.json")) == 9
+    assert len(load_stores(tmp_path / "stores.json")) == 10
 
 
 def test_finding_no_stores_never_replaces_the_list(
