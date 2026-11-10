@@ -28,7 +28,8 @@ on AWS.
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
 | ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
 | ✅ | Lidl deals (about 40 a week, from lidl.nl's deals page) | done (`fetch-deals --chain lidl`) |
-| ⏳ | The page names each chain; a weekly refresh script; continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
+| ✅ | The page names each store's chain; the weekly refresh in one command | done (`scripts/refresh-deals.sh`) |
+| ⏳ | Continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -279,7 +280,7 @@ explains bootstrapping and tearing down. Signed in with `aws login`:
 
 ```bash
 scripts/deploy.sh                         # build the zip and the page, deploy, upload the deals
-uv run koopjeskompas publish-deals        # upload a new week's deals to the demo
+scripts/refresh-deals.sh                  # weekly: fetch every chain's deals, publish them
 ```
 
 **When the API's request or response models change**, regenerate the page's types and commit
