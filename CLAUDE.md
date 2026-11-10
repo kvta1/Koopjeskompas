@@ -42,7 +42,7 @@ uv run ruff check .        # lint
 uv run ruff format --check .   # format check (use `uv run ruff format .` to fix)
 uv run mypy .              # type check
 
-uv run koopjeskompas fetch-deals               # fetch this week's AH bonus (live, ~65 requests)
+uv run koopjeskompas fetch-deals               # this week's deals of every chain (live: AH ~65, Jumbo ~100 requests)
 uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw responses, no network
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
 uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swagger UI at /docs
@@ -93,7 +93,15 @@ The intended design is a modular monolith with a strict separation between the d
   e.g. `AlbertHeijnSource`, `JumboSource`), and writes to the DB. Raw external payloads must be parsed
   into validated internal `Deal` models immediately at the boundary — never let scraped JSON shapes
   leak into domain code. Failures in one source must not take down others (graceful degradation).
-  For now (MVP) there is one source, AH, as plain modules in `ingestion/ah/`: `client.py` (HTTP,
+  Jumbo (`ingestion/jumbo/`: the same four modules plus `source.py`) reads jumbo.com's deal
+  pages through `PoliteClient` with `BROWSER_HEADERS` (Akamai blocks honest requests): the
+  overview (`/aanbiedingen/nu`, this and next week, Wednesday to Tuesday) and, per promotion
+  whose discount needs a price, its own page (products with `price` = normal price in cents).
+  Only each page's `__NUXT_DATA__` is saved (`data/raw/jumbo/<date>/`). Promotions are
+  deduplicated by id with the aisle as category; online-only, non-food and hidden ones are left
+  out; product availability is ignored (`DELISTED` means off the webshop, not out of stores).
+  Tests use `tests/jumbo_fixtures.py` (real pages from 2026-11-10, and `pack`/`page_with` to build
+  pages). AH: as plain modules in `ingestion/ah/`: `client.py` (HTTP,
   saves raw responses; REST for the bonus sections, GraphQL `bonusPromotions` for range products),
   `payloads.py` (Pydantic models of AH's JSON) and `parser.py` (pure, payload → `Deal`); the
   `DealSource` interface (`ingestion/source.py`) now exists, with `AhSource` as its first

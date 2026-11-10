@@ -517,6 +517,16 @@ browser identity it needs.
 - **Later, not in this PR:** per-weight deals in Jumbo's format ("2,49 per kilo", via the
   product's `pricePerUnit`).
 
+Built (2026-11-11): `ingestion/jumbo/` and `JumboSource`, and `PoliteClient.get_text(keep=...)`
+so only page data is saved. The first live run went through Akamai with the browser identity: 165
+deals (4 to 17 November), 96 priced per product (1,117 products), 29 non-food and 20 online-only
+left out, about 100 requests and 3.8 MB of raw data. 8 stay unscored: 5 per-weight ("2,49 per
+kilo"), a gift, and two spirits promotions whose pages list no products. Lessons: `DELISTED` means
+"uit het online assortiment" (all spirits), not "no longer sold", so availability is ignored;
+discounts came out between 10% and 58% (median 25%). With one AH and one Jumbo in Leiden, Jumbo
+wins for "no preference" and "vegetarian, Middle Eastern", AH for "vegan, Italian". Still to do:
+Jumbo stores, from the next `fetch-stores` once Overpass answers (it timed out all day).
+
 ##### 3c — Lidl (one PR)
 
 - **Live check first:** the deals page (`lidl.nl/c/aanbiedingen/…`), whether it needs a browser

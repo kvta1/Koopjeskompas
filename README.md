@@ -26,7 +26,8 @@ on AWS.
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
-| ⏳ | Jumbo, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
+| ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`; Jumbo stores with the next `fetch-stores`) |
+| ⏳ | Lidl, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -105,14 +106,19 @@ npm ci
 uv run koopjeskompas fetch-deals
 ```
 
-This fetches this week's national bonus deals from Albert Heijn, in about 65 requests spaced one
-second apart (roughly a minute):
-- about 20 requests for the food categories;
-- about 45 lookups for the products of range deals like "Alle AH Verse pizza's: 2 voor €12",
-  which AH lists without prices.
+This fetches this week's deals from every chain with a source, each on its own: one chain failing
+doesn't stop the others. Requests are spaced one second apart.
+- **Albert Heijn**, about 65 requests (roughly a minute): about 20 for the food categories, and
+  about 45 lookups for the products of range deals like "Alle AH Verse pizza's: 2 voor €12", which
+  AH lists without prices.
+- **Jumbo**, about 100 requests (roughly two minutes): the deals page, with this week's and next
+  week's deals, and the page of each deal whose discount depends on a price ("2 voor 3,49").
+  Jumbo's site blocks requests that identify themselves honestly, so this one presents itself as a
+  browser (see the scraping policy in [PLAN.md §9.4](PLAN.md)).
 
-It saves the raw responses under `data/raw/ah/<date>/` and the parsed deals to
-`data/deals/ah.json`, then prints a summary, including any deals it couldn't score.
+It saves the raw responses under `data/raw/<chain>/<date>/` and the parsed deals to
+`data/deals/<chain>.json`, then prints a summary per chain, including any deals it couldn't score.
+`--chain jumbo` fetches one chain only.
 
 Run it at most about once a week; AH's bonus changes weekly. To re-parse earlier responses
 without contacting AH again (useful after changing the parser), use:
