@@ -491,6 +491,15 @@ requests a run); deals alone are enough.
 ✅ Milestone: with only AH's snapshot, everything works as now; adding a second snapshot by hand
 makes its stores rank.
 
+Built (2026-11-11): `chains.py`; `load_snapshots` and per-chain `chain_ranking_days`, used by the
+API, `rank` and the Lambda (which no longer takes `DEALS_KEY`); the response's `chains` (each
+chain's `deals_on`), shown on the page; `ingestion/http.py` and `ingestion/nuxt.py`; and
+`fetch-stores` for every chain, writing `stores/nl_stores.json`. Overpass was busy, so that list
+was re-converted from the saved AH answer (the same 1,000 stores); Jumbo and Lidl stores come with
+the next successful fetch, before 3b. "Only rank chains with deals" lives in the API and CLI, not
+in `rank_stores`: which chains have data is the application's concern, and keeping it out of the
+domain keeps the scoring properties (a deal never lowers a score) intact.
+
 ##### 3b — Jumbo (one PR)
 
 What the first live check found still holds (details below); the policy above now allows the

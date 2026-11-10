@@ -18,7 +18,7 @@ on AWS.
 |---|---|---|
 | ✅ | Domain core: deal parsing, diet/cuisine tagging, scoring, distance | done, fully unit-tested |
 | ✅ | Real Albert Heijn bonus deals, cached as JSON | done (`fetch-deals`) |
-| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`) |
+| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`; Jumbo and Lidl stores with the next fetch) |
 | ✅ | Postcode and place search (PDOK Locatieserver) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
@@ -302,8 +302,9 @@ koopjeskompas/
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
 ├── api/           the web API: request/response models (schemas.py), endpoints (app.py)
 │                  and the AWS Lambda entry point (lambda_handler.py)
-├── stores/        every AH in NL (nl_ah.json), its OpenStreetMap query, and osm.py, which turns
-│                  Overpass's answer into stores (koopjeskompas fetch-stores)
+├── chains.py      the chains Koopjeskompas knows (AH, Jumbo, Lidl), in one place
+├── stores/        every store in NL (nl_stores.json), and osm.py, which asks OpenStreetMap for
+│                  them and turns the answer into stores (koopjeskompas fetch-stores)
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
