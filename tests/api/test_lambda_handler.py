@@ -14,10 +14,15 @@ from typing import Any, cast
 
 import boto3
 import pytest
+from botocore.exceptions import ClientError
 from mangum.types import LambdaContext
 
 from koopjeskompas.api import lambda_handler
-from koopjeskompas.api.lambda_handler import build_handler, download_deals
+from koopjeskompas.api.lambda_handler import (
+    NoSnapshotsError,
+    build_handler,
+    download_snapshots,
+)
 from koopjeskompas.domain.models import Deal
 from koopjeskompas.ingestion.cache import save_deals
 
@@ -36,6 +41,10 @@ class FakeS3:
 
     def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
         self.downloads.append((Bucket, Key))
+        if (Bucket, Key) not in self.objects:
+            # What S3 answers a role that may read objects but not list the bucket.
+            error = {"Error": {"Code": "403", "Message": "Forbidden"}}
+            raise ClientError(error, "HeadObject")  # type: ignore[arg-type]
         shutil.copyfile(self.objects[Bucket, Key], Filename)
 
 
@@ -84,16 +93,38 @@ def function_url_event(
     }
 
 
-def test_download_deals_puts_the_snapshot_where_the_app_reads_it(
+def test_each_chains_snapshot_lands_where_the_app_reads_it(
     s3: FakeS3, tmp_path: Path
 ) -> None:
-    path = download_deals(s3, BUCKET, KEY, tmp_path / "data")
-    assert path == tmp_path / "data" / "deals" / "ah.json"
-    assert path.exists()
+    # Only AH's snapshot is in the bucket: Jumbo and Lidl are skipped, not errors.
+    assert download_snapshots(s3, BUCKET, tmp_path / "data") == ["AH"]
+    assert (tmp_path / "data" / "deals" / "ah.json").exists()
+    assert [key for _, key in s3.downloads] == [
+        "deals/ah.json",
+        "deals/jumbo.json",
+        "deals/lidl.json",
+    ]
+
+
+def test_an_empty_bucket_is_an_error(tmp_path: Path) -> None:
+    with pytest.raises(NoSnapshotsError):
+        download_snapshots(FakeS3({}), BUCKET, tmp_path / "data")
+
+
+def test_other_s3_errors_are_not_mistaken_for_a_missing_snapshot(
+    tmp_path: Path,
+) -> None:
+    class Throttled(FakeS3):
+        def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
+            error = {"Error": {"Code": "SlowDown", "Message": "Slow down"}}
+            raise ClientError(error, "GetObject")  # type: ignore[arg-type]
+
+    with pytest.raises(ClientError):
+        download_snapshots(Throttled({}), BUCKET, tmp_path / "data")
 
 
 def test_the_handler_answers_function_url_events(s3: FakeS3, tmp_path: Path) -> None:
-    handler = build_handler(s3, BUCKET, KEY, data_dir=tmp_path / "data")
+    handler = build_handler(s3, BUCKET, data_dir=tmp_path / "data")
 
     health = handler(function_url_event("GET", "/api/health"), CONTEXT)
     assert health["statusCode"] == 200
@@ -118,7 +149,6 @@ def from_environment(
     monkeypatch.setattr(boto3, "client", lambda service: s3)
     monkeypatch.setattr(lambda_handler, "DATA_DIR", tmp_path / "data")
     monkeypatch.setenv("DEALS_BUCKET", BUCKET)
-    monkeypatch.delenv("DEALS_KEY", raising=False)
     lambda_handler._handler_from_environment.cache_clear()
     yield s3
     lambda_handler._handler_from_environment.cache_clear()
@@ -130,14 +160,15 @@ def test_handler_downloads_once_per_environment(from_environment: FakeS3) -> Non
             function_url_event("GET", "/api/health"), CONTEXT
         )
         assert response["statusCode"] == 200
-    assert from_environment.downloads == [(BUCKET, KEY)]  # the default key
+    # One cold start: each chain asked for once, not once per request.
+    assert len(from_environment.downloads) == 3
 
 
 def test_a_failed_download_is_retried_on_the_next_request(
     from_environment: FakeS3,
 ) -> None:
     snapshot = from_environment.objects.pop((BUCKET, KEY))
-    with pytest.raises(KeyError):
+    with pytest.raises(NoSnapshotsError):
         lambda_handler.handler(function_url_event("GET", "/api/health"), CONTEXT)
 
     from_environment.objects[BUCKET, KEY] = snapshot

@@ -97,7 +97,26 @@ describe("App", () => {
     expect(screen.getByText("2 VOOR 12.00 · median of 3 products · until Sun 8 Nov")).toBeVisible();
     expect(screen.getByText("−13%")).toBeVisible();
     expect(screen.getByText("No deals that fit your preferences.")).toBeInTheDocument();
-    expect(screen.getByText(/bonus deals on Wed 4 Nov/)).toBeInTheDocument();
+    expect(screen.getByText(/AH deals of Wed 4 Nov\. Every AH has the same deals/)).toBeVisible();
+  });
+
+  it("says whose deals were ranked, and as of which day", async () => {
+    stubApi(
+      Response.json({
+        ...RANKING,
+        chains: [
+          { chain: "AH", deals_on: "2026-11-08" }, // a stale snapshot's last day
+          { chain: "Jumbo", deals_on: "2026-11-10" },
+        ],
+      }),
+    );
+    render(<App />);
+    await submit();
+
+    expect(
+      await screen.findByText(/Deals of AH \(Sun 8 Nov\) and Jumbo \(Tue 10 Nov\)\./),
+    ).toBeVisible();
+    expect(screen.queryByText(/Every AH has the same deals/)).not.toBeInTheDocument();
   });
 
   it("marks the deals that fit the chosen cuisines", async () => {
@@ -121,11 +140,11 @@ describe("App", () => {
   });
 
   it("says when no store is within the radius", async () => {
-    stubApi(Response.json({ ranked_on: "2026-11-04", stores: [] }));
+    stubApi(Response.json({ ranked_on: "2026-11-04", chains: RANKING.chains, stores: [] }));
     render(<App />);
     await submit();
 
-    expect(await screen.findByText(/No Albert Heijn within this distance/)).toBeInTheDocument();
+    expect(await screen.findByText(/No supermarket within this distance/)).toBeInTheDocument();
   });
 
   it("shows the API's error message", async () => {

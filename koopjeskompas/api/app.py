@@ -20,13 +20,21 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 
-from koopjeskompas.api.schemas import Health, RankedStore, RankRequest, RankResponse
+from koopjeskompas.api.schemas import (
+    ChainOut,
+    Health,
+    RankedStore,
+    RankRequest,
+    RankResponse,
+)
 from koopjeskompas.domain.models import Coordinates, Deal, Preferences, Store
-from koopjeskompas.domain.scoring import ScoringWeights, rank_stores, ranking_day
-from koopjeskompas.ingestion.cache import deals_path, load_deals
+from koopjeskompas.domain.scoring import (
+    ScoringWeights,
+    chain_ranking_days,
+    rank_stores,
+)
+from koopjeskompas.ingestion.cache import load_snapshots
 from koopjeskompas.stores import load_stores
-
-CHAIN = "AH"
 
 
 def create_app(data_dir: Path) -> FastAPI:
@@ -66,18 +74,24 @@ def openapi_json(app: FastAPI) -> str:
 # --- dependencies: what an endpoint needs, swappable in tests ---------------
 
 
-def get_deals(request: Request) -> list[Deal]:
-    # Read on every request: the cache is small, and this way a new fetch-deals run
-    # is picked up without restarting the server.
-    path = deals_path(request.app.state.data_dir, CHAIN)
-    try:
-        return load_deals(path)
-    except FileNotFoundError:
+def get_snapshots(request: Request) -> dict[str, list[Deal]]:
+    """Every chain's cached deals, by chain name; chains without a snapshot are absent.
+
+    Read on every request: the cache is small, and this way a new fetch-deals run
+    is picked up without restarting the server.
+    """
+    data_dir = request.app.state.data_dir
+    snapshots = load_snapshots(data_dir)
+    if not snapshots:
         # 503, not 500: the server works, but it has no data to serve yet.
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"No deals cached at {path}; run 'koopjeskompas fetch-deals' first.",
-        ) from None
+            detail=(
+                f"No deals cached in {data_dir / 'deals'}; "
+                "run 'koopjeskompas fetch-deals' first."
+            ),
+        )
+    return snapshots
 
 
 def get_stores(request: Request) -> list[Store]:
@@ -89,7 +103,7 @@ def get_today() -> date:
     return date.today()
 
 
-Deals = Annotated[list[Deal], Depends(get_deals)]
+Snapshots = Annotated[dict[str, list[Deal]], Depends(get_snapshots)]
 Stores = Annotated[list[Store], Depends(get_stores)]
 Today = Annotated[date, Depends(get_today)]
 
@@ -110,16 +124,20 @@ def health() -> Health:
         status.HTTP_503_SERVICE_UNAVAILABLE: {"description": "No deals cached yet"}
     },
 )
-def rank(body: RankRequest, deals: Deals, stores: Stores, today: Today) -> RankResponse:
+def rank(
+    body: RankRequest, snapshots: Snapshots, stores: Stores, today: Today
+) -> RankResponse:
     """Rank the stores within ``radius_km`` of ``location``, best first.
 
-    Each store comes with the deals that earned its score. If the cached deals have
-    all ended (or not yet begun), they are ranked as of their nearest day instead,
-    and ``ranked_on`` says which day that was.
+    Each store comes with the deals that earned its score. Only chains with cached
+    deals take part: a store of a chain without them would look like a store with no
+    deals. If a chain's cached deals have all ended (or not yet begun), they are
+    ranked as of their nearest day instead, and ``chains`` says which day that was.
     """
-    day = ranking_day(deals, today)
+    deals = [deal for chain_deals in snapshots.values() for deal in chain_deals]
+    days = {chain: today for chain in snapshots} | chain_ranking_days(deals, today)
     rankings = rank_stores(
-        stores=stores,
+        stores=[store for store in stores if store.chain in snapshots],
         deals=deals,
         preferences=Preferences(
             diet=body.diet,
@@ -128,15 +146,17 @@ def rank(body: RankRequest, deals: Deals, stores: Stores, today: Today) -> RankR
             lactose_free=body.lactose_free,
         ),
         location=Coordinates(latitude=body.location.lat, longitude=body.location.lon),
-        today=day,
+        today=today,
         weights=ScoringWeights(
             top_k=body.top_k,
             distance_weight=body.distance_weight,
             max_distance_km=body.radius_km,
         ),
+        chain_days=days,
     )
     return RankResponse(
-        ranked_on=day,
+        ranked_on=today,
+        chains=[ChainOut(chain=chain, deals_on=day) for chain, day in days.items()],
         stores=[
             RankedStore.from_ranking(position, ranking)
             for position, ranking in enumerate(rankings, start=1)

@@ -18,7 +18,7 @@ on AWS.
 |---|---|---|
 | ✅ | Domain core: deal parsing, diet/cuisine tagging, scoring, distance | done, fully unit-tested |
 | ✅ | Real Albert Heijn bonus deals, cached as JSON | done (`fetch-deals`) |
-| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`) |
+| ✅ | Every AH in the Netherlands (1,000 stores, from OpenStreetMap) | done (`fetch-stores`; Jumbo and Lidl stores with the next fetch) |
 | ✅ | Postcode and place search (PDOK Locatieserver) | done |
 | ✅ | Ranking in the terminal | done (`rank`) |
 | ✅ | Range deals priced product by product, per-weight deals | done |
@@ -302,8 +302,9 @@ koopjeskompas/
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
 ├── api/           the web API: request/response models (schemas.py), endpoints (app.py)
 │                  and the AWS Lambda entry point (lambda_handler.py)
-├── stores/        every AH in NL (nl_ah.json), its OpenStreetMap query, and osm.py, which turns
-│                  Overpass's answer into stores (koopjeskompas fetch-stores)
+├── chains.py      the chains Koopjeskompas knows (AH, Jumbo, Lidl), in one place
+├── stores/        every store in NL (nl_stores.json), and osm.py, which asks OpenStreetMap for
+│                  them and turns the answer into stores (koopjeskompas fetch-stores)
 ├── report.py      formats a ranking for the terminal
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
@@ -341,8 +342,8 @@ Next, in this order ([PLAN.md §9.4](PLAN.md)):
 1. ✅ **Infrastructure as code:** the AWS setup as a CDK stack, deployed with one command.
 2. ✅ **Your own location, anywhere in the Netherlands:** every AH in the country from OpenStreetMap,
    and a place and postcode search in the page with PDOK's free Locatieserver.
-3. **Second chain:** Jumbo behind a common `DealSource` interface, so rankings differ by more than
-   distance.
+3. **More chains:** Jumbo and Lidl next to AH, behind a common `DealSource` interface, so
+   rankings differ by more than distance.
 4. **Continuous deployment** with AWS CodePipeline, since this AWS project can't use GitHub
    Actions' OIDC login.
 

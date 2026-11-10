@@ -13,16 +13,18 @@ import httpx
 import pytest
 import respx
 
+from koopjeskompas.chains import CHAINS
 from koopjeskompas.cli import main
 from koopjeskompas.stores import load_stores
 from koopjeskompas.stores.osm import (
     DEFAULT_SERVER,
     OverpassError,
     fetch_overpass,
+    overpass_query,
     stores_from_overpass,
 )
 
-FIXTURE = Path(__file__).parents[1] / "fixtures" / "osm" / "overpass_ah.json"
+FIXTURE = Path(__file__).parents[1] / "fixtures" / "osm" / "overpass_stores.json"
 
 
 @pytest.fixture
@@ -46,6 +48,12 @@ def test_supermarkets_become_stores(overpass_answer: Any) -> None:
     )
     # A building outline has no point of its own; Overpass gives its centre.
     assert by_address["Hooigracht 85, Leiden"].location.latitude == 52.1597304
+
+
+def test_each_store_gets_its_chain(overpass_answer: Any) -> None:
+    by_name = {s.name: s.chain for s in stores_from_overpass(overpass_answer).stores}
+    assert by_name["Jumbo Haarlemmerstraat"] == "Jumbo"  # by Wikidata ID
+    assert by_name["Lidl Lammenschansweg"] == "Lidl"  # by brand name
 
 
 def test_a_store_without_a_street_is_named_by_branch_or_town(
@@ -85,6 +93,7 @@ def test_what_is_left_out_is_reported_with_a_reason(overpass_answer: Any) -> Non
         "node/1007: no street, branch or town to name it by",
         "node/1008: not a supermarket",
         "node/1009: a pickup point, not a store",
+        "node/1011: not a store of a known chain",
         "relation/3001: no location",
     ]
 
@@ -103,6 +112,21 @@ def test_an_element_that_is_not_osm_is_skipped() -> None:
     result = stores_from_overpass({"elements": [{"type": "node"}]})
     assert result.stores == []
     assert len(result.skipped) == 1
+
+
+# --- asking ----------------------------------------------------------------
+
+
+def test_the_query_asks_for_every_chain_three_ways() -> None:
+    query = overpass_query()
+    for chain in CHAINS:
+        for wikidata in chain.wikidata:
+            assert f'["brand:wikidata"="{wikidata}"]' in query
+        for brand in chain.brands:
+            assert f'["brand"="{brand}"]' in query
+        assert f'["name"~"{chain.name_pattern}"]' in query
+    assert '["ISO3166-1"="NL"]' in query  # stores across the border have other deals
+    assert query.count('nwr["shop"="supermarket"]') == query.count("nwr[")
 
 
 # --- fetching --------------------------------------------------------------
@@ -180,13 +204,13 @@ def test_fetch_stores_writes_the_list_and_keeps_the_raw_answer(
     assert fetch_stores(tmp_path) == 0
 
     stores = load_stores(tmp_path / "stores.json")
-    assert len(stores) == 7
-    raw = tmp_path / "data" / "raw" / "osm" / "2026-11-10" / "nl_ah.json"
+    assert len(stores) == 9
+    raw = tmp_path / "data" / "raw" / "osm" / "2026-11-10" / "nl_stores.json"
     assert json.loads(raw.read_text()) == overpass_answer
     out = capsys.readouterr().out
-    assert "7 stores written" in out
+    assert "9 stores written" in out
     assert "Merged 1" in out
-    assert "Skipped 4" in out
+    assert "Skipped 5" in out
 
 
 @respx.mock
@@ -199,7 +223,7 @@ def test_fetch_stores_from_raw_asks_nobody(
 
     assert fetch_stores(tmp_path, "--from-raw") == 0
     assert route.call_count == 1  # only the first run asked Overpass
-    assert len(load_stores(tmp_path / "stores.json")) == 7
+    assert len(load_stores(tmp_path / "stores.json")) == 9
 
 
 @respx.mock

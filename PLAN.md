@@ -86,7 +86,7 @@ No official public APIs exist. Options, roughly in order of preference for an MV
 
 Important practices to bake in from day one:
 
-- **Rate limiting and politeness** (delays between requests, identifying User-Agent, respect robots.txt).
+- **Rate limiting and politeness** (delays between requests, one at a time, deal pages only). Identify honestly where that works; where a chain blocks honest requests, a browser identity is allowed within the limits of the scraping policy in §9.4, step 3.
 - **Cache raw responses to disk** during development so you're not hammering their servers while debugging — and so your tests can replay real payloads as fixtures.
 - **Anti-corruption layer:** parse the messy external format into your own clean, validated `Deal` Pydantic model immediately at the boundary. Never let scraped JSON shapes leak into your domain code.
 - **Legal/ethical awareness:** this is a personal learning project; keep request volume tiny (weekly deal refresh = a handful of requests), and be aware that ToS of these sites generally prohibit scraping — a reason to keep this non-commercial and low-volume.
@@ -345,7 +345,7 @@ and PR.
 |---|---|---|
 | 1 | Infrastructure as code + one-command deploy | Everything after it has to be deployed; and the hand-made setup is still fresh in mind |
 | 2 | Your own location, anywhere in the Netherlands | Low risk, free official data, high demo value; its nationwide store import is reused by Jumbo |
-| 3 | Jumbo as a second chain | Without it the ranking comes down to distance, so the app's core idea isn't visible yet |
+| 3 | Deals from three chains: AH, Jumbo and Lidl | Without them the ranking comes down to distance, so the app's core idea isn't visible yet |
 | 4 | Continuous deployment, run inside AWS | Needs step 1; worth least to the demo, and its services still have to be checked on this plan |
 
 Step 4 depends only on step 1, so it can move forward if the pipeline matters more than features.
@@ -433,25 +433,132 @@ brings in two pickup points, which are skipped. In the page, `PlaceSearch` asks 
 (checked in Chrome: one `suggest` request per pause in typing, no CORS issues), and a 20 km radius
 was added for the countryside.
 
-#### Step 3 — Jumbo as a second chain
+#### Step 3 — Deals from three chains: AH, Jumbo and Lidl
 
-- **Live check first** (a handful of requests), as for AH's range deals: does Jumbo's unofficial
-  mobile API answer without login, and what do its deals look like? **Stop condition:** if it's
-  blocked (Jumbo has used bot protection), stop and record why; scraping around it is out of scope
-  (§4.1).
-- **`DealSource` interface,** now that there are two (CLAUDE.md said to wait for this): AH becomes
-  the first implementation, then a `JumboSource` with its own client, payload models and parser in
-  `ingestion/jumbo/`. Raw responses saved and replayed in tests, as for AH.
-- **Graceful degradation:** `fetch-deals` runs every source; one failing source is reported and the
-  others are still saved. The API serves whichever snapshots exist.
-- **Stores:** step 2's `fetch-stores` with a second brand, so Jumbo stores come nationwide at once.
-- **Deploy:** one snapshot per chain in the data bucket; `publish-deals` uploads both, and the
-  Lambda downloads both.
-- **The page:** the hint "every AH has the same deals, so the nearest store wins" goes. Now the
-  deals decide.
+With one chain every store has the same deals, so the ranking comes down to distance and the
+app's core idea isn't visible. This step adds Jumbo and Lidl next to AH.
 
-✅ Milestone: an AH and a Jumbo next to each other rank differently for "vegetarian, Middle
+**Scraping policy (decided 2026-11-11).** Koopjeskompas is a non-commercial hobby project that
+fetches each chain's deals at most once a week. Within that, a scraper **may present itself as a
+browser** (a browser User-Agent and the headers a browser sends) when an honest identity is
+blocked. The limits that keep it a light, ordinary visitor:
+
+- Only the deal pages a visitor would open, never the whole assortment.
+- A fixed pause between requests (1 s), one request at a time, a timeout, no retries in a loop.
+- No solving CAPTCHAs, no rotating IP addresses or proxies, no forging of bot-detection data
+  (such as Akamai's sensor data or TLS fingerprints). If a chain still blocks after that, its
+  source fails, is reported, and the other chains carry on.
+- Raw answers are saved before parsing, so fixing a parser never needs a refetch.
+- Fetching runs on the laptop; AWS never contacts a supermarket (§9.3).
+
+The chains' terms of use generally forbid scraping; this is a conscious choice for a personal
+project, not something to scale up or monetise.
+
+**Weekly, not monthly.** Deals change every week (AH Monday to Sunday, Jumbo Wednesday to
+Tuesday). Fetched monthly, the demo would show the previous snapshot's last day three weeks out of
+four. Weekly costs about 200 requests across the three chains (AH ~65, Jumbo ~110, Lidl a few).
+
+**Architecture: no fundamental change.** The ports-and-adapters design already fits: the domain
+knows no chain, and `rank_stores` matches deals to stores by `chain`. What changes is everything
+that still assumes one chain, plus two helpers that Jumbo and Lidl share. Not adopted from
+projects like KortingKlok: a database and job queue, and crawling every product (thousands of
+requests a run); deals alone are enough.
+
+##### 3a — Many chains, before adding any (one PR)
+
+- **A chain registry** (`koopjeskompas/chains.py`): per chain its key (`ah`, `jumbo`, `lidl`),
+  display name, and OpenStreetMap brand (Wikidata ID and names). The CLI's `SOURCES`, the store
+  fetch and the Lambda read from it, so adding a chain means one entry plus its source.
+- **Read every snapshot:** `load_all_deals(data_dir)` in `ingestion/cache.py`; the API, `rank`
+  and the Lambda use it. A missing chain is skipped with a warning; no snapshot at all is a 503.
+  The Lambda downloads `deals/<chain>.json` for every registered chain (the IAM policy already
+  covers `deals/*`).
+- **Only rank chains that have deals:** a Jumbo store without a Jumbo snapshot would show up with
+  nothing; such stores are left out, and the response says which chains were included.
+- **The snapshot fallback per chain:** `ranking_day` per chain instead of over all deals, so a
+  stale AH snapshot can't zero AH while Jumbo is current. The API response then reports the day
+  per chain (a small change in `schemas.py`, so `openapi.json` and the page's types regenerate).
+- **Shared ingestion helpers:**
+  - `ingestion/http.py`: a polite client (fixed pause, timeout, a header profile per chain,
+    saving each raw answer, and recognising a block as a `BlockedError`, which stops that
+    source's remaining requests).
+  - `ingestion/nuxt.py`: the Nuxt page-data unpacker (devalue format), moved out of
+    `ingestion/jumbo/`, since both Jumbo and Lidl are Nuxt sites.
+- **Stores for every chain:** `fetch-stores` asks for every registered brand in one Overpass
+  query and writes `stores/nl_stores.json`, each store with its chain ("Jumbo Breestraat",
+  "Lidl Breestraat"). AH's 1,000 stay as they are.
+
+✅ Milestone: with only AH's snapshot, everything works as now; adding a second snapshot by hand
+makes its stores rank.
+
+Built (2026-11-11): `chains.py`; `load_snapshots` and per-chain `chain_ranking_days`, used by the
+API, `rank` and the Lambda (which no longer takes `DEALS_KEY`); the response's `chains` (each
+chain's `deals_on`), shown on the page; `ingestion/http.py` and `ingestion/nuxt.py`; and
+`fetch-stores` for every chain, writing `stores/nl_stores.json`. Overpass was busy, so that list
+was re-converted from the saved AH answer (the same 1,000 stores); Jumbo and Lidl stores come with
+the next successful fetch, before 3b. "Only rank chains with deals" lives in the API and CLI, not
+in `rank_stores`: which chains have data is the application's concern, and keeping it out of the
+domain keeps the scoring properties (a deal never lowers a score) intact.
+
+##### 3b — Jumbo (one PR)
+
+What the first live check found still holds (details below); the policy above now allows the
+browser identity it needs.
+
+- **Live check again, briefly:** the deals page and one deal page with browser headers.
+- **`ingestion/jumbo/`:** `payloads.py` (Pydantic models of the page data: runtimes, sections,
+  categories, promotions with tags and ISO dates; a promotion page's products with prices in
+  cents), `parser.py` (pure: deduplicate by ID, skip online-only (an inverse tag like "Alleen
+  online"), non-food categories and hidden promotions; `price` is the normal price, `promoPrice`
+  the deal price), `client.py` (the overview, then one deal page per deal whose discount needs a
+  price, about 110), `source.py`.
+- **Fixtures, already captured on 2026-11-10:** a trimmed overview with one deal per case, and
+  the full data of one deal page (Campina Vla, 17 products).
+- **Later, not in this PR:** per-weight deals in Jumbo's format ("2,49 per kilo", via the
+  product's `pricePerUnit`).
+
+##### 3c — Lidl (one PR)
+
+- **Live check first:** the deals page (`lidl.nl/c/aanbiedingen/…`), whether it needs a browser
+  identity, how deals are embedded (JSON in `data-grid-data` attributes and/or `__NUXT_DATA__`,
+  per [KortingKlok](https://github.com/RashadAnsari/KortingKlok/tree/master/backend/apps/products/scrapers),
+  MIT), paging, and whether normal and deal prices are both on the page (then no per-deal pages).
+  Lidl also runs non-food specials and in-store-only actions on set days: decide how to filter.
+- **`ingestion/lidl/`:** the same four modules as Jumbo, using `ingestion/nuxt.py` if it applies.
+
+##### 3d — The page and the routine (one PR)
+
+- The page names the chain on each store card, and the hint "every AH has the same deals"
+  goes. Possibly a filter for which chains to include.
+- `scripts/refresh-deals.sh`: `fetch-deals` for every chain, then `publish-deals`; the weekly
+  routine in one command, reporting which chains failed.
+
+✅ Milestone: an AH, a Jumbo and a Lidl near each other rank differently for "vegetarian, Middle
 Eastern" than for "no preference".
+
+**Practical note:** Claude Code's auto mode may refuse requests that present a script as a
+browser, even under this policy. Allow them with a permission rule, or run the live checks by hand.
+
+<details>
+<summary>The first Jumbo live check (2026-11-10), for reference</summary>
+
+- **The old mobile API is gone.** `mobileapi.jumbo.com/v17/...` answers 404, as others report
+  ([KianMeijers/Pickled#2](https://github.com/KianMeijers/Pickled/issues/2)). The website's GraphQL
+  API (`www.jumbo.com/api/graphql`) has personal promotions behind a login
+  ([jumbo-cli](https://pkg.go.dev/github.com/DanielOostdam-Create/jumbo-cli)) but also anonymous
+  operations such as `SearchProducts`, as KortingKlok uses.
+- **The deals page has everything.** `jumbo.com/aanbiedingen/nu` embeds all deals of this week and
+  next (Wednesday to Tuesday) as Nuxt page data (`__NUXT_DATA__`, devalue format): 215 deals with
+  title, category, ISO dates and deal text. 65 food deals need no price ("1+1 gratis", "25%
+  korting"); 107 do ("2 voor 3,49", "voor 1,49"), and each deal's own page lists its products with
+  prices in cents, the same shape as AH's range deals. `parse_deal_mechanic` already reads every
+  Jumbo deal text except per-weight ("2,49 per kilo") and gift deals.
+- **Akamai Bot Manager guards the site.** A request with a browser User-Agent gets through; the
+  same request identifying itself honestly gets no answer (connection reset, then a timeout).
+- **Jumbo's terms of use forbid scraping**, with no exception for personal use (per the issue
+  above).
+
+</details>
 
 #### Step 4 — Continuous deployment, run inside AWS
 

@@ -1,4 +1,4 @@
-import type { RankResponse } from "../api/client";
+import type { ChainDeals, RankResponse } from "../api/client";
 import { formatDate } from "../format";
 import { StoreCard } from "./StoreCard";
 
@@ -10,14 +10,13 @@ interface ResultsProps {
 
 export function Results({ response, cuisinesChosen }: ResultsProps) {
   if (response.stores.length === 0) {
-    return <p className="empty">No Albert Heijn within this distance. Try a larger radius.</p>;
+    return <p className="empty">No supermarket within this distance. Try a larger radius.</p>;
   }
   return (
     <section className="results" aria-labelledby="results-heading">
       <h2 id="results-heading">Best stores for you</h2>
       <p className="hint">
-        Albert Heijn bonus deals on {formatDate(response.ranked_on)}. Every AH has the same deals,
-        so for now the nearest store wins.
+        {dealsSummary(response.chains)}
         {cuisinesChosen && " Deals that fit your cuisines count for more, so they come first."}
       </p>
       <ol className="stores">
@@ -32,4 +31,19 @@ export function Results({ response, cuisinesChosen }: ResultsProps) {
       </ol>
     </section>
   );
+}
+
+const andList = new Intl.ListFormat("en-GB", { type: "conjunction" });
+
+/** Whose deals were ranked, and as of which day (a stale snapshot shows its last day). */
+function dealsSummary(chains: ChainDeals[]): string {
+  const [only] = chains;
+  if (chains.length === 1 && only) {
+    return (
+      `${only.chain} deals of ${formatDate(only.deals_on)}. ` +
+      `Every ${only.chain} has the same deals, so for now the nearest store wins.`
+    );
+  }
+  const each = chains.map(({ chain, deals_on }) => `${chain} (${formatDate(deals_on)})`);
+  return `Deals of ${andList.format(each)}.`;
 }

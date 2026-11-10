@@ -12,7 +12,7 @@ diet filters (see ``_score_range``).
 """
 
 import heapq
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from datetime import date
 from statistics import median
 
@@ -89,6 +89,22 @@ def ranking_day(deals: Iterable[Deal], today: date) -> date:
         deal.valid_to if deal.valid_to < today else deal.valid_from for deal in deals
     ]
     return min(nearest, key=lambda day: (abs(day - today), day))
+
+
+def chain_ranking_days(deals: Iterable[Deal], today: date) -> dict[str, date]:
+    """``ranking_day`` for each chain on its own, by chain name.
+
+    Chains refresh on different days (AH on Monday, Jumbo on Wednesday), and one
+    chain's snapshot can be stale while another's is current. Falling back per chain
+    keeps a stale chain's deals counting without holding back a current one.
+    """
+    by_chain: dict[str, list[Deal]] = {}
+    for deal in deals:
+        by_chain.setdefault(deal.chain, []).append(deal)
+    return {
+        chain: ranking_day(chain_deals, today)
+        for chain, chain_deals in by_chain.items()
+    }
 
 
 def score_deals(
@@ -175,15 +191,25 @@ def rank_stores(
     location: Coordinates,
     today: date,
     weights: ScoringWeights = ScoringWeights(),
+    chain_days: Mapping[str, date] | None = None,
 ) -> list[StoreRanking]:
-    """Rank the stores within ``weights.max_distance_km`` of ``location``, best first."""
+    """Rank the stores within ``weights.max_distance_km`` of ``location``, best first.
+
+    Each chain's deals count as of ``today``, unless ``chain_days`` names another day
+    for that chain (see ``chain_ranking_days``).
+    """
     deals_by_chain: dict[str, list[Deal]] = {}
     for deal in deals:
         deals_by_chain.setdefault(deal.chain.casefold(), []).append(deal)
+    days = {chain.casefold(): day for chain, day in (chain_days or {}).items()}
 
     # Deals are national per chain, so score them once per chain, not per store.
     top_deals_by_chain = {
-        chain: tuple(score_deals(chain_deals, preferences, today)[: weights.top_k])
+        chain: tuple(
+            score_deals(chain_deals, preferences, days.get(chain, today))[
+                : weights.top_k
+            ]
+        )
         for chain, chain_deals in deals_by_chain.items()
     }
 

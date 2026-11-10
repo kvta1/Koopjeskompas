@@ -16,14 +16,19 @@ choices. The full design doc and phased roadmap live in `PLAN.md` (concept, arch
 data sources, scoring formula, API design, MVP roadmap in §9.1). Read it before making architectural
 decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain core
 (`koopjeskompas/domain/`), real AH bonus deals fetched and cached as JSON
-(`koopjeskompas/ingestion/`), a store list (`koopjeskompas/stores/`; now every AH in NL) and a
+(`koopjeskompas/ingestion/`), a store list (`koopjeskompas/stores/`; every store of every registered chain in NL) and a
 `koopjeskompas` CLI that prints a ranking. Step 2b is done too: range deals are looked up product by
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
 themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/`,
 `scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
-search with PDOK in the page) are done; next is Jumbo, then continuous deployment run inside AWS.
+search with PDOK in the page) are done. Step 3 adds Jumbo and Lidl next to AH, in four parts
+(3a multi-chain foundations, 3b Jumbo, 3c Lidl, 3d page and weekly routine); the `DealSource`
+interface (`ingestion/source.py`, `ingestion/ah/source.py`) is built. Follow the scraping policy
+in PLAN.md §9.4 step 3: a browser identity is allowed when an honest one is blocked, but deal
+pages only, a fixed pause, one request at a time, and no CAPTCHA solving, proxies or forged
+bot-detection data. Step 4 is continuous deployment inside AWS.
 
 ## Commands
 
@@ -42,7 +47,8 @@ uv run koopjeskompas fetch-deals --from-raw    # re-parse the saved raw response
 uv run koopjeskompas rank --diet vegetarian --cuisine middle_eastern
 uv run koopjeskompas serve                     # web API on 127.0.0.1:8000, Swagger UI at /docs
 uv run koopjeskompas openapi                   # write the API schema to frontend/openapi.json
-uv run koopjeskompas fetch-stores              # every AH in NL from OpenStreetMap (Overpass); now and then
+uv run koopjeskompas fetch-stores              # every chain's stores in NL from OpenStreetMap (Overpass); now and then
+uv run koopjeskompas fetch-deals --chain ah    # one chain only (default: every chain with a source)
 
 cd frontend                # Node 24 (.nvmrc), npm
 npm ci                     # install
@@ -90,20 +96,32 @@ The intended design is a modular monolith with a strict separation between the d
   For now (MVP) there is one source, AH, as plain modules in `ingestion/ah/`: `client.py` (HTTP,
   saves raw responses; REST for the bonus sections, GraphQL `bonusPromotions` for range products),
   `payloads.py` (Pydantic models of AH's JSON) and `parser.py` (pure, payload → `Deal`); the
-  `DealSource` interface waits until a second chain exists. A range deal is a `Deal` with
+  `DealSource` interface (`ingestion/source.py`) now exists, with `AhSource` as its first
+  implementation; `fetch-deals` runs each source on its own (`--chain` picks one). A range deal is a `Deal` with
   `products`; scoring values it at the median of its products that pass the diet filters. Deals go to a
   JSON cache (`ingestion/cache.py`) instead of a DB.
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
   scrapes or hits external sources synchronously in a request. Built so far: `api/app.py`
   (`create_app(data_dir)` factory; deals, stores and today are FastAPI dependencies, so tests swap
   them via `dependency_overrides`), `api/lambda_handler.py` (the same app behind Mangum for AWS
-  Lambda; downloads the deals snapshot from S3 into `/tmp` per cold start, configured by
-  `DEALS_BUCKET`/`DEALS_KEY`) and `api/schemas.py` (the HTTP contract, deliberately separate
+  Lambda; downloads every registered chain's snapshot (`deals/<key>.json`) from S3 into `/tmp`
+  per cold start, skipping missing ones, configured by `DEALS_BUCKET`) and `api/schemas.py` (the HTTP contract, deliberately separate
   from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
-- **Stores** (`koopjeskompas/stores/`): packaged JSON from OpenStreetMap. `osm.py` sends
-  `nl_ah.overpassql` to Overpass and converts the answer (point or building centre, named by
-  street/branch/town, deduplicated within 100 m, sorted). Overpass is often busy and can answer
+- **Chains** (`koopjeskompas/chains.py`): the registry of AH, Jumbo and Lidl: the `name` deals
+  and stores meet on ("AH"), the `key` for the command line and files ("ah"), and how
+  OpenStreetMap knows the brand. Dependency-free, so the Lambda can import it. The API, `rank`
+  and the Lambda read every chain's snapshot (`ingestion/cache.load_snapshots`); stores of a
+  chain without one aren't offered, and each chain falls back to its own day
+  (`domain.scoring.chain_ranking_days`, passed to `rank_stores` as `chain_days`).
+- **Web-page sources** share `ingestion/http.py` (`PoliteClient`: fixed pause, raw answers
+  saved before parsing, a block (403/429, or a bot-check page) stops that source for the run;
+  honest headers by default, `BROWSER_HEADERS` where a site blocks them) and
+  `ingestion/nuxt.py` (unpacks `__NUXT_DATA__`, the devalue format).
+- **Stores** (`koopjeskompas/stores/`): packaged JSON from OpenStreetMap (`nl_stores.json`).
+  `osm.py` builds one Overpass query from the chain registry and converts the answer (chain by
+  Wikidata ID, else brand, else name; point or building centre; named by street/branch/town;
+  deduplicated within 100 m; sorted). Overpass is often busy and can answer
   200 with a runtime error in `remark`; both are errors, and an empty result never overwrites the
   list. Tests use a hand-built fixture in Overpass's format (`tests/fixtures/osm/`) and respx.
 - **Data model**: deals are per-chain (national promotions), not per-store; a store's deal set is its

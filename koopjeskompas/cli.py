@@ -4,7 +4,7 @@ import argparse
 import json
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from datetime import date
 from pathlib import Path
 
@@ -19,10 +19,14 @@ from botocore.exceptions import (
 
 from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
-from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
-from koopjeskompas.ingestion.ah.client import AhApiError, AhClient, load_raw_week
-from koopjeskompas.ingestion.ah.parser import parse_bonus_week
-from koopjeskompas.ingestion.cache import deals_path, load_deals, save_deals
+from koopjeskompas.domain.scoring import (
+    ScoringWeights,
+    chain_ranking_days,
+    rank_stores,
+)
+from koopjeskompas.ingestion.ah.source import AhSource
+from koopjeskompas.ingestion.cache import deals_path, load_snapshots, save_deals
+from koopjeskompas.ingestion.source import DealSource, SourceError, SourceResult
 from koopjeskompas.publish import (
     REGION,
     STACK_NAME,
@@ -32,17 +36,20 @@ from koopjeskompas.publish import (
     snapshots,
 )
 from koopjeskompas.report import format_ranking
-from koopjeskompas.stores import NL_AH_QUERY, load_stores, save_stores
+from koopjeskompas.stores import load_stores, save_stores
 from koopjeskompas.stores.osm import (
     DEFAULT_SERVER,
     OverpassError,
     fetch_overpass,
+    overpass_query,
     stores_from_overpass,
 )
 
 DEFAULT_DATA_DIR = Path("data")
+# One source per chain, by the name used on the command line and in data/raw/.
+SOURCES: dict[str, Callable[[], DealSource]] = {"ah": AhSource}
 DEFAULT_OPENAPI_PATH = Path("frontend/openapi.json")
-DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_ah.json")
+DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_stores.json")
 LEIDEN_CENTRAAL = Coordinates(latitude=52.1664, longitude=4.4817)
 
 
@@ -72,17 +79,25 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subcommands = parser.add_subparsers(required=True, metavar="COMMAND")
 
-    fetch = subcommands.add_parser("fetch-deals", help="fetch and cache AH bonus deals")
+    fetch = subcommands.add_parser(
+        "fetch-deals", help="fetch and cache this week's deals of every chain"
+    )
     fetch.add_argument(
         "--from-raw",
         action="store_true",
-        help="re-parse the responses saved by an earlier fetch instead of asking AH",
+        help="re-parse the responses saved by an earlier fetch instead of asking again",
+    )
+    fetch.add_argument(
+        "--chain",
+        choices=list(SOURCES),
+        action="append",
+        help="only this chain; repeat for several (default: all)",
     )
     fetch.set_defaults(handler=_fetch_deals)
 
     stores = subcommands.add_parser(
         "fetch-stores",
-        help="fetch every AH in the Netherlands from OpenStreetMap (now and then)",
+        help="fetch every store of every chain in the Netherlands from OpenStreetMap",
     )
     stores.add_argument(
         "--server",
@@ -164,38 +179,31 @@ def _today(args: argparse.Namespace) -> date:
 
 
 def _fetch_deals(args: argparse.Namespace) -> int:
+    """Run each chain's source on its own: one failing doesn't cost the others."""
     today = _today(args)
-    raw_dir = args.data_dir / "raw" / "ah" / today.isoformat()
-    try:
-        if args.from_raw:
-            week = load_raw_week(raw_dir, today)
-        else:
-            week = AhClient(raw_dir=raw_dir).fetch_bonus_week(today)
-    except AhApiError as error:
-        print(f"Fetching AH deals failed: {error}", file=sys.stderr)
-        return 1
+    failed = 0
+    for key in args.chain or list(SOURCES):
+        source = SOURCES[key]()
+        raw_dir = args.data_dir / "raw" / key / today.isoformat()
+        try:
+            if args.from_raw:
+                result = source.reparse(raw_dir, today)
+            else:
+                result = source.fetch(raw_dir, today)
+        except SourceError as error:
+            print(f"Fetching {source.chain} deals failed: {error}", file=sys.stderr)
+            failed += 1
+            continue
+        _report(result, deals_path(args.data_dir, source.chain))
+    # Nonzero when any chain failed, so a script notices; what worked is saved anyway.
+    return 1 if failed else 0
 
-    result = parse_bonus_week(week)
-    path = deals_path(args.data_dir, "AH")
+
+def _report(result: SourceResult, path: Path) -> None:
     save_deals(path, result.deals)
-
-    period = week.period
-    print(
-        f"AH bonus {period.bonus_start_date} to {period.bonus_end_date}: "
-        f"{len(result.deals)} deals saved to {path}"
-    )
-    if result.ranges_priced:
-        print(
-            f"Range deals priced per product: {result.ranges_priced} "
-            f"({result.range_products} products)"
-        )
-    if week.failed_sections:
-        print(f"Sections that failed: {', '.join(week.failed_sections)}")
-    if week.failed_ranges:
-        print(
-            f"Range lookups that failed or are missing: {len(week.failed_ranges)}; "
-            "those ranges stay unscored"
-        )
+    print(f"{result.title}: {len(result.deals)} deals saved to {path}")
+    for note in result.notes:
+        print(note)
     if result.skipped:
         print(f"Skipped {len(result.skipped)} malformed items (see warnings above)")
     if result.no_discount:
@@ -205,18 +213,17 @@ def _fetch_deals(args: argparse.Namespace) -> int:
         )
         for mechanic, count in result.no_discount.most_common():
             print(f"  {count:3d}x {mechanic}")
-    return 0
 
 
 def _fetch_stores(args: argparse.Namespace) -> int:
-    raw_path = args.data_dir / "raw" / "osm" / _today(args).isoformat() / "nl_ah.json"
+    raw_path = (
+        args.data_dir / "raw" / "osm" / _today(args).isoformat() / "nl_stores.json"
+    )
     try:
         if args.from_raw:
             payload = json.loads(raw_path.read_text(encoding="utf-8"))
         else:
-            payload = fetch_overpass(
-                NL_AH_QUERY.read_text(encoding="utf-8"), args.server
-            )
+            payload = fetch_overpass(overpass_query(), args.server)
             # Saved before converting, so a conversion bug never needs a refetch.
             raw_path.parent.mkdir(parents=True, exist_ok=True)
             raw_path.write_text(json.dumps(payload), encoding="utf-8")
@@ -248,10 +255,15 @@ def _fetch_stores(args: argparse.Namespace) -> int:
 
 
 def _rank(args: argparse.Namespace) -> int:
-    path = deals_path(args.data_dir, "AH")
-    if not path.exists():
-        print(f"No cached deals at {path}; run 'koopjeskompas fetch-deals' first.")
+    snapshots = load_snapshots(args.data_dir)
+    if not snapshots:
+        print(
+            f"No deals cached in {args.data_dir / 'deals'}; "
+            "run 'koopjeskompas fetch-deals' first."
+        )
         return 1
+    deals = [deal for chain_deals in snapshots.values() for deal in chain_deals]
+    today = _today(args)
 
     preferences = Preferences(
         diet=args.diet,
@@ -260,12 +272,14 @@ def _rank(args: argparse.Namespace) -> int:
         gluten_free=args.gluten_free,
     )
     rankings = rank_stores(
-        stores=load_stores(),
-        deals=load_deals(path),
+        # Only chains with deals: the others' stores would look empty.
+        stores=[store for store in load_stores() if store.chain in snapshots],
+        deals=deals,
         preferences=preferences,
         location=Coordinates(latitude=args.lat, longitude=args.lon),
-        today=_today(args),
+        today=today,
         weights=ScoringWeights(max_distance_km=args.radius_km, top_k=args.top_k),
+        chain_days=chain_ranking_days(deals, today),
     )
     print(format_ranking(rankings))
     return 0

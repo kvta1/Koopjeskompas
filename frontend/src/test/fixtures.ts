@@ -3,6 +3,7 @@ import type { RankResponse } from "../api/client";
 /** A response in the shape the API sends, typed so it can't drift from the schema. */
 export const RANKING: RankResponse = {
   ranked_on: "2026-11-04",
+  chains: [{ chain: "AH", deals_on: "2026-11-04" }],
   stores: [
     {
       rank: 1,

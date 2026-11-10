@@ -34,9 +34,10 @@ export interface paths {
          * Rank
          * @description Rank the stores within ``radius_km`` of ``location``, best first.
          *
-         *     Each store comes with the deals that earned its score. If the cached deals have
-         *     all ended (or not yet begun), they are ranked as of their nearest day instead,
-         *     and ``ranked_on`` says which day that was.
+         *     Each store comes with the deals that earned its score. Only chains with cached
+         *     deals take part: a store of a chain without them would look like a store with no
+         *     deals. If a chain's cached deals have all ended (or not yet begun), they are
+         *     ranked as of their nearest day instead, and ``chains`` says which day that was.
          */
         post: operations["rank_api_rank_post"];
         delete?: never;
@@ -49,6 +50,17 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** ChainOut */
+        ChainOut: {
+            /** Chain */
+            chain: string;
+            /**
+             * Deals On
+             * Format: date
+             * @description The day this chain's deals were ranked on: today, or the nearest day with deals when its cached deals have all ended or not yet begun
+             */
+            deals_on: string;
+        };
         /**
          * Cuisine
          * @enum {string}
@@ -173,9 +185,14 @@ export interface components {
             /**
              * Ranked On
              * Format: date
-             * @description Only deals active on this day count: today, or the nearest day with deals when the cached deals have all ended or not yet begun
+             * @description The day of the request
              */
             ranked_on: string;
+            /**
+             * Chains
+             * @description The chains with cached deals; stores of other chains are left out
+             */
+            chains: components["schemas"]["ChainOut"][];
             /** Stores */
             stores: components["schemas"]["RankedStore"][];
         };

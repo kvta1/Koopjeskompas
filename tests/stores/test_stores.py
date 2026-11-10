@@ -1,8 +1,10 @@
+from collections import Counter
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
+from koopjeskompas.chains import CHAINS
 from koopjeskompas.domain.distance import haversine_km
 from koopjeskompas.domain.models import Coordinates
 from koopjeskompas.stores import load_stores
@@ -15,12 +17,13 @@ LEIDEN_BREESTRAAT = Coordinates(latitude=52.1570015, longitude=4.4919905)
 
 def test_packaged_stores_cover_the_netherlands() -> None:
     stores = load_stores()
-    assert len(stores) > 900  # about 1,000 AHs; far fewer means a fetch went wrong
-    assert {s.chain for s in stores} == {"AH"}
+    by_chain = Counter(s.chain for s in stores)
+    assert set(by_chain) <= {c.name for c in CHAINS}
+    assert by_chain["AH"] > 900  # about 1,000; far fewer means a fetch went wrong
     for store in stores:
         assert NL_LAT[0] <= store.location.latitude <= NL_LAT[1], store.name
         assert NL_LON[0] <= store.location.longitude <= NL_LON[1], store.name
-        assert store.name.startswith("AH ")
+        assert store.name.startswith(f"{store.chain} ")
     # Names repeat across towns ("AH Dorpsstraat"); name and address together don't.
     keys = [(s.name, s.address) for s in stores]
     assert len(set(keys)) == len(keys)

@@ -17,6 +17,7 @@ from koopjeskompas.domain.models import (
 from koopjeskompas.domain.scoring import (
     ScoringWeights,
     basket_score,
+    chain_ranking_days,
     deal_value,
     rank_stores,
     ranking_day,
@@ -141,6 +142,55 @@ def test_ranking_day_picks_the_nearest_day_with_deals() -> None:
     assert ranking_day([hummus, tahin], date(2026, 10, 19)) == date(2026, 10, 18)
     # The 20th is two days from both: on a tie the earlier day wins.
     assert ranking_day([hummus, tahin], date(2026, 10, 20)) == date(2026, 10, 18)
+
+
+def test_each_chain_falls_back_on_its_own() -> None:
+    deals = [
+        make_deal("Hummus", chain="AH"),  # 12 to 18 Oct: stale by the 25th
+        make_deal(
+            "Tahin",
+            chain="Jumbo",
+            valid_from=date(2026, 10, 21),
+            valid_to=date(2026, 10, 27),
+        ),
+    ]
+    assert chain_ranking_days(deals, date(2026, 10, 25)) == {
+        "AH": date(2026, 10, 18),
+        "Jumbo": date(2026, 10, 25),
+    }
+
+
+def test_a_stale_chain_still_scores_on_its_own_day() -> None:
+    stores = [make_store("AH", "AH", NEAR), make_store("Jumbo", "Jumbo", NEAR)]
+    deals = [
+        make_deal("Hummus", chain="AH"),  # ended on the 18th
+        make_deal(
+            "Tahin",
+            chain="Jumbo",
+            valid_from=date(2026, 10, 21),
+            valid_to=date(2026, 10, 27),
+        ),
+    ]
+    today = date(2026, 10, 25)
+    by_name = {
+        r.store.name: r
+        for r in rank_stores(
+            stores,
+            deals,
+            Preferences(),
+            LEIDEN,
+            today,
+            chain_days=chain_ranking_days(deals, today),
+        )
+    }
+    assert [d.deal.product_name for d in by_name["AH"].top_deals] == ["Hummus"]
+    assert [d.deal.product_name for d in by_name["Jumbo"].top_deals] == ["Tahin"]
+    # Without the days, AH's deals would all have expired.
+    (ah, _) = sorted(
+        rank_stores(stores, deals, Preferences(), LEIDEN, today),
+        key=lambda r: r.store.name,
+    )
+    assert ah.top_deals == ()
 
 
 def test_without_deals_ranking_day_is_today() -> None:

@@ -71,6 +71,28 @@
       "tags": {"shop": "supermarket", "name": "AH Pickup point", "addr:street": "Lammenschansweg"}
     },
     {
+      "type": "node", "id": 1010, "lat": 52.1601, "lon": 4.4932,
+      "tags": {
+        "shop": "supermarket", "brand": "Jumbo", "brand:wikidata": "Q2194504",
+        "name": "Jumbo", "addr:street": "Haarlemmerstraat", "addr:housenumber": "12",
+        "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "way", "id": 2005, "center": {"lat": 52.1540, "lon": 4.5010},
+      "tags": {
+        "shop": "supermarket", "brand": "Lidl", "name": "Lidl",
+        "addr:street": "Lammenschansweg", "addr:housenumber": "1", "addr:city": "Leiden"
+      }
+    },
+    {
+      "type": "node", "id": 1011, "lat": 52.1650, "lon": 4.4700,
+      "tags": {
+        "shop": "supermarket", "brand": "Plus", "name": "Plus",
+        "addr:street": "Kooilaan", "addr:city": "Leiden"
+      }
+    },
+    {
       "type": "relation", "id": 3001,
       "tags": {"shop": "supermarket", "brand": "Albert Heijn", "addr:street": "Nergens"}
     }
