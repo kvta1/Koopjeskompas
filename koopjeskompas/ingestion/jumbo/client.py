@@ -26,7 +26,7 @@ from koopjeskompas.ingestion.http import (
     FetchError,
     PoliteClient,
 )
-from koopjeskompas.ingestion.jumbo.parser import promotions_needing_prices
+from koopjeskompas.ingestion.jumbo.parser import promotions_to_look_up
 from koopjeskompas.ingestion.jumbo.payloads import JumboWeek
 from koopjeskompas.ingestion.nuxt import NuxtDataError, script_json, unpack_json
 from koopjeskompas.ingestion.source import SourceError
@@ -56,7 +56,7 @@ class JumboClient:
     def fetch_week(self) -> JumboWeek:
         """The overview, then the page of each promotion that needs a price."""
         week = JumboWeek(overview=self._page(OVERVIEW_PATH, OVERVIEW_FILE))
-        needing = promotions_needing_prices(week.overview)
+        needing = promotions_to_look_up(week.overview)
         for done, promotion in enumerate(needing):
             try:
                 week.promotions[promotion.id] = self._page(
@@ -88,7 +88,7 @@ def load_raw_week(raw_dir: Path) -> JumboWeek:
     except FileNotFoundError as error:
         raise SourceError(f"no saved Jumbo pages in {raw_dir}") from error
     week = JumboWeek(overview=overview)
-    for promotion in promotions_needing_prices(overview):
+    for promotion in promotions_to_look_up(overview):
         path = raw_dir / promotion_file(promotion.id)
         if path.exists():
             week.promotions[promotion.id] = unpack_json(

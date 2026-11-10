@@ -177,14 +177,28 @@ def test_each_product_is_an_offer_cheapest_per_litre_first() -> None:
     assert (first.chain, first.mechanic) == ("AH", "25% KORTING")
 
 
-def test_without_a_size_the_price_per_litre_still_gives_the_volume() -> None:
-    # Jumbo sometimes names a product "xx", but tells its price per litre.
-    mystery = product("xx", "6.51", normal_price_per_litre="3.62")
+def test_without_a_size_or_packaging_word_a_product_isnt_listed() -> None:
+    # Jumbo sometimes names a product "xx": its volume is known, its packaging not.
+    mystery = product("xx", "6.51", litres="1.8")
     offers = beer_offers(
         [beer_deal(mystery, product_name="Leffe of Kasteelbier")], TODAY
     )
-    # Volume known (1.8 l), packaging not: so it isn't listed in a tab.
     assert offers == []
+
+
+def test_the_chains_own_volume_beats_a_wrong_title() -> None:
+    # Jumbo's price data says 1.32 l; the title says 330 ml.
+    corona = product("Corona Cero 0.0% Bier Fles 330 ml", "6.65", litres="1.321")
+    (offer,) = beer_offers([beer_deal(corona, product_name="Pils van Corona")], TODAY)
+    assert offer.pack.litres == Decimal("1.321")
+    assert offer.packaging is Packaging.BOTTLE  # the title still says "Fles"
+    assert offer.price_per_litre == Decimal("3.78")  # 4.99 / 1.321
+
+
+def test_a_matching_volume_keeps_the_written_pack() -> None:
+    six = product("Alfa Edel Pils Blikken 6 x 33 cl", "6.39", litres="1.979")
+    (offer,) = beer_offers([beer_deal(six, product_name="Pils van Alfa")], TODAY)
+    assert (offer.pack.units, offer.pack.litres) == (6, Decimal("1.98"))
 
 
 def test_only_beer_deals_active_today() -> None:

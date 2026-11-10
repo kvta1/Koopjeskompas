@@ -11,7 +11,7 @@ from koopjeskompas.ingestion.jumbo.parser import (
     ParseResult,
     in_store_food_promotions,
     parse_week,
-    promotions_needing_prices,
+    promotions_to_look_up,
 )
 from koopjeskompas.ingestion.jumbo.payloads import JumboWeek
 from koopjeskompas.ingestion.nuxt import page_data
@@ -66,7 +66,7 @@ def test_the_deal_and_its_dates(week: JumboWeek) -> None:
 
 
 def test_only_promotions_that_need_a_price_are_looked_up() -> None:
-    titles = [p.title for p in promotions_needing_prices(overview_data())]
+    titles = [p.title for p in promotions_to_look_up(overview_data())]
     # Not "25% korting" (in the words), "2,49 per kilo" (not understood yet), nor
     # the online-only and non-food ones.
     assert titles == ["Campina Vla", "Mango"]

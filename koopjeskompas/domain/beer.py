@@ -209,10 +209,7 @@ def _offer(deal: Deal, product: RangeProduct) -> BeerOffer | None:
         return None
     size_text = product.unit_size or ""
     text = f"{size_text} {product.name}"  # the size first: see parse_pack
-    pack = parse_pack(text)
-    if pack is None and product.normal_price_per_litre is not None:
-        # No size written anywhere (Jumbo's "xx"): the price per litre still says it.
-        pack = Pack(litres=product.normal_price / product.normal_price_per_litre)
+    pack = _volume(parse_pack(text), product.litres)
     if pack is None or pack.litres <= 0:
         return None
     kind = packaging(text, pack)
@@ -236,6 +233,19 @@ def _offer(deal: Deal, product: RangeProduct) -> BeerOffer | None:
         valid_from=deal.valid_from,
         valid_to=deal.valid_to,
     )
+
+
+def _volume(written: Pack | None, litres: Decimal | None) -> Pack | None:
+    """The written pack, unless the chain's own volume says otherwise.
+
+    The volume from the chain's price data wins when the two differ by more than 5%
+    (a "330 ml" title on a 4-pack), and fills in when nothing is written ("xx").
+    """
+    if litres is None:
+        return written
+    if written is not None and abs(written.litres - litres) <= litres / 20:
+        return written
+    return Pack(litres=litres)
 
 
 def _size_in(name: str) -> str:

@@ -11,6 +11,8 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, ValidationError
 from pydantic.alias_generators import to_camel
 
+from koopjeskompas.domain.beer import is_beer
+
 
 class _AhModel(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, extra="ignore", frozen=True)
@@ -135,8 +137,10 @@ class Section(_AhModel):
     bonus_group_or_products: list[Any]
 
 
-def ranges_needing_prices(sections: list[Any]) -> list[int]:
-    """Segment ids of the ranges to look up product by product, each listed once.
+def ranges_to_look_up(sections: list[Any]) -> list[int]:
+    """Segment ids of the ranges to look up product by product, each listed once:
+    those whose discount depends on a price, and beer ranges, whose products the beer
+    section compares by size and price per litre (PLAN.md §9.5).
 
     Items that don't validate are passed over here; the parser reports them.
     """
@@ -152,8 +156,9 @@ def ranges_needing_prices(sections: list[Any]) -> list[int]:
             if (
                 group is not None
                 and group.promotion_type in (None, "NATIONAL")
-                and group.needs_product_prices
                 and group.segment_id is not None
+                and not group.products
+                and (group.needs_product_prices or is_beer(group.segment_description))
             ):
                 ids[group.segment_id] = None
     return list(ids)
