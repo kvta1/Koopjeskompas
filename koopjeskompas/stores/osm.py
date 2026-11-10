@@ -15,13 +15,16 @@ never replace the list with an empty one.
 
 Overpass gives each IP address a few query slots (usually 2); further queries wait
 in a queue. Three rules keep us from clogging our own slots, learned the hard way
-on 2026-11-10, when five abandoned queries kept them busy for an hour:
+on 2026-11-10, when five store fetches in a row timed out:
 
 - one light query: every supermarket in the country, the chain worked out here;
 - the client waits longer than the query may run, so it never abandons a query
   that is still taking up a slot on the server;
 - the status page first: no free slot means stop, not queue. And one attempt per
   run, no automatic retries.
+
+(The status page also showed what slowed things down that day: not our slots, which
+were free, but a delay of about half a minute before every answer.)
 
 Like AH's payloads, OSM's shapes stop at this module's border: the rest of the code
 only sees ``Store``.
@@ -42,10 +45,12 @@ from koopjeskompas.domain.models import Coordinates, Store
 
 DEFAULT_SERVER = "https://overpass-api.de/api/interpreter"
 # How long Overpass may run the query, and how long we wait for it: longer, so we
-# never walk away from a query that still holds one of our slots.
+# never walk away from a query that still holds one of our slots. Both waits also
+# allow for a delay before any answer starts: on 2026-11-10, every call from one
+# home connection took 25 to 30 s even with both slots free.
 QUERY_TIMEOUT_S = 180
-CLIENT_TIMEOUT_S = 240
-STATUS_TIMEOUT_S = 20
+CLIENT_TIMEOUT_S = 300
+STATUS_TIMEOUT_S = 60
 # Identify ourselves, as Overpass asks; a link, not anyone's email address.
 HEADERS = {"User-Agent": "koopjeskompas/0.1 (+https://github.com/kvta1/Koopjeskompas)"}
 # A store mapped twice (as a point and as its building) shows up twice, close together.
