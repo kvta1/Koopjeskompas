@@ -12,8 +12,12 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from koopjeskompas import cli
 from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.cli import main
+from koopjeskompas.domain.models import Deal
+from koopjeskompas.ingestion.cache import deals_path, load_deals
+from koopjeskompas.ingestion.source import SourceError, SourceResult
 from koopjeskompas.ingestion.ah.client import (
     BASE_URL,
     GRAPHQL_PATH,
@@ -84,7 +88,7 @@ def test_fetch_then_rank(
 ) -> None:
     base = ["--data-dir", str(tmp_path), "--today", TODAY]
 
-    assert main([*base, "fetch-deals"]) == 0
+    assert main([*base, "fetch-deals", "--chain", "ah"]) == 0
     out = capsys.readouterr().out
     assert "23 deals saved" in out
     assert "Range deals priced per product: 1 (2 products)" in out
@@ -106,7 +110,15 @@ def test_fetch_then_rank(
 def test_fetch_deals_from_raw_reuses_saved_responses(
     ah_api: respx.MockRouter, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    base = ["--data-dir", str(tmp_path), "--today", TODAY, "fetch-deals"]
+    base = [
+        "--data-dir",
+        str(tmp_path),
+        "--today",
+        TODAY,
+        "fetch-deals",
+        "--chain",
+        "ah",
+    ]
     assert main(base) == 0
     calls = len(ah_api.calls)
     (tmp_path / "deals" / "ah.json").unlink()
@@ -123,7 +135,20 @@ def test_fetch_deals_reports_failed_range_lookups(
     ah_api: respx.MockRouter, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     ah_api.post(GRAPHQL_PATH).respond(500)
-    assert main(["--data-dir", str(tmp_path), "--today", TODAY, "fetch-deals"]) == 0
+    assert (
+        main(
+            [
+                "--data-dir",
+                str(tmp_path),
+                "--today",
+                TODAY,
+                "fetch-deals",
+                "--chain",
+                "ah",
+            ]
+        )
+        == 0
+    )
     out = capsys.readouterr().out
     assert "23 deals saved" in out
     assert "Range lookups that failed or are missing: 6" in out
@@ -133,9 +158,64 @@ def test_fetch_deals_reports_api_failure(
     ah_api: respx.MockRouter, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
     ah_api.post(TOKEN_PATH).respond(503)
-    assert main(["--data-dir", str(tmp_path), "--today", TODAY, "fetch-deals"]) == 1
+    assert (
+        main(
+            [
+                "--data-dir",
+                str(tmp_path),
+                "--today",
+                TODAY,
+                "fetch-deals",
+                "--chain",
+                "ah",
+            ]
+        )
+        == 1
+    )
     assert "HTTP 503" in capsys.readouterr().err
     assert not (tmp_path / "deals").exists()
+
+
+class WorkingSource:
+    chain = "Good"
+
+    def fetch(self, raw_dir: Path, day: date) -> SourceResult:
+        deal = Deal(
+            chain=self.chain,
+            product_name="Hummus",
+            mechanic_string="25% korting",
+            valid_from=day,
+            valid_to=day,
+        )
+        return SourceResult(title="Good deals", deals=[deal], notes=["all fine"])
+
+    reparse = fetch
+
+
+class BrokenSource:
+    chain = "Broken"
+
+    def fetch(self, raw_dir: Path, day: date) -> SourceResult:
+        raise SourceError("blocked")
+
+    reparse = fetch
+
+
+def test_one_failing_chain_does_not_cost_the_others(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setattr(cli, "SOURCES", {"broken": BrokenSource, "good": WorkingSource})
+
+    # Nonzero, so a script notices the failure...
+    assert main(["--data-dir", str(tmp_path), "--today", TODAY, "fetch-deals"]) == 1
+
+    # ...but the chain that worked is saved and reported.
+    (deal,) = load_deals(deals_path(tmp_path, "Good"))
+    assert deal.product_name == "Hummus"
+    captured = capsys.readouterr()
+    assert "Fetching Broken deals failed: blocked" in captured.err
+    assert "Good deals: 1 deals saved" in captured.out
+    assert "all fine" in captured.out
 
 
 def test_rank_without_cached_deals(

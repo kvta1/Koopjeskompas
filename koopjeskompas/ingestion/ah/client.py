@@ -22,6 +22,7 @@ from typing import Any
 import httpx
 from pydantic import ValidationError
 
+from koopjeskompas.ingestion.source import SourceError
 from koopjeskompas.ingestion.ah.payloads import (
     BonusMetadata,
     BonusPeriod,
@@ -76,7 +77,7 @@ query RangeProducts($id: String, $periodStart: String, $periodEnd: String) {
 """
 
 
-class AhApiError(RuntimeError):
+class AhApiError(SourceError):
     """The AH API could not be reached or answered with something unusable."""
 
 
