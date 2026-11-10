@@ -453,6 +453,39 @@ was added for the countryside.
 ✅ Milestone: an AH and a Jumbo next to each other rank differently for "vegetarian, Middle
 Eastern" than for "no preference".
 
+**Status (2026-11-10): on hold; the live check hit the stop condition.** Built so far: the
+`DealSource` interface (`ingestion/source.py`) with AH as its first implementation, which any
+second chain needs. What the live check found, in about ten requests:
+
+- **The old mobile API is gone.** `mobileapi.jumbo.com/v17/...` answers 404, as others report
+  ([KianMeijers/Pickled#2](https://github.com/KianMeijers/Pickled/issues/2)). The website's GraphQL
+  API (`www.jumbo.com/api/graphql`, used by
+  [jumbo-cli](https://pkg.go.dev/github.com/DanielOostdam-Create/jumbo-cli)) only offers personal
+  promotions behind a login: not an option.
+- **The deals page has everything, technically.** `jumbo.com/aanbiedingen/nu` embeds all deals
+  of this week and next (Wednesday to Tuesday) as Nuxt page data (`__NUXT_DATA__`, devalue
+  format): 215 deals with title, category, ISO dates and deal text. 65 food deals need no price
+  ("1+1 gratis", "25% korting"); 107 do ("2 voor 3,49", "voor 1,49"), and each deal's own page
+  lists its products with normal prices in cents, the same shape as AH's range deals. Our
+  `parse_deal_mechanic` already reads every Jumbo deal text except per-weight ("2,49 per kilo")
+  and gift deals. Online-only deals carry an inverse tag such as "Alleen online".
+- **But Akamai Bot Manager guards the site.** A request with a browser User-Agent gets through;
+  the same request identifying itself honestly (`koopjeskompas/0.1 (+github link)`) gets no
+  answer at all (connection reset, then a 30-second timeout).
+- **And Jumbo's terms of use forbid scraping**, with no exception for personal use (per the
+  issue above), while the demo is a public site showing the deals.
+
+Fetching would therefore mean disguising the scraper as a browser to get past protection that
+exists to keep it out. That is the "scraping around it" this step ruled out, and it would be
+unreliable besides. Options to weigh before continuing:
+
+1. **Leave Jumbo out** and move on to step 4; a second chain can return through a legitimate
+   route (an official feed, or permission).
+2. **A manual weekly snapshot:** save the deals page in an ordinary browser and parse the saved
+   file (`fetch-deals --chain jumbo --from-file`). No automated access; the ~65 price-independent
+   deals score. The question of showing Jumbo's deals on a public demo remains.
+3. **Another chain** (Dirk, Plus, Lidl, Aldi): the same short live check first.
+
 #### Step 4 — Continuous deployment, run inside AWS
 
 GitHub Actions can't deploy here: it would log in through OIDC, which this project's managed

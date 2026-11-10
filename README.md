@@ -341,7 +341,8 @@ Next, in this order ([PLAN.md §9.4](PLAN.md)):
 1. ✅ **Infrastructure as code:** the AWS setup as a CDK stack, deployed with one command.
 2. ✅ **Your own location, anywhere in the Netherlands:** every AH in the country from OpenStreetMap,
    and a place and postcode search in the page with PDOK's free Locatieserver.
-3. **Second chain:** Jumbo behind a common `DealSource` interface, so rankings differ by more than
+3. **Second chain** (on hold: Jumbo's site blocks honest automated access; see PLAN.md §9.4):
+   Jumbo behind a common `DealSource` interface, so rankings differ by more than
    distance.
 4. **Continuous deployment** with AWS CodePipeline, since this AWS project can't use GitHub
    Actions' OIDC login.

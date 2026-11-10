@@ -23,7 +23,10 @@ product and per-weight deals are scored. Step 3 added the web API (`koopjeskompa
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
 themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/`,
 `scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
-search with PDOK in the page) are done; next is Jumbo, then continuous deployment run inside AWS.
+search with PDOK in the page) are done. Step 3 (Jumbo) is on hold: the `DealSource` interface
+(`ingestion/source.py`, `ingestion/ah/source.py`) is built, but Jumbo's site is behind Akamai and
+blocks honestly identified requests; the findings and options are in PLAN.md §9.4. Never disguise a
+scraper as a browser to get past bot protection. Step 4 is continuous deployment inside AWS.
 
 ## Commands
 
@@ -90,7 +93,8 @@ The intended design is a modular monolith with a strict separation between the d
   For now (MVP) there is one source, AH, as plain modules in `ingestion/ah/`: `client.py` (HTTP,
   saves raw responses; REST for the bonus sections, GraphQL `bonusPromotions` for range products),
   `payloads.py` (Pydantic models of AH's JSON) and `parser.py` (pure, payload → `Deal`); the
-  `DealSource` interface waits until a second chain exists. A range deal is a `Deal` with
+  `DealSource` interface (`ingestion/source.py`) now exists, with `AhSource` as its first
+  implementation; `fetch-deals` runs each source on its own (`--chain` picks one). A range deal is a `Deal` with
   `products`; scoring values it at the median of its products that pass the diet filters. Deals go to a
   JSON cache (`ingestion/cache.py`) instead of a DB.
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
