@@ -1,0 +1,748 @@
+{
+ "data": {
+  "nuTab": {
+   "activeTab": {
+    "id": "actieprijs",
+    "shortTitle": "Aanbiedingen",
+    "__typename": "PromotionTab",
+    "runtimes": [
+     {
+      "start": {
+       "iso": "2026-11-04T00:00:00+01:00",
+       "__typename": "PromotionDateTime"
+      },
+      "active": true,
+      "announceText": null,
+      "empty": false,
+      "id": "actieprijs_20261104-20261110",
+      "shortTitle": "Nu geldig",
+      "title": "Nu in de aanbieding",
+      "subtitle": "Tot en met dinsdag 10 nov",
+      "subtitleHighlightSection": null,
+      "__typename": "PromotionRuntime",
+      "sections": [
+       {
+        "id": "Nu in de aanbieding_20261104-20261110",
+        "title": "Nu in de aanbieding",
+        "__typename": "PromotionSection",
+        "promotions": [
+         {
+          "active": true,
+          "hidden": false,
+          "id": "3021914",
+          "uuid": "Gn8KY7Xqp7IAAAGgtsaY_onn",
+          "title": "Alle Nalys",
+          "subtitle": null,
+          "disclaimer": null,
+          "group": "Week",
+          "end": {
+           "iso": "2026-11-10T23:59:59+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "start": {
+           "iso": "2026-11-04T00:01:00+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "isKiesAndMix": false,
+          "isSponsored": false,
+          "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_30.png",
+          "url": "/aanbiedingen/alle-nalys/3021914",
+          "offlineText": null,
+          "attachments": [],
+          "tags": [
+           {
+            "text": "1+1 gratis",
+            "inverse": false,
+            "__typename": "PromotionTag"
+           }
+          ],
+          "durationTexts": {
+           "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+           "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+           "shortTitle": "wo 4 t/m di 10 nov",
+           "title": "Geldig van wo 4 t/m di 10 nov",
+           "__typename": "PromotionDurationTexts"
+          },
+          "volumeDiscounts": [],
+          "dataProcessingRestricted": false,
+          "__typename": "Promotion"
+         },
+         {
+          "active": true,
+          "hidden": false,
+          "id": "3021867",
+          "uuid": "R.QKY7XqRTkAAAGg4f6Y_one",
+          "title": "Alle Apetina, Castello of Garlan",
+          "subtitle": null,
+          "disclaimer": null,
+          "group": "Week",
+          "end": {
+           "iso": "2026-11-10T23:59:59+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "start": {
+           "iso": "2026-11-04T00:01:00+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "isKiesAndMix": false,
+          "isSponsored": false,
+          "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_18.png",
+          "url": "/aanbiedingen/alle-apetina-castello-of-garlan/3021867",
+          "offlineText": null,
+          "attachments": [],
+          "tags": [
+           {
+            "text": "25% korting",
+            "inverse": false,
+            "__typename": "PromotionTag"
+           }
+          ],
+          "durationTexts": {
+           "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+           "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+           "shortTitle": "wo 4 t/m di 10 nov",
+           "title": "Geldig van wo 4 t/m di 10 nov",
+           "__typename": "PromotionDurationTexts"
+          },
+          "volumeDiscounts": [],
+          "dataProcessingRestricted": false,
+          "__typename": "Promotion"
+         },
+         {
+          "active": true,
+          "hidden": false,
+          "id": "3021834",
+          "uuid": "DhgKY7XqmOMAAAGgqMGY_onR",
+          "title": "Campina Vla",
+          "subtitle": "Alle pakken à 1 liter",
+          "disclaimer": null,
+          "group": "Week",
+          "end": {
+           "iso": "2026-11-10T23:59:59+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "start": {
+           "iso": "2026-11-04T00:01:00+01:00",
+           "__typename": "PromotionDateTime"
+          },
+          "isKiesAndMix": false,
+          "isSponsored": false,
+          "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_54.png",
+          "url": "/aanbiedingen/campina-vla/3021834",
+          "offlineText": null,
+          "attachments": [],
+          "tags": [
+           {
+            "text": "2 voor 3,49",
+            "inverse": false,
+            "__typename": "PromotionTag"
+           }
+          ],
+          "durationTexts": {
+           "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+           "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+           "shortTitle": "wo 4 t/m di 10 nov",
+           "title": "Geldig van wo 4 t/m di 10 nov",
+           "__typename": "PromotionDurationTexts"
+          },
+          "volumeDiscounts": [],
+          "dataProcessingRestricted": false,
+          "__typename": "Promotion"
+         }
+        ]
+       },
+       {
+        "id": "Per gangpad_20261104-20261110",
+        "title": "Per gangpad",
+        "__typename": "PromotionSection",
+        "categories": [
+         {
+          "id": "Aardappelen, groente en fruit_20261104-20261110",
+          "title": "Aardappelen, groente en fruit",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3023582",
+            "uuid": "1SYKY7OX1HIAAAGhH4_4HVsn",
+            "title": "Mango",
+            "subtitle": "Los",
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-10T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_02.png",
+            "url": "/aanbiedingen/mango/3023582",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "voor 1,49",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 10 nov",
+             "title": "Geldig van wo 4 t/m di 10 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Zuivel, boter en eieren_20261104-20261110",
+          "title": "Zuivel, boter en eieren",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3021834",
+            "uuid": "DhgKY7XqmOMAAAGgqMGY_onR",
+            "title": "Campina Vla",
+            "subtitle": "Alle pakken à 1 liter",
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-10T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_54.png",
+            "url": "/aanbiedingen/campina-vla/3021834",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "2 voor 3,49",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 10 nov",
+             "title": "Geldig van wo 4 t/m di 10 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": true
+           },
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3023866",
+            "uuid": "VhwKY7OXtlsAAAGhlwHufntm",
+            "title": "Campina, Optimel en Vifit",
+            "subtitle": "Diverse soorten",
+            "disclaimer": null,
+            "group": "Seizoen",
+            "end": {
+             "iso": "2026-12-01T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Omdozen/Omdoos_Campina.png",
+            "url": "/aanbiedingen/campina-optimel-en-vifit/3023866",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "10% korting",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             },
+             {
+              "text": "Alleen online",
+              "inverse": true,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 nov t/m di 1 dec.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 nov t/m di 1 dec | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 nov t/m di 1 dec",
+             "title": "Geldig van wo 4 nov t/m di 1 dec",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Vleeswaren, kaas en tapas_20261104-20261110",
+          "title": "Vleeswaren, kaas en tapas",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3021867",
+            "uuid": "R.QKY7XqRTkAAAGg4f6Y_one",
+            "title": "Alle Apetina, Castello of Garlan",
+            "subtitle": null,
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-10T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_18.png",
+            "url": "/aanbiedingen/alle-apetina-castello-of-garlan/3021867",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "25% korting",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 10 nov",
+             "title": "Geldig van wo 4 t/m di 10 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": true
+           }
+          ]
+         },
+         {
+          "id": "Koek, snoep, chocolade en chips_20261104-20261110",
+          "title": "Koek, snoep, chocolade en chips",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3024112",
+            "uuid": "gqsKY7OH5RIAAAGhii4xN592",
+            "title": "Ontvang één beanie bij twee 3-packs Fisherman's Friend",
+            "subtitle": "Maximaal 1 beanie per bestelling",
+            "disclaimer": null,
+            "group": "Seizoen",
+            "end": {
+             "iso": "2026-12-01T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Premiaten/Jumbo%20premiaten_2.png",
+            "url": "/aanbiedingen/ontvang-een-beanie-bij-twee-3-packs-fishermans-friend/3024112",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "Gratis beanie bij 2 stuks",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             },
+             {
+              "text": "Alleen online - OP=OP",
+              "inverse": true,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 nov t/m di 1 dec.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 nov t/m di 1 dec | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 nov t/m di 1 dec",
+             "title": "Geldig van wo 4 nov t/m di 1 dec",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Drogisterij en gezondheid_20261104-20261110",
+          "title": "Drogisterij en gezondheid",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3021815",
+            "uuid": "kpcKY7XqD4sAAAGgIHOY_onD",
+            "title": "Dove, Axe, Rexona of Vaseline",
+            "subtitle": "M.u.v. Giftsets en Vaseline lippenbalsem",
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-17T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_59.png",
+            "url": "/aanbiedingen/dove-axe-rexona-of-vaseline/3021815",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "1+1 gratis",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 17 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 17 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 17 nov",
+             "title": "Geldig van wo 4 t/m di 17 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Huishouden en dieren_20261104-20261110",
+          "title": "Huishouden en dieren",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3021914",
+            "uuid": "Gn8KY7Xqp7IAAAGgtsaY_onn",
+            "title": "Alle Nalys",
+            "subtitle": null,
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-10T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_30.png",
+            "url": "/aanbiedingen/alle-nalys/3021914",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "1+1 gratis",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 10 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 10 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 10 nov",
+             "title": "Geldig van wo 4 t/m di 10 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": true
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "start": {
+       "iso": "2026-11-11T00:00:00+01:00",
+       "__typename": "PromotionDateTime"
+      },
+      "active": true,
+      "announceText": null,
+      "empty": false,
+      "id": "actieprijs_20261111-20261117",
+      "shortTitle": "Vanaf woensdag",
+      "title": "Woensdag in de aanbieding",
+      "subtitle": "Woensdag 11 t/m dinsdag 17 nov",
+      "subtitleHighlightSection": null,
+      "__typename": "PromotionRuntime",
+      "sections": [
+       {
+        "id": "Per gangpad_20261111-20261117",
+        "title": "Per gangpad",
+        "__typename": "PromotionSection",
+        "categories": [
+         {
+          "id": "Zuivel, boter en eieren_20261111-20261117",
+          "title": "Zuivel, boter en eieren",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3023866",
+            "uuid": "VhwKY7OXtlsAAAGhlwHufntm",
+            "title": "Campina, Optimel en Vifit",
+            "subtitle": "Diverse soorten",
+            "disclaimer": null,
+            "group": "Seizoen",
+            "end": {
+             "iso": "2026-12-01T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Omdozen/Omdoos_Campina.png",
+            "url": "/aanbiedingen/campina-optimel-en-vifit/3023866",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "10% korting",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             },
+             {
+              "text": "Alleen online",
+              "inverse": true,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 nov t/m di 1 dec.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 nov t/m di 1 dec | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 nov t/m di 1 dec",
+             "title": "Geldig van wo 4 nov t/m di 1 dec",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Koek, snoep, chocolade en chips_20261111-20261117",
+          "title": "Koek, snoep, chocolade en chips",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3024112",
+            "uuid": "gqsKY7OH5RIAAAGhii4xN592",
+            "title": "Ontvang één beanie bij twee 3-packs Fisherman's Friend",
+            "subtitle": "Maximaal 1 beanie per bestelling",
+            "disclaimer": null,
+            "group": "Seizoen",
+            "end": {
+             "iso": "2026-12-01T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Premiaten/Jumbo%20premiaten_2.png",
+            "url": "/aanbiedingen/ontvang-een-beanie-bij-twee-3-packs-fishermans-friend/3024112",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "Gratis beanie bij 2 stuks",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             },
+             {
+              "text": "Alleen online - OP=OP",
+              "inverse": true,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 nov t/m di 1 dec.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 nov t/m di 1 dec | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 nov t/m di 1 dec",
+             "title": "Geldig van wo 4 nov t/m di 1 dec",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Drogisterij en gezondheid_20261111-20261117",
+          "title": "Drogisterij en gezondheid",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3021815",
+            "uuid": "kpcKY7XqD4sAAAGgIHOY_onD",
+            "title": "Dove, Axe, Rexona of Vaseline",
+            "subtitle": "M.u.v. Giftsets en Vaseline lippenbalsem",
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-17T23:59:59+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-04T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2045/Weekaanbiedingen-Week-45_59.png",
+            "url": "/aanbiedingen/dove-axe-rexona-of-vaseline/3021815",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "1+1 gratis",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 4 t/m di 17 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 4 t/m di 17 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 4 t/m di 17 nov",
+             "title": "Geldig van wo 4 t/m di 17 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         },
+         {
+          "id": "Overig_20261111-20261117",
+          "title": "Overig",
+          "__typename": "PromotionCategoryType",
+          "promotions": [
+           {
+            "active": true,
+            "hidden": false,
+            "id": "3023790",
+            "uuid": "h78KY7WQYVAAAAGhV8g0AX1F",
+            "title": "Alle Kanzi appels",
+            "subtitle": "los",
+            "disclaimer": null,
+            "group": "Week",
+            "end": {
+             "iso": "2026-11-17T23:59:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "start": {
+             "iso": "2026-11-11T00:01:00+01:00",
+             "__typename": "PromotionDateTime"
+            },
+            "isKiesAndMix": false,
+            "isSponsored": false,
+            "image": "https://www.jumbo.com/INTERSHOP/static/WFS/Jumbo-Grocery-Site/-/Jumbo-Grocery/nl_NL/Images_Aanbiedingen/2026/Weekaanbiedingen/Week%2046/Weekaanbiedingen-Week-46_06.png",
+            "url": "/aanbiedingen/alle-kanzi-appels/3023790",
+            "offlineText": null,
+            "attachments": [],
+            "tags": [
+             {
+              "text": "2,49 per kilo",
+              "inverse": false,
+              "__typename": "PromotionTag"
+             },
+             {
+              "text": "Alleen in de winkel",
+              "inverse": true,
+              "__typename": "PromotionTag"
+             }
+            ],
+            "durationTexts": {
+             "description": "Bij boodschappen bestellen geldt de aanbieding voor bezorg- en ophaalmomenten op wo 11 t/m di 17 nov.",
+             "metaDescription": "Deze aanbieding loopt van wo 11 t/m di 17 nov | Pak je voordeel met de week- en seizoensaanbiedingen van Jumbo | Snel en makkelijk online te bestellen",
+             "shortTitle": "wo 11 t/m di 17 nov",
+             "title": "Geldig van wo 11 t/m di 17 nov",
+             "__typename": "PromotionDurationTexts"
+            },
+            "volumeDiscounts": [],
+            "dataProcessingRestricted": false,
+            "__typename": "Promotion",
+            "isHeavy": false
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

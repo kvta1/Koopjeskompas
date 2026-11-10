@@ -24,7 +24,10 @@ from koopjeskompas.ingestion.ah.client import (
     METADATA_PATH,
     TOKEN_PATH,
 )
+from koopjeskompas.ingestion.jumbo.client import BASE_URL as JUMBO_URL
+from koopjeskompas.ingestion.jumbo.client import OVERVIEW_PATH
 from tests.ah_fixtures import load_ah_fixture
+from tests.jumbo_fixtures import overview_data, page_with, vla_page
 
 TODAY = "2026-10-15"  # inside the fixture's bonus week
 
@@ -174,6 +177,41 @@ def test_fetch_deals_reports_api_failure(
     )
     assert "HTTP 503" in capsys.readouterr().err
     assert not (tmp_path / "deals").exists()
+
+
+@pytest.fixture
+def jumbo_site(monkeypatch: pytest.MonkeyPatch) -> Iterator[respx.MockRouter]:
+    """Jumbo's overview and the Campina Vla page as captured; other pages 404."""
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    with respx.mock(base_url=JUMBO_URL, assert_all_called=False) as router:
+        router.get(OVERVIEW_PATH).respond(text=page_with(overview_data()))
+        router.get("/aanbiedingen/campina-vla/3021834").respond(text=vla_page())
+        router.get(path__startswith="/aanbiedingen/").respond(404)
+        yield router
+
+
+def test_fetch_jumbo_deals(
+    jumbo_site: respx.MockRouter, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    base = ["--data-dir", str(tmp_path), "--today", "2026-11-10", "fetch-deals"]
+
+    assert main([*base, "--chain", "jumbo"]) == 0
+
+    out = capsys.readouterr().out
+    assert "Jumbo deals 2026-11-04 to 2026-11-17: 4 deals saved" in out
+    assert "Promotions priced per product: 1 (15 products)" in out
+    assert "Promotion pages that failed or are missing: 1" in out  # the mango
+    assert "Left out: 2 not food, 2 online only" in out
+    deals = load_deals(deals_path(tmp_path, "Jumbo"))
+    assert {d.chain for d in deals} == {"Jumbo"}
+    raw = tmp_path / "raw" / "jumbo" / "2026-11-10"
+    assert (raw / "overview.json").exists()
+
+    # Re-parsing the saved pages asks Jumbo nothing.
+    calls = len(jumbo_site.calls)
+    assert main([*base, "--chain", "jumbo", "--from-raw"]) == 0
+    assert len(jumbo_site.calls) == calls
+    assert "4 deals saved" in capsys.readouterr().out
 
 
 class WorkingSource:
