@@ -226,6 +226,40 @@ def test_a_new_fetch_is_picked_up_without_a_restart(
     assert deal_names(store) == ["AH Tahin"]
 
 
+@pytest.mark.parametrize(
+    ("preferences", "winner"),
+    [
+        ({}, "Jumbo"),  # the biggest discount: 1+1 gratis
+        ({"diet": "vegetarian", "cuisines": ["middle_eastern"]}, "AH"),  # hummus
+        ({"diet": "vegetarian", "cuisines": ["italian"]}, "Lidl"),  # pizza
+    ],
+)
+def test_three_chains_side_by_side_rank_by_what_you_like(
+    tmp_path: Path, preferences: dict[str, Any], winner: str
+) -> None:
+    """The milestone of PLAN.md §9.4 step 3: with stores of three chains in one
+    place, the deals decide which comes first, and they depend on preferences."""
+    for chain, name, mechanic in [
+        ("AH", "AH Hummus naturel", "25% korting"),
+        ("Jumbo", "Jumbo Kipfilet", "1+1 gratis"),
+        ("Lidl", "Lidl Pizza margherita", "2e halve prijs"),
+    ]:
+        save_deals(
+            deals_path(tmp_path, chain), [make_deal(name, mechanic, chain=chain)]
+        )
+    here = Coordinates(latitude=52.1664, longitude=4.4817)
+    app = create_app(data_dir=tmp_path)
+    app.dependency_overrides[get_today] = lambda: TODAY
+    app.dependency_overrides[get_stores] = lambda: [
+        Store(chain=chain, name=f"{chain} Stationsplein", location=here)
+        for chain in ["AH", "Jumbo", "Lidl"]
+    ]
+
+    result = rank(TestClient(app), **preferences)
+
+    assert result["stores"][0]["store"]["chain"] == winner
+
+
 def test_openapi_documents_the_endpoints(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
     assert {"/api/health", "/api/rank"} <= set(schema["paths"])
