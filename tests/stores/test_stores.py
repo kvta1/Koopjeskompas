@@ -23,9 +23,10 @@ def test_packaged_stores_cover_the_netherlands() -> None:
     for store in stores:
         assert NL_LAT[0] <= store.location.latitude <= NL_LAT[1], store.name
         assert NL_LON[0] <= store.location.longitude <= NL_LON[1], store.name
-        assert store.name.startswith(f"{store.chain} ")
-    # Names repeat across towns ("AH Dorpsstraat"); name and address together don't.
-    keys = [(s.name, s.address) for s in stores]
+        assert store.name == store.chain or store.name.startswith(f"{store.chain} ")
+    # Names repeat across towns ("AH Dorpsstraat"), and stores without an address
+    # are just "Jumbo"; with their location, every store is distinct.
+    keys = [(s.name, s.address, s.location) for s in stores]
     assert len(set(keys)) == len(keys)
 
 

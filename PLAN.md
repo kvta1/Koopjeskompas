@@ -517,6 +517,25 @@ browser identity it needs.
 - **Later, not in this PR:** per-weight deals in Jumbo's format ("2,49 per kilo", via the
   product's `pricePerUnit`).
 
+Built (2026-11-11): `ingestion/jumbo/` and `JumboSource`, and `PoliteClient.get_text(keep=...)`
+so only page data is saved. The first live run went through Akamai with the browser identity: 165
+deals (4 to 17 November), 96 priced per product (1,117 products), 29 non-food and 20 online-only
+left out, about 100 requests and 3.8 MB of raw data. 8 stay unscored: 5 per-weight ("2,49 per
+kilo"), a gift, and two spirits promotions whose pages list no products. Lessons: `DELISTED` means
+"uit het online assortiment" (all spirits), not "no longer sold", so availability is ignored;
+discounts came out between 10% and 58% (median 25%). With one AH and one Jumbo in Leiden, Jumbo
+wins for "no preference" and "vegetarian, Middle Eastern", AH for "vegan, Italian".
+
+The stores came after a lesson in asking Overpass gently. Five fetches in a row had timed out:
+our client gave up after 180 s while each query ran on, and every Overpass call from this
+connection took 25 to 30 s before answering, even with both query slots free. `fetch-stores`
+now sends one light query (every supermarket in the country; the chain is worked out locally),
+checks `/api/status` for a free slot first, waits longer than the query may run, and makes one
+attempt. It wrote 2,138 stores: AH 1,019, Jumbo 681, Lidl 438. Two more mistakes surfaced in
+that data: Jumbo's Wikidata ID in the registry was wrong (found only by brand name; now
+`Q2262314`), and stores without an address were dropped, including the Jumbo by Leiden
+Centraal; they are now kept under the chain's name.
+
 ##### 3c — Lidl (one PR)
 
 - **Live check first:** the deals page (`lidl.nl/c/aanbiedingen/…`), whether it needs a browser

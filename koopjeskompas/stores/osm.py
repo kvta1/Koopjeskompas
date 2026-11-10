@@ -13,12 +13,26 @@ next to partial or no data. A server without area data (some mirrors) finds noth
 in "the Netherlands" at all. So a run that finds no stores is an error: it must
 never replace the list with an empty one.
 
+Overpass gives each IP address a few query slots (usually 2); further queries wait
+in a queue. Three rules keep us from clogging our own slots, learned the hard way
+on 2026-11-10, when five store fetches in a row timed out:
+
+- one light query: every supermarket in the country, the chain worked out here;
+- the client waits longer than the query may run, so it never abandons a query
+  that is still taking up a slot on the server;
+- the status page first: no free slot means stop, not queue. And one attempt per
+  run, no automatic retries.
+
+(The status page also showed what slowed things down that day: not our slots, which
+were free, but a delay of about half a minute before every answer.)
+
 Like AH's payloads, OSM's shapes stop at this module's border: the rest of the code
 only sees ``Store``.
 """
 
 import re
-from collections.abc import Iterable, Sequence
+from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -30,6 +44,13 @@ from koopjeskompas.domain.distance import haversine_km
 from koopjeskompas.domain.models import Coordinates, Store
 
 DEFAULT_SERVER = "https://overpass-api.de/api/interpreter"
+# How long Overpass may run the query, and how long we wait for it: longer, so we
+# never walk away from a query that still holds one of our slots. Both waits also
+# allow for a delay before any answer starts: on 2026-11-10, every call from one
+# home connection took 25 to 30 s even with both slots free.
+QUERY_TIMEOUT_S = 180
+CLIENT_TIMEOUT_S = 300
+STATUS_TIMEOUT_S = 60
 # Identify ourselves, as Overpass asks; a link, not anyone's email address.
 HEADERS = {"User-Agent": "koopjeskompas/0.1 (+https://github.com/kvta1/Koopjeskompas)"}
 # A store mapped twice (as a point and as its building) shows up twice, close together.
@@ -47,33 +68,18 @@ class OverpassError(RuntimeError):
 # --- asking ----------------------------------------------------------------
 
 
-def overpass_query(chains: Sequence[Chain] = CHAINS) -> str:
-    """Every supermarket of these chains in the Netherlands, as Overpass QL.
+def overpass_query() -> str:
+    """Every supermarket in the Netherlands, as Overpass QL.
 
-    The country is the area with ISO code NL, so stores across the border (other
-    deals) stay out. Each chain's stores are matched on the brand's Wikidata ID, on
-    the brand name for stores without it, and on the name alone for stores mapped with
-    neither. Only ``shop=supermarket``: "AH to go" is a convenience shop.
+    One clause: a single lookup in the country's area is far cheaper for Overpass
+    than a search per chain, brand and name. Which chain a store belongs to is
+    worked out afterwards, here (``_chain_of``), so a new chain costs the server
+    nothing. The country is the area with ISO code NL, so stores across the border
+    (other deals) stay out; ``shop=supermarket`` leaves out "AH to go".
     """
-    lines = []
-    for chain in chains:
-        lines += [
-            f'  nwr["shop"="supermarket"]["brand:wikidata"="{q}"](area.nl);'
-            for q in chain.wikidata
-        ]
-        lines += [
-            f'  nwr["shop"="supermarket"]["brand"="{b}"](area.nl);'
-            for b in chain.brands
-        ]
-        lines.append(
-            f'  nwr["shop"="supermarket"]["name"~"{chain.name_pattern}"](area.nl);'
-        )
-    body = "\n".join(lines)
-    return f"""[out:json][timeout:180];
+    return f"""[out:json][timeout:{QUERY_TIMEOUT_S}];
 area["ISO3166-1"="NL"]["admin_level"="2"]->.nl;
-(
-{body}
-);
+nwr["shop"="supermarket"](area.nl);
 out center tags;
 """
 
@@ -84,8 +90,12 @@ out center tags;
 def fetch_overpass(
     query: str, server: str = DEFAULT_SERVER, http: httpx.Client | None = None
 ) -> Any:
-    """Run ``query`` on an Overpass server and return its JSON answer."""
-    client = http or httpx.Client(timeout=180)  # a country-wide query takes a while
+    """Run ``query`` on an Overpass server and return its JSON answer.
+
+    One attempt: when Overpass is busy, the answer is to wait, not to ask again.
+    """
+    client = http or httpx.Client(timeout=CLIENT_TIMEOUT_S)
+    check_slots(server, client)
     try:
         response = client.post(server, data={"data": query}, headers=HEADERS)
     except httpx.HTTPError as error:
@@ -107,6 +117,45 @@ def fetch_overpass(
     if "error" in remark.lower():
         raise OverpassError(f"{server} reported: {remark}")
     return payload
+
+
+def status_url(server: str) -> str:
+    """ "https://overpass-api.de/api/interpreter" -> ".../api/status"."""
+    return server.rsplit("/", 1)[0] + "/status"
+
+
+def check_slots(server: str, client: httpx.Client) -> None:
+    """Stop unless the server has a query slot free for us right now.
+
+    A server without a status page, or one in an unknown format, is given the
+    benefit of the doubt.
+    """
+    url = status_url(server)
+    try:
+        response = client.get(url, headers=HEADERS, timeout=STATUS_TIMEOUT_S)
+    except httpx.HTTPError as error:
+        raise OverpassError(
+            f"{url} didn't answer ({error}): the server, or this computer's query "
+            "slots, are busy. Wait a while, then try once more."
+        ) from error
+    if response.status_code != 200:
+        return
+    text = response.text
+    if re.search(r"Rate limit: 0\b", text):
+        return  # no limit on this server
+    free = re.search(r"(\d+) slots? available now", text)
+    if free and int(free[1]) > 0:
+        return
+    waits = [
+        int(s)
+        for s in re.findall(r"Slot available after: \S+, in (-?\d+) seconds", text)
+    ]
+    if free or waits:
+        when = f" The next one frees up in {max(min(waits), 0)} s." if waits else ""
+        raise OverpassError(
+            f"{server} has no free query slot for this computer.{when} "
+            "Wait, then try once more."
+        )
 
 
 # --- converting ------------------------------------------------------------
@@ -141,6 +190,8 @@ class StoreImport:
     stores: list[Store]
     skipped: list[str] = field(default_factory=list)
     duplicates: int = 0
+    # Supermarkets of chains we don't know, by brand: counted, not listed.
+    other_chains: Counter[str] = field(default_factory=Counter)
 
 
 def stores_from_overpass(payload: Any) -> StoreImport:
@@ -153,7 +204,16 @@ def stores_from_overpass(payload: Any) -> StoreImport:
         except ValidationError:
             result.skipped.append(f"{raw!r:.80}: not an OSM element")
             continue
-        store = _store_from(element)
+        tags = element.tags
+        if tags.get("shop") != "supermarket":
+            # e.g. an "AH to go", with a smaller assortment
+            result.skipped.append(f"{element.key}: not a supermarket")
+            continue
+        chain = _chain_of(tags)
+        if chain is None:
+            result.other_chains[tags.get("brand") or tags.get("name") or "?"] += 1
+            continue
+        store = _store_from(element, chain)
         if isinstance(store, str):
             result.skipped.append(f"{element.key}: {store}")
         else:
@@ -168,27 +228,24 @@ def stores_from_overpass(payload: Any) -> StoreImport:
     return result
 
 
-def _store_from(element: _Element) -> Store | str:
-    """The element as a ``Store``, or the reason it isn't one."""
+def _store_from(element: _Element, chain: Chain) -> Store | str:
+    """The element as a store of ``chain``, or the reason it isn't one."""
     tags = element.tags
-    if tags.get("shop") != "supermarket":
-        return "not a supermarket"  # e.g. an "AH to go", with a smaller assortment
-    chain = _chain_of(tags)
-    if chain is None:
-        return "not a store of a known chain"
     if _PICKUP.search(tags.get("name", "")):
         return "a pickup point, not a store"
     location = _location(element)
     if location is None:
         return "no location"
     street, city = tags.get("addr:street"), tags.get("addr:city")
+    # Named by street, else branch, else town. A store mapped with none of those is
+    # still a store where it stands (the Jumbo by Leiden Centraal, for one): it keeps
+    # just the chain's name, and the page shows its distance.
     place = street or tags.get("branch") or city
-    if place is None:
-        return "no street, branch or town to name it by"
     xl = any(_XL.search(tags.get(key, "")) for key in ("brand", "name"))
+    prefix = f"{chain.name} XL" if xl else chain.name
     return Store(
         chain=chain.name,
-        name=f"{chain.name} XL {place}" if xl else f"{chain.name} {place}",
+        name=f"{prefix} {place}" if place else prefix,
         address=_address(street, tags.get("addr:housenumber"), city),
         location=location,
     )

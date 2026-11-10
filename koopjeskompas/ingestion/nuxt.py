@@ -39,11 +39,22 @@ class NuxtDataError(ValueError):
 
 def page_data(html: str) -> Any:
     """The data embedded in a Nuxt page, unpacked into plain dicts and lists."""
+    return unpack_json(script_json(html))
+
+
+def script_json(html: str) -> str:
+    """Just the ``__NUXT_DATA__`` script's text: a fraction of the page, and all the
+    data in it. What a source saves as the raw answer."""
     match = _SCRIPT.search(html)
     if match is None:
         raise NuxtDataError("the page has no __NUXT_DATA__")
+    return match["data"]
+
+
+def unpack_json(text: str) -> Any:
+    """Unpack the text ``script_json`` returned."""
     try:
-        table = json.loads(match["data"])
+        table = json.loads(text)
     except ValueError as error:
         raise NuxtDataError("__NUXT_DATA__ is not JSON") from error
     return unpack(table)

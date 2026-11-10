@@ -73,8 +73,8 @@
     {
       "type": "node", "id": 1010, "lat": 52.1601, "lon": 4.4932,
       "tags": {
-        "shop": "supermarket", "brand": "Jumbo", "brand:wikidata": "Q2194504",
-        "name": "Jumbo", "addr:street": "Haarlemmerstraat", "addr:housenumber": "12",
+        "shop": "supermarket", "brand:wikidata": "Q2262314",
+        "name": "Supermarkt", "addr:street": "Haarlemmerstraat", "addr:housenumber": "12",
         "addr:city": "Leiden"
       }
     },

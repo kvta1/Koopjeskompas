@@ -25,6 +25,7 @@ from koopjeskompas.domain.scoring import (
     rank_stores,
 )
 from koopjeskompas.ingestion.ah.source import AhSource
+from koopjeskompas.ingestion.jumbo.source import JumboSource
 from koopjeskompas.ingestion.cache import deals_path, load_snapshots, save_deals
 from koopjeskompas.ingestion.source import DealSource, SourceError, SourceResult
 from koopjeskompas.publish import (
@@ -47,7 +48,7 @@ from koopjeskompas.stores.osm import (
 
 DEFAULT_DATA_DIR = Path("data")
 # One source per chain, by the name used on the command line and in data/raw/.
-SOURCES: dict[str, Callable[[], DealSource]] = {"ah": AhSource}
+SOURCES: dict[str, Callable[[], DealSource]] = {"ah": AhSource, "jumbo": JumboSource}
 DEFAULT_OPENAPI_PATH = Path("frontend/openapi.json")
 DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_stores.json")
 LEIDEN_CENTRAAL = Coordinates(latitude=52.1664, longitude=4.4817)
@@ -247,6 +248,12 @@ def _fetch_stores(args: argparse.Namespace) -> int:
     print(f"{len(result.stores)} stores written to {output} (was {before})")
     if result.duplicates:
         print(f"Merged {result.duplicates} stores that were mapped twice")
+    if result.other_chains:
+        biggest = ", ".join(
+            f"{brand} {n}" for brand, n in result.other_chains.most_common(5)
+        )
+        total = result.other_chains.total()
+        print(f"Other chains' supermarkets, not kept: {total} ({biggest}, ...)")
     if result.skipped:
         print(f"Skipped {len(result.skipped)}:")
         for reason in result.skipped:
