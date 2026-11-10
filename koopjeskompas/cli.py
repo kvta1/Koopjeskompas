@@ -26,6 +26,7 @@ from koopjeskompas.domain.scoring import (
 )
 from koopjeskompas.ingestion.ah.source import AhSource
 from koopjeskompas.ingestion.jumbo.source import JumboSource
+from koopjeskompas.ingestion.lidl.source import LidlSource
 from koopjeskompas.ingestion.cache import deals_path, load_snapshots, save_deals
 from koopjeskompas.ingestion.source import DealSource, SourceError, SourceResult
 from koopjeskompas.publish import (
@@ -48,7 +49,11 @@ from koopjeskompas.stores.osm import (
 
 DEFAULT_DATA_DIR = Path("data")
 # One source per chain, by the name used on the command line and in data/raw/.
-SOURCES: dict[str, Callable[[], DealSource]] = {"ah": AhSource, "jumbo": JumboSource}
+SOURCES: dict[str, Callable[[], DealSource]] = {
+    "ah": AhSource,
+    "jumbo": JumboSource,
+    "lidl": LidlSource,
+}
 DEFAULT_OPENAPI_PATH = Path("frontend/openapi.json")
 DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_stores.json")
 LEIDEN_CENTRAAL = Coordinates(latitude=52.1664, longitude=4.4817)
