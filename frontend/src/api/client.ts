@@ -11,6 +11,7 @@ type Schemas = components["schemas"];
 export type RankRequest = Schemas["RankRequest"];
 export type RankResponse = Schemas["RankResponse"];
 export type RankedStore = Schemas["RankedStore"];
+export type ChainDeals = Schemas["ChainOut"];
 export type Deal = Schemas["DealOut"];
 export type Diet = Schemas["Diet"];
 export type Cuisine = Schemas["Cuisine"];

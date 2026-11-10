@@ -10,8 +10,8 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from koopjeskompas.api.app import create_app, get_today, openapi_json
-from koopjeskompas.domain.models import Deal, RangeProduct
+from koopjeskompas.api.app import create_app, get_stores, get_today, openapi_json
+from koopjeskompas.domain.models import Coordinates, Deal, RangeProduct, Store
 from koopjeskompas.ingestion.cache import deals_path, save_deals
 
 TODAY = date(2026, 11, 4)
@@ -183,8 +183,39 @@ def test_an_old_snapshot_is_ranked_on_its_last_day(app: FastAPI) -> None:
     result = rank(TestClient(app))
 
     # Without the fallback every deal would have expired and every score be zero.
-    assert result["ranked_on"] == "2026-11-08"
+    assert result["ranked_on"] == "2026-11-20"
+    assert result["chains"] == [{"chain": "AH", "deals_on": "2026-11-08"}]
     assert "AH Hummus naturel" in deal_names(result["stores"][0])
+
+
+def test_only_chains_with_deals_are_ranked(app: FastAPI, tmp_path: Path) -> None:
+    near = Coordinates(latitude=52.1664, longitude=4.4820)
+    stores = [
+        Store(chain="AH", name="AH Stationsplein", location=near),
+        Store(chain="Jumbo", name="Jumbo Stationsplein", location=near),
+        Store(chain="Lidl", name="Lidl Stationsplein", location=near),
+    ]
+    app.dependency_overrides[get_stores] = lambda: stores
+    # Jumbo's week runs Wednesday to Tuesday, AH's Monday to Sunday.
+    jumbo_deal = make_deal(
+        "Jumbo Tahin",
+        "1+1 gratis",
+        chain="Jumbo",
+        valid_from=date(2026, 11, 4),
+        valid_to=date(2026, 11, 10),
+    )
+    save_deals(deals_path(tmp_path, "Jumbo"), [jumbo_deal])
+
+    result = rank(TestClient(app))
+
+    # Lidl has no snapshot, so its store would only look empty: it's left out.
+    assert {s["store"]["chain"] for s in result["stores"]} == {"AH", "Jumbo"}
+    assert result["chains"] == [
+        {"chain": "AH", "deals_on": "2026-11-04"},
+        {"chain": "Jumbo", "deals_on": "2026-11-04"},
+    ]
+    jumbo = next(s for s in result["stores"] if s["store"]["chain"] == "Jumbo")
+    assert deal_names(jumbo) == ["Jumbo Tahin"]
 
 
 def test_a_new_fetch_is_picked_up_without_a_restart(

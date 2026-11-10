@@ -122,12 +122,20 @@ class RankedStore(_ApiModel):
         )
 
 
-class RankResponse(_ApiModel):
-    ranked_on: date = Field(
+class ChainOut(_ApiModel):
+    chain: str
+    deals_on: date = Field(
         description=(
-            "Only deals active on this day count: today, or the nearest day with "
-            "deals when the cached deals have all ended or not yet begun"
+            "The day this chain's deals were ranked on: today, or the nearest day "
+            "with deals when its cached deals have all ended or not yet begun"
         )
+    )
+
+
+class RankResponse(_ApiModel):
+    ranked_on: date = Field(description="The day of the request")
+    chains: list[ChainOut] = Field(
+        description="The chains with cached deals; stores of other chains are left out"
     )
     stores: list[RankedStore]
 

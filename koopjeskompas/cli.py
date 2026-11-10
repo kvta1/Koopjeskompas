@@ -19,9 +19,13 @@ from botocore.exceptions import (
 
 from koopjeskompas.api.app import create_app, get_today, openapi_json
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
-from koopjeskompas.domain.scoring import ScoringWeights, rank_stores
+from koopjeskompas.domain.scoring import (
+    ScoringWeights,
+    chain_ranking_days,
+    rank_stores,
+)
 from koopjeskompas.ingestion.ah.source import AhSource
-from koopjeskompas.ingestion.cache import deals_path, load_deals, save_deals
+from koopjeskompas.ingestion.cache import deals_path, load_snapshots, save_deals
 from koopjeskompas.ingestion.source import DealSource, SourceError, SourceResult
 from koopjeskompas.publish import (
     REGION,
@@ -251,10 +255,15 @@ def _fetch_stores(args: argparse.Namespace) -> int:
 
 
 def _rank(args: argparse.Namespace) -> int:
-    path = deals_path(args.data_dir, "AH")
-    if not path.exists():
-        print(f"No cached deals at {path}; run 'koopjeskompas fetch-deals' first.")
+    snapshots = load_snapshots(args.data_dir)
+    if not snapshots:
+        print(
+            f"No deals cached in {args.data_dir / 'deals'}; "
+            "run 'koopjeskompas fetch-deals' first."
+        )
         return 1
+    deals = [deal for chain_deals in snapshots.values() for deal in chain_deals]
+    today = _today(args)
 
     preferences = Preferences(
         diet=args.diet,
@@ -263,12 +272,14 @@ def _rank(args: argparse.Namespace) -> int:
         gluten_free=args.gluten_free,
     )
     rankings = rank_stores(
-        stores=load_stores(),
-        deals=load_deals(path),
+        # Only chains with deals: the others' stores would look empty.
+        stores=[store for store in load_stores() if store.chain in snapshots],
+        deals=deals,
         preferences=preferences,
         location=Coordinates(latitude=args.lat, longitude=args.lon),
-        today=_today(args),
+        today=today,
         weights=ScoringWeights(max_distance_km=args.radius_km, top_k=args.top_k),
+        chain_days=chain_ranking_days(deals, today),
     )
     print(format_ranking(rankings))
     return 0
