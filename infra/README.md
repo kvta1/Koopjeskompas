@@ -9,7 +9,7 @@ Browser ──► CloudFront ──┬─► S3: the page (frontend/dist)
                          └─► /api/* ─► Lambda Function URL: the API (build/lambda.zip)
                                            │ downloads at cold start
                                            ▼
-                                       S3: deals/ah.json (koopjeskompas publish-deals)
+                                       S3: deals/<chain>.json (koopjeskompas publish-deals)
 ```
 
 - `stack.py`: the resources, in the order they were first built by hand in the console.
@@ -42,15 +42,16 @@ cd infra && npx cdk diff
 
 ## The weekly snapshot
 
-The AH bonus week starts on Monday. After it has:
+Once a week, preferably on Tuesday (when AH's, Jumbo's and Lidl's new deals are all out):
 
 ```bash
-uv run koopjeskompas fetch-deals
-uv run koopjeskompas publish-deals
+scripts/refresh-deals.sh        # fetch every chain's deals, then publish them
 ```
 
-New Lambda environments use the new snapshot at once; warm ones within hours. Until a new
-snapshot arrives, the API ranks the old one on its last day (`domain.scoring.ranking_day`).
+It checks the AWS login before asking any supermarket, and if one chain fails it still publishes
+the others and says which failed. New Lambda environments use the new snapshots at once; warm ones
+within hours. Until a chain's new snapshot arrives, the API ranks its old one on its last day
+(`domain.scoring.chain_ranking_days`).
 
 ## Tearing it down
 

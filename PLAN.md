@@ -569,6 +569,19 @@ second, behind an AH XL 200 m away.
 ✅ Milestone: an AH, a Jumbo and a Lidl near each other rank differently for "vegetarian, Middle
 Eastern" than for "no preference".
 
+Built (2026-11-10), without the chain filter (decided: not until it's missed). Two things from
+the original list were already done in 3a to 3c: the "every AH has the same deals" hint only shows
+for a single chain, and the chain is in each store's name. Added here:
+- **Store cards:** a chain badge before the place (soft tints, 7:1 contrast or more in both
+  themes); "No address known" for the stores mapped without one, and a link to every store's
+  spot on OpenStreetMap; the best store of each chain starts open, not only the first; the hint
+  names only chains with a store in range.
+- **`scripts/refresh-deals.sh`:** checks the AWS login before asking any supermarket, fetches every
+  chain from the repository root, publishes even when a chain failed and says which. Tuesday is
+  the day known to cover all three chains. Tested with fake `uv` and `aws` commands on PATH.
+- **The milestone as a test:** an API test with one store of each chain in one spot; Jumbo wins
+  without preferences, AH for vegetarian Middle Eastern, Lidl for vegetarian Italian.
+
 **Practical note:** Claude Code's auto mode may refuse requests that present a script as a
 browser, even under this policy. Allow them with a permission rule, or run the live checks by hand.
 

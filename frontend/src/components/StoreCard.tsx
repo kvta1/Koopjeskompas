@@ -1,32 +1,43 @@
 import type { Deal, RankedStore } from "../api/client";
-import { formatDate, formatDistance, formatPercent } from "../format";
+import { formatDate, formatDistance, formatPercent, mapUrl } from "../format";
 
 interface StoreCardProps {
   ranked: RankedStore;
   cuisinesChosen: boolean;
+  /** Whether its deals start shown: for the best store of each chain. */
+  open: boolean;
 }
 
 /** One ranked store and the deals that earned its score. */
-export function StoreCard({ ranked, cuisinesChosen }: StoreCardProps) {
-  const { rank, store, distance_km: distanceKm, top_deals: deals } = ranked;
+export function StoreCard({ ranked, cuisinesChosen, open }: StoreCardProps) {
+  const { store, distance_km: distanceKm, top_deals: deals } = ranked;
+  const place = placeName(store.name, store.chain);
   return (
     <li className="store">
       <div className="store-header">
-        <span className="rank" aria-label={`Rank ${rank}`}>
-          {rank}
+        <span className="rank" aria-label={`Rank ${ranked.rank}`}>
+          {ranked.rank}
         </span>
         <div className="store-name">
-          <h3>{store.name}</h3>
-          {store.address && <p className="address">{store.address}</p>}
+          <h3>
+            <span className={`chain chain-${store.chain.toLowerCase()}`}>{store.chain}</span>
+            {place && ` ${place}`}
+          </h3>
+          <p className="address">
+            {store.address ?? "No address known"} ·{" "}
+            <a href={mapUrl(store.lat, store.lon)} target="_blank" rel="noreferrer">
+              On the map
+            </a>
+          </p>
         </div>
         <span className="distance">{formatDistance(distanceKm)}</span>
       </div>
       {deals.length === 0 ? (
         <p className="hint">No deals that fit your preferences.</p>
       ) : (
-        // Native disclosure: only the best store starts open, as every AH has the
-        // same deals and several identical open lists would bury the ranking.
-        <details open={rank === 1}>
+        // Native disclosure. Stores of one chain share their deals, so only the best
+        // store of each chain starts open: one list per chain, not one per store.
+        <details open={open}>
           <summary>
             {deals.length === 1 ? "Its best deal" : `Its ${deals.length} best deals`}
           </summary>
@@ -46,6 +57,18 @@ export function StoreCard({ ranked, cuisinesChosen }: StoreCardProps) {
       )}
     </li>
   );
+}
+
+/**
+ * The store's name without its chain, which the badge shows: "Jumbo Molenplein"
+ * → "Molenplein". A store mapped without an address is named after its chain alone,
+ * so nothing is left: null.
+ */
+function placeName(name: string, chain: string): string | null {
+  if (name === chain) {
+    return null;
+  }
+  return name.startsWith(`${chain} `) ? name.slice(chain.length + 1) : name;
 }
 
 function DealRow({ deal, fitsCuisines }: { deal: Deal; fitsCuisines: boolean }) {

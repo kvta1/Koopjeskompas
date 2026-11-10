@@ -59,6 +59,7 @@ npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
 
 scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
 scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
+scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--local: fetch only)
 uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket
 cd infra && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
 ```

@@ -100,14 +100,72 @@ describe("App", () => {
     expect(screen.getByText(/AH deals of Wed 4 Nov\. Every AH has the same deals/)).toBeVisible();
   });
 
+  it("shows each store's chain, address or its absence, and a map link", async () => {
+    const [ah] = RANKING.stores;
+    if (!ah) throw new Error("the fixture has stores");
+    const jumbo = {
+      ...ah,
+      rank: 2,
+      // Mapped in OpenStreetMap without an address: named after its chain alone.
+      store: { chain: "Jumbo", name: "Jumbo", address: null, lat: 52.1651, lon: 4.4826 },
+    };
+    stubApi(Response.json({ ...RANKING, stores: [ah, jumbo] }));
+    render(<App />);
+    await submit();
+
+    const [first, second] = await screen.findAllByRole("heading", { level: 3 });
+    expect(first).toHaveTextContent("AH Breestraat"); // a badge, then the place
+    expect(within(first!).getByText("AH")).toHaveClass("chain", "chain-ah");
+    expect(second).toHaveTextContent(/^Jumbo$/);
+    expect(screen.getByText(/No address known/)).toBeVisible();
+    const [, jumboMap] = screen.getAllByRole("link", { name: "On the map" });
+    expect(jumboMap).toHaveAttribute(
+      "href",
+      "https://www.openstreetmap.org/?mlat=52.1651&mlon=4.4826#map=18/52.1651/4.4826",
+    );
+  });
+
+  it("opens the best store of each chain, and only those", async () => {
+    const [ah1, ah2] = RANKING.stores;
+    if (!ah1 || !ah2) throw new Error("the fixture has two stores");
+    const lidl = {
+      ...ah1,
+      rank: 3,
+      store: { ...ah1.store, chain: "Lidl", name: "Lidl Vijf Meiplein", lat: 52.1475 },
+    };
+    const lidl2 = { ...lidl, rank: 4, store: { ...lidl.store, name: "Lidl Standerdmolen" } };
+    stubApi(
+      Response.json({
+        ...RANKING,
+        chains: [...RANKING.chains, { chain: "Lidl", deals_on: "2026-11-05" }],
+        stores: [ah1, ah2, lidl, lidl2],
+      }),
+    );
+    render(<App />);
+    await submit();
+
+    await screen.findAllByRole("heading", { level: 3 });
+    const open = [...document.querySelectorAll("li.store")].map(
+      (card) => card.querySelector("details")?.open ?? false,
+    );
+    // AH Breestraat (best AH) and Lidl Vijf Meiplein (best Lidl); AH Hooigracht has
+    // no fitting deals, so no list at all.
+    expect(open).toEqual([true, false, true, false]);
+  });
+
   it("says whose deals were ranked, and as of which day", async () => {
+    const [ah] = RANKING.stores;
+    if (!ah) throw new Error("the fixture has stores");
+    const jumbo = { ...ah, rank: 3, store: { ...ah.store, chain: "Jumbo", name: "Jumbo X" } };
     stubApi(
       Response.json({
         ...RANKING,
         chains: [
           { chain: "AH", deals_on: "2026-11-08" }, // a stale snapshot's last day
           { chain: "Jumbo", deals_on: "2026-11-10" },
+          { chain: "Lidl", deals_on: "2026-11-05" }, // no Lidl in range: not named
         ],
+        stores: [...RANKING.stores, jumbo],
       }),
     );
     render(<App />);

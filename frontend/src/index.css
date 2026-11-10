@@ -12,6 +12,13 @@
   --error: #a3261e;
   --error-bg: #fbe9e7;
   --radius: 10px;
+  /* Chain badges: soft tints with dark text, readable at small sizes. */
+  --chain-ah: #d9ecf8;
+  --chain-ah-text: #004a73;
+  --chain-jumbo: #fdf0b3;
+  --chain-jumbo-text: #5a4600;
+  --chain-lidl: #fbe0df;
+  --chain-lidl-text: #8a1f1b;
 
   color-scheme: light dark;
   font-family:
@@ -38,6 +45,12 @@
     --deal-bg: #1c3324;
     --error: #ffb4ab;
     --error-bg: #3d1f1c;
+    --chain-ah: #12374d;
+    --chain-ah-text: #a9d8f5;
+    --chain-jumbo: #3d3410;
+    --chain-jumbo-text: #f5de7a;
+    --chain-lidl: #45201e;
+    --chain-lidl-text: #f6b4af;
   }
 }
 
@@ -280,6 +293,39 @@ button:disabled {
 .address {
   margin: 0;
   font-size: 0.875rem;
+}
+
+.address a {
+  color: inherit;
+}
+
+/* --- chain badges ------------------------------------------------------------ */
+
+.chain {
+  display: inline-block;
+  margin-right: 0.15rem;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  vertical-align: 0.1em;
+  color: var(--text);
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.chain-ah {
+  color: var(--chain-ah-text);
+  background: var(--chain-ah);
+}
+
+.chain-jumbo {
+  color: var(--chain-jumbo-text);
+  background: var(--chain-jumbo);
+}
+
+.chain-lidl {
+  color: var(--chain-lidl-text);
+  background: var(--chain-lidl);
 }
 
 .distance {

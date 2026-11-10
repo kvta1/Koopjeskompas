@@ -28,6 +28,11 @@ export function formatDistance(km: number): string {
   return `${distanceFormat.format(km)} km`;
 }
 
+/** Where a place is, on OpenStreetMap: for stores no address is known for, the only way to find them. */
+export function mapUrl(lat: number, lon: number): string {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}`;
+}
+
 /** "2026-11-08" → "Sun 8 Nov" */
 export function formatDate(isoDate: string): string {
   // Midnight local time: `new Date("2026-11-08")` alone means midnight UTC, which
