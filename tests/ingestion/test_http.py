@@ -41,6 +41,19 @@ def test_pages_are_saved_before_anything_parses_them(
 
 
 @respx.mock
+def test_only_the_part_worth_keeping_is_saved(
+    client: PoliteClient, tmp_path: Path
+) -> None:
+    respx.get(f"{BASE}/deal").respond(text="<html>layout<data>42</data></html>")
+
+    def data_only(html: str) -> str:
+        return html.split("<data>")[1].split("</data>")[0]
+
+    assert client.get_text("/deal", "deal.json", keep=data_only) == "42"
+    assert (tmp_path / "raw" / "deal.json").read_text() == "42"
+
+
+@respx.mock
 def test_one_request_at_a_time_with_a_pause_between(
     client: PoliteClient, pauses: list[float]
 ) -> None:

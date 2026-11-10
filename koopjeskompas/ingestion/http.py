@@ -70,8 +70,14 @@ class PoliteClient:
         self._asked_before = False
         self._blocked_because: str | None = None
 
-    def get_text(self, path: str, save_as: str) -> str:
-        """GET ``path`` and return its body, saved as ``save_as`` in the raw directory."""
+    def get_text(
+        self, path: str, save_as: str, keep: Callable[[str], str] | None = None
+    ) -> str:
+        """GET ``path`` and return its body, saved as ``save_as`` in the raw directory.
+
+        ``keep`` picks out the part worth keeping before it's saved and returned, such
+        as a page's embedded data without its layout. If it raises, nothing is saved.
+        """
         if self._blocked_because is not None:
             raise BlockedError(f"not asking again this run: {self._blocked_because}")
         if self._asked_before:
@@ -88,8 +94,9 @@ class PoliteClient:
         if not response.is_success:
             raise FetchError(f"{url} answered {response.status_code}")
 
-        self._save(save_as, response.text)
-        return response.text
+        text = keep(response.text) if keep else response.text
+        self._save(save_as, text)
+        return text
 
     def blocked(self, reason: str) -> NoReturn:
         """Note a block, for instance a 200 page that is a bot check, and stop."""
