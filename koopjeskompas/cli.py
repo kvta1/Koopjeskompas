@@ -32,11 +32,12 @@ from koopjeskompas.publish import (
     snapshots,
 )
 from koopjeskompas.report import format_ranking
-from koopjeskompas.stores import NL_AH_QUERY, load_stores, save_stores
+from koopjeskompas.stores import load_stores, save_stores
 from koopjeskompas.stores.osm import (
     DEFAULT_SERVER,
     OverpassError,
     fetch_overpass,
+    overpass_query,
     stores_from_overpass,
 )
 
@@ -44,7 +45,7 @@ DEFAULT_DATA_DIR = Path("data")
 # One source per chain, by the name used on the command line and in data/raw/.
 SOURCES: dict[str, Callable[[], DealSource]] = {"ah": AhSource}
 DEFAULT_OPENAPI_PATH = Path("frontend/openapi.json")
-DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_ah.json")
+DEFAULT_STORES_PATH = Path("koopjeskompas/stores/nl_stores.json")
 LEIDEN_CENTRAAL = Coordinates(latitude=52.1664, longitude=4.4817)
 
 
@@ -92,7 +93,7 @@ def _build_parser() -> argparse.ArgumentParser:
 
     stores = subcommands.add_parser(
         "fetch-stores",
-        help="fetch every AH in the Netherlands from OpenStreetMap (now and then)",
+        help="fetch every store of every chain in the Netherlands from OpenStreetMap",
     )
     stores.add_argument(
         "--server",
@@ -211,14 +212,14 @@ def _report(result: SourceResult, path: Path) -> None:
 
 
 def _fetch_stores(args: argparse.Namespace) -> int:
-    raw_path = args.data_dir / "raw" / "osm" / _today(args).isoformat() / "nl_ah.json"
+    raw_path = (
+        args.data_dir / "raw" / "osm" / _today(args).isoformat() / "nl_stores.json"
+    )
     try:
         if args.from_raw:
             payload = json.loads(raw_path.read_text(encoding="utf-8"))
         else:
-            payload = fetch_overpass(
-                NL_AH_QUERY.read_text(encoding="utf-8"), args.server
-            )
+            payload = fetch_overpass(overpass_query(), args.server)
             # Saved before converting, so a conversion bug never needs a refetch.
             raw_path.parent.mkdir(parents=True, exist_ok=True)
             raw_path.write_text(json.dumps(payload), encoding="utf-8")
