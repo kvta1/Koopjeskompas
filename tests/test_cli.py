@@ -27,7 +27,10 @@ from koopjeskompas.ingestion.ah.client import (
 from koopjeskompas.ingestion.jumbo.client import BASE_URL as JUMBO_URL
 from koopjeskompas.ingestion.jumbo.client import OVERVIEW_PATH
 from tests.ah_fixtures import load_ah_fixture
+from koopjeskompas.ingestion.lidl.client import BASE_URL as LIDL_URL
+from koopjeskompas.ingestion.lidl.client import DEALS_PATH as LIDL_DEALS_PATH
 from tests.jumbo_fixtures import overview_data, page_with, vla_page
+from tests.lidl_fixtures import deals_page
 
 TODAY = "2026-10-15"  # inside the fixture's bonus week
 
@@ -212,6 +215,22 @@ def test_fetch_jumbo_deals(
     assert main([*base, "--chain", "jumbo", "--from-raw"]) == 0
     assert len(jumbo_site.calls) == calls
     assert "4 deals saved" in capsys.readouterr().out
+
+
+def test_fetch_lidl_deals(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    base = ["--data-dir", str(tmp_path), "--today", "2026-11-10", "fetch-deals"]
+    with respx.mock(base_url=LIDL_URL) as lidl:
+        lidl.get(LIDL_DEALS_PATH).respond(text=deals_page())
+
+        assert main([*base, "--chain", "lidl"]) == 0
+        out = capsys.readouterr().out
+        assert "Lidl deals 2026-11-05 to 2026-11-15: 41 deals saved" in out
+        assert "Lidl Plus deals (need the app): 19" in out
+        assert "Left out: 6 not food" in out
+        assert {d.chain for d in load_deals(deals_path(tmp_path, "Lidl"))} == {"Lidl"}
+
+        assert main([*base, "--chain", "lidl", "--from-raw"]) == 0
+        assert len(lidl.calls) == 1  # the re-parse asked nothing
 
 
 class WorkingSource:

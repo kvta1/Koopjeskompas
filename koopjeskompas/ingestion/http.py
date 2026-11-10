@@ -28,8 +28,12 @@ from koopjeskompas.ingestion.source import SourceError
 
 logger = logging.getLogger(__name__)
 
+# Our own name, plus what any well-behaved client says it accepts. Lidl's CDN answers
+# 503 to a request with a User-Agent alone, and 200 to the same one with these.
 HONEST_HEADERS = {
     "User-Agent": "koopjeskompas/0.1 (+https://github.com/kvta1/Koopjeskompas)",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.8",
 }
 # A desktop browser's identity, for sites that block the honest one.
 BROWSER_HEADERS = {

@@ -27,7 +27,8 @@ on AWS.
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
 | ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
-| ⏳ | Lidl, continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
+| ✅ | Lidl deals (about 40 a week, from lidl.nl's deals page) | done (`fetch-deals --chain lidl`) |
+| ⏳ | The page names each chain; a weekly refresh script; continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
 - **Diet filtering is based on product names.** Vegetarian and vegan are hard filters: a
@@ -115,6 +116,9 @@ doesn't stop the others. Requests are spaced one second apart.
   week's deals, and the page of each deal whose discount depends on a price ("2 voor 3,49").
   Jumbo's site blocks requests that identify themselves honestly, so this one presents itself as a
   browser (see the scraping policy in [PLAN.md §9.4](PLAN.md)).
+
+- **Lidl**, one request: the deals page lists every deal with its prices. Lidl Plus prices count
+  (they need Lidl's free app) and are named "(met Lidl Plus)".
 
 It saves the raw responses under `data/raw/<chain>/<date>/` and the parsed deals to
 `data/deals/<chain>.json`, then prints a summary per chain, including any deals it couldn't score.

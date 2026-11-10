@@ -545,6 +545,20 @@ Centraal; they are now kept under the chain's name.
   Lidl also runs non-food specials and in-store-only actions on set days: decide how to filter.
 - **`ingestion/lidl/`:** the same four modules as Jumbo, using `ingestion/nuxt.py` if it applies.
 
+Built (2026-11-10): `ingestion/lidl/` and `LidlSource`. The live check found the simplest of the
+three chains: `lidl.nl/c/aanbiedingen/a10008785` answers an honest identity, and one page holds
+every deal as a tile with JSON in `data-grid-data` (no Nuxt data, no per-deal pages): 47 tiles,
+the same prices in all six regions. Only 22 carry a discount: 19 Lidl Plus prices
+(`regionsPrices.currentLidlPlusPrice`, with their own old price and dates) and 3 struck-through
+prices; 19 are week actions without an old price (kept, unscored) and 6 are non-food or plants.
+Decided: Lidl Plus deals count, named "(met Lidl Plus)", since without them Lidl would have 3.
+Lessons: Lidl's times are UTC (2026-11-04T23:00Z is 5 November), so dates are taken in Dutch
+time; Lidl's CDN answers 503 to a request with only a User-Agent, so `HONEST_HEADERS` now also
+send `Accept` and `Accept-Language`; `"store": false` doesn't mean online only, so it's ignored.
+With all three chains, Lidl's deal score is close to AH's and Jumbo's for "no preference" (2.1
+against 2.5 and 2.6) but lower for narrower preferences; next to Lidl Vijf Meiplein it ranks
+second, behind an AH XL 200 m away.
+
 ##### 3d — The page and the routine (one PR)
 
 - The page names the chain on each store card, and the hint "every AH has the same deals"
