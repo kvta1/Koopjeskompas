@@ -15,6 +15,9 @@ export type ChainDeals = Schemas["ChainOut"];
 export type Deal = Schemas["DealOut"];
 export type Diet = Schemas["Diet"];
 export type Cuisine = Schemas["Cuisine"];
+export type BeerResponse = Schemas["BeerResponse"];
+export type BeerOffer = Schemas["BeerOfferOut"];
+export type Packaging = Schemas["Packaging"];
 
 /** A failed API call, with a message that can be shown to the user as is. */
 export class ApiError extends Error {
@@ -31,19 +34,29 @@ const START_THE_API = "Is the API running? Start it with `uv run koopjeskompas s
 
 export async function rankStores(request: RankRequest): Promise<RankResponse> {
   const body = JSON.stringify(request);
+  return requestJson<RankResponse>("/api/rank", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // On AWS, CloudFront signs each request to the API's Lambda function, but
+      // leaves hashing a POST body to the sender. Without the hash, Lambda refuses
+      // the request. Locally the header is passed on and ignored.
+      "x-amz-content-sha256": await sha256Hex(body),
+    },
+    body,
+  });
+}
+
+/** This week's beer deals as crates, cans and bottles, cheapest per litre first. */
+export async function fetchBeer(): Promise<BeerResponse> {
+  // A GET has no body, so nothing to hash.
+  return requestJson<BeerResponse>("/api/beer");
+}
+
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch("/api/rank", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // On AWS, CloudFront signs each request to the API's Lambda function, but
-        // leaves hashing a POST body to the sender. Without the hash, Lambda refuses
-        // the request. Locally the header is passed on and ignored.
-        "x-amz-content-sha256": await sha256Hex(body),
-      },
-      body,
-    });
+    response = await fetch(path, init);
   } catch {
     // fetch only rejects when there is no HTTP response at all.
     throw new ApiError(0, `Can't reach the API. ${START_THE_API}`);
@@ -51,8 +64,8 @@ export async function rankStores(request: RankRequest): Promise<RankResponse> {
   if (!response.ok) {
     throw new ApiError(response.status, await errorMessage(response));
   }
-  // Trusted rather than validated: the API's response model guarantees this shape.
-  return (await response.json()) as RankResponse;
+  // Trusted rather than validated: the API's response models guarantee the shape.
+  return (await response.json()) as T;
 }
 
 /** The SHA-256 of a text's UTF-8 bytes, as lowercase hex. */

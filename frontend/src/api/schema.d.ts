@@ -46,10 +46,119 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/beer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Beer
+         * @description This week's beer deals of every chain, as crates, cans and bottles, each list
+         *     cheapest per litre first. National: deals are the same in every store of a chain.
+         *
+         *     Each chain's deals count on its own day, as in ``/api/rank``: a chain whose cached
+         *     deals have run out shows them as of their last day.
+         */
+        get: operations["beer_api_beer_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** BeerOfferOut */
+        BeerOfferOut: {
+            /** Chain */
+            chain: string;
+            /**
+             * Product
+             * @example Hertog Jan Pilsener bier krat
+             */
+            product: string;
+            /**
+             * Deal
+             * @description The deal it's part of, e.g. 'Alle Hertog Jan ... multipacks'
+             */
+            deal: string;
+            /**
+             * Mechanic
+             * @description The chain's own text, e.g. "25% KORTING"
+             */
+            mechanic: string | null;
+            packaging: components["schemas"]["Packaging"];
+            /**
+             * Size
+             * @description As the chain writes it, e.g. "24 x 30 cl"; may be empty
+             */
+            size: string;
+            /**
+             * Units
+             * @description How many cans or bottles, if known
+             */
+            units: number | null;
+            /** Litres */
+            litres: number;
+            /** Normal Price */
+            normal_price: number;
+            /**
+             * Deal Price
+             * @description The price with the deal, for one product
+             */
+            deal_price: number;
+            /**
+             * Price Per Litre
+             * @description With the deal
+             */
+            price_per_litre: number;
+            /**
+             * Discount
+             * @description Share of the normal price saved, 0–1
+             */
+            discount: number;
+            /** Alcohol Free */
+            alcohol_free: boolean;
+            /**
+             * Valid From
+             * Format: date
+             */
+            valid_from: string;
+            /**
+             * Valid To
+             * Format: date
+             */
+            valid_to: string;
+        };
+        /**
+         * BeerResponse
+         * @description This week's beer deals per packaging, each list cheapest per litre first.
+         */
+        BeerResponse: {
+            /**
+             * Ranked On
+             * Format: date
+             * @description The day of the request
+             */
+            ranked_on: string;
+            /**
+             * Chains
+             * @description The chains with cached deals, and their day
+             */
+            chains: components["schemas"]["ChainOut"][];
+            /** Crates */
+            crates: components["schemas"]["BeerOfferOut"][];
+            /** Cans */
+            cans: components["schemas"]["BeerOfferOut"][];
+            /** Bottles */
+            bottles: components["schemas"]["BeerOfferOut"][];
+        };
         /** ChainOut */
         ChainOut: {
             /** Chain */
@@ -136,6 +245,11 @@ export interface components {
              */
             lon: number;
         };
+        /**
+         * Packaging
+         * @enum {string}
+         */
+        Packaging: "krat" | "blik" | "fles";
         /** RankRequest */
         RankRequest: {
             location: components["schemas"]["Location"];
@@ -297,6 +411,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description No deals cached yet */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    beer_api_beer_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BeerResponse"];
                 };
             };
             /** @description No deals cached yet */

@@ -10,6 +10,7 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from koopjeskompas.domain.beer import BeerOffer, Packaging
 from koopjeskompas.domain.models import Cuisine, Diet
 from koopjeskompas.domain.scoring import ScoredDeal, ScoringWeights, StoreRanking
 
@@ -138,6 +139,62 @@ class RankResponse(_ApiModel):
         description="The chains with cached deals; stores of other chains are left out"
     )
     stores: list[RankedStore]
+
+
+class BeerOfferOut(_ApiModel):
+    chain: str
+    product: str = Field(examples=["Hertog Jan Pilsener bier krat"])
+    deal: str = Field(
+        description="The deal it's part of, e.g. 'Alle Hertog Jan ... multipacks'"
+    )
+    mechanic: str | None = Field(
+        description='The chain\'s own text, e.g. "25% KORTING"'
+    )
+    packaging: Packaging
+    size: str = Field(
+        description='As the chain writes it, e.g. "24 x 30 cl"; may be empty'
+    )
+    units: int | None = Field(description="How many cans or bottles, if known")
+    litres: float
+    normal_price: float
+    deal_price: float = Field(description="The price with the deal, for one product")
+    price_per_litre: float = Field(description="With the deal")
+    discount: float = Field(description="Share of the normal price saved, 0–1")
+    alcohol_free: bool
+    valid_from: date
+    valid_to: date
+
+    @classmethod
+    def from_offer(cls, offer: BeerOffer) -> "BeerOfferOut":
+        return cls(
+            chain=offer.chain,
+            product=offer.product,
+            deal=offer.deal,
+            mechanic=offer.mechanic,
+            packaging=offer.packaging,
+            size=offer.size_text,
+            units=offer.pack.units,
+            litres=float(offer.pack.litres),
+            normal_price=float(offer.normal_price),
+            deal_price=float(offer.deal_price),
+            price_per_litre=float(offer.price_per_litre),
+            discount=float(offer.discount),
+            alcohol_free=offer.alcohol_free,
+            valid_from=offer.valid_from,
+            valid_to=offer.valid_to,
+        )
+
+
+class BeerResponse(_ApiModel):
+    """This week's beer deals per packaging, each list cheapest per litre first."""
+
+    ranked_on: date = Field(description="The day of the request")
+    chains: list[ChainOut] = Field(
+        description="The chains with cached deals, and their day"
+    )
+    crates: list[BeerOfferOut]
+    cans: list[BeerOfferOut]
+    bottles: list[BeerOfferOut]
 
 
 class Health(_ApiModel):

@@ -14,6 +14,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from koopjeskompas.domain.beer import is_beer
 from koopjeskompas.domain.deal_mechanic import (
     UnknownMechanicError,
     is_scorable,
@@ -84,10 +85,16 @@ def in_store_food_promotions(overview: Any, result: ParseResult) -> list[_Found]
     return kept
 
 
-def promotions_needing_prices(overview: Any) -> list[Promotion]:
-    """The kept promotions whose discount can't be worked out without a price."""
+def promotions_to_look_up(overview: Any) -> list[Promotion]:
+    """The kept promotions whose own page to fetch: those whose discount can't be
+    worked out without a price, and beer, whose products the beer section compares by
+    size and price per litre (PLAN.md §9.5)."""
     found = in_store_food_promotions(overview, ParseResult())
-    return [f.promotion for f in found if _needs_price(f.promotion.mechanic)]
+    return [
+        f.promotion
+        for f in found
+        if _needs_price(f.promotion.mechanic) or is_beer(f.promotion.title)
+    ]
 
 
 def parse_week(week: JumboWeek) -> ParseResult:
@@ -169,6 +176,26 @@ def _products(page: Any, result: ParseResult) -> list[RangeProduct]:
         price = product.price.price if product.price else 0
         if price > 0:
             products.append(
-                RangeProduct(name=product.title, normal_price=Decimal(price) / 100)
+                RangeProduct(
+                    name=product.title,
+                    normal_price=Decimal(price) / 100,
+                    litres=_litres(product),
+                )
             )
     return products
+
+
+def _litres(product: Product) -> Decimal | None:
+    """The volume Jumbo's prices imply: its price per litre is of the price you pay,
+    the deal's when there is one (promoPrice), so that over it gives the litres.
+
+    Seen on 2026-11-10: Alfa 6 x 33 cl, normal 6.39, deal 4.79, "2.42 per litre":
+    4.79 / 2.42 = 1.98 l. A title can be wrong ("Corona Cero 330 ml" is 1.32 l) or
+    missing ("xx"); these numbers aren't.
+    """
+    price = product.price
+    per_unit = price.price_per_unit if price else None
+    if price is None or per_unit is None or per_unit.unit != "l" or per_unit.price <= 0:
+        return None
+    paid = price.promo_price or price.price
+    return (Decimal(paid) / per_unit.price).quantize(Decimal("0.001"))

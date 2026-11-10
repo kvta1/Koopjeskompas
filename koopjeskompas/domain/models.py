@@ -35,6 +35,11 @@ class RangeProduct(BaseModel):
     name: str
     normal_price: Decimal = Field(gt=0)
     normal_price_per_kg: Decimal | None = Field(default=None, gt=0)
+    # How it's sold, as the chain writes it: "6 x 0,33 l", "24 x 30 cl", "300 ml".
+    unit_size: str | None = None
+    # The volume in litres, when the chain's own price data gives it (Jumbo: its price
+    # per litre). More reliable than a title: "Corona Cero 330 ml" holds 1.32 l.
+    litres: Decimal | None = Field(default=None, gt=0)
 
 
 class Deal(BaseModel):

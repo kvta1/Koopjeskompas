@@ -204,7 +204,9 @@ def _range_products(
         _skip(result, f"unexpected lookup for {range_name!r}: {_first_error(error)}")
         return ()
 
-    products: dict[str, RangeProduct] = {}
+    # By title and size: AH sells one title in several sizes ("Hertog Jan Pilsener
+    # bier 6-pack" in 6 x 33 cl, 6 x 0,3 l and 6 x 0,5 l), and each is its own product.
+    products: dict[tuple[str, str | None], RangeProduct] = {}
     for promotion in response.data.bonus_promotions:
         for raw_product in promotion.products:
             try:
@@ -219,13 +221,14 @@ def _range_products(
                 _skip(result, f"no price for {product.title!r} in {range_name!r}")
                 continue
             products.setdefault(
-                product.title,
+                (product.title, product.sales_unit_size),
                 RangeProduct(
                     name=product.title,
                     normal_price=price.amount,
                     normal_price_per_kg=_price_per_kg_from_size(
                         price.amount, product.sales_unit_size
                     ),
+                    unit_size=product.sales_unit_size,
                 ),
             )
     return tuple(products.values())

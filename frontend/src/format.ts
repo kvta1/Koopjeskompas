@@ -15,6 +15,13 @@ const dateFormat = new Intl.DateTimeFormat("en-GB", {
   month: "short",
 });
 
+const priceFormat = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+
+/** 15.99 → "€ 15,99", the way Dutch shops write it. */
+export function formatPrice(euros: number): string {
+  return priceFormat.format(euros);
+}
+
 /** 0.255 → "26%" */
 export function formatPercent(fraction: number): string {
   return percentFormat.format(fraction);

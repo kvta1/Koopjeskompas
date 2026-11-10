@@ -1,0 +1,1127 @@
+{
+ "data": {
+  "bonusPromotions": [
+   {
+    "id": "824708",
+    "products": [
+     {
+      "title": "Amstel Radler citroen 0.0 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen 0.0% 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.79
+       },
+       "now": {
+        "amount": 4.34
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan 0.0 Alcoholvrij bier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 4.99
+       },
+       "now": {
+        "amount": 3.74
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier 6-pack",
+      "salesUnitSize": "6 x 33 cl",
+      "priceV2": {
+       "was": {
+        "amount": 7.32
+       },
+       "now": {
+        "amount": 5.49
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.19
+       },
+       "now": {
+        "amount": 4.64
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan 0.0 Alcoholvrij bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.19
+       },
+       "now": {
+        "amount": 4.64
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier 6-pack",
+      "salesUnitSize": "6 x 0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 9.59
+       },
+       "now": {
+        "amount": 7.19
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier 24-pack",
+      "salesUnitSize": "24 x 33 cl",
+      "priceV2": {
+       "was": {
+        "amount": 27.95
+       },
+       "now": {
+        "amount": 20.96
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.85
+       },
+       "now": {
+        "amount": 4.39
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Alkoholfrei pilsener 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.49
+       },
+       "now": {
+        "amount": 4.12
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Grand prestige 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 10.39
+       },
+       "now": {
+        "amount": 7.79
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Weizener 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.99
+       },
+       "now": {
+        "amount": 5.99
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener bier 6-pack",
+      "salesUnitSize": "6 x 0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Bockbier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.99
+       },
+       "now": {
+        "amount": 5.99
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Fruity ginger & lime 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Fruity rosé 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen bier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.99
+       },
+       "now": {
+        "amount": 4.49
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen 0.0 12-pack",
+      "salesUnitSize": "3,96 l",
+      "priceV2": {
+       "was": {
+        "amount": 12.89
+       },
+       "now": {
+        "amount": 9.67
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé 0.0% 6-pack",
+      "salesUnitSize": "1,8 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.59
+       },
+       "now": {
+        "amount": 5.69
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.99
+       },
+       "now": {
+        "amount": 4.49
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier 12-pack",
+      "salesUnitSize": "4,26 l",
+      "priceV2": {
+       "was": {
+        "amount": 13.99
+       },
+       "now": {
+        "amount": 10.49
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Premium beer",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.49
+       },
+       "now": {
+        "amount": 1.12
+       }
+      }
+     },
+     {
+      "title": "Amstel Blond 4.0",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.45
+       },
+       "now": {
+        "amount": 1.09
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Alcoholvrij pilsener",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.99
+       },
+       "now": {
+        "amount": 4.49
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Karakter 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 9.29
+       },
+       "now": {
+        "amount": 6.97
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener 6-pack",
+      "salesUnitSize": "6 x 0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.19
+       },
+       "now": {
+        "amount": 5.39
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Wit 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.99
+       },
+       "now": {
+        "amount": 4.49
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Grand prestige",
+      "salesUnitSize": "0,75 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Bavaria Strong blond",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.69
+       },
+       "now": {
+        "amount": 1.27
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Bier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.29
+       },
+       "now": {
+        "amount": 3.97
+       }
+      }
+     },
+     {
+      "title": "Amstel Bier 24-pack",
+      "salesUnitSize": "24 x 0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 27.96
+       },
+       "now": {
+        "amount": 20.97
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% IPA 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Tripel 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 10.49
+       },
+       "now": {
+        "amount": 7.87
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Herb alkoholfrei 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.59
+       },
+       "now": {
+        "amount": 4.19
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.79
+       },
+       "now": {
+        "amount": 4.34
+       }
+      }
+     },
+     {
+      "title": "Brouwers St Pierre tripel 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé bier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.29
+       },
+       "now": {
+        "amount": 6.22
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Pilsener 6-pack",
+      "salesUnitSize": "6 x 33 cl",
+      "priceV2": {
+       "was": {
+        "amount": 5.89
+       },
+       "now": {
+        "amount": 4.42
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.99
+       },
+       "now": {
+        "amount": 4.49
+       }
+      }
+     },
+     {
+      "title": "Palm Amber bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.99
+       },
+       "now": {
+        "amount": 6.74
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Grand prestige bier",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Brewers gold",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.65
+       },
+       "now": {
+        "amount": 1.24
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Weizener 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 9.99
+       },
+       "now": {
+        "amount": 7.49
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener 6-pack",
+      "salesUnitSize": "1,8 l",
+      "priceV2": {
+       "was": {
+        "amount": 4.99
+       },
+       "now": {
+        "amount": 3.74
+       }
+      }
+     },
+     {
+      "title": "Brouwers St. Pierre blond 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener 24-pack",
+      "salesUnitSize": "24 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 19.99
+       },
+       "now": {
+        "amount": 14.99
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener 24-pack",
+      "salesUnitSize": "24 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 22.99
+       },
+       "now": {
+        "amount": 17.24
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Fruity grapefruit 6-pack",
+      "salesUnitSize": "1,98 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Extra 6-pack",
+      "salesUnitSize": "1,98 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.49
+       },
+       "now": {
+        "amount": 4.87
+       }
+      }
+     },
+     {
+      "title": "Brouwers Blond 0.0 6-pack",
+      "salesUnitSize": "1,8 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.59
+       },
+       "now": {
+        "amount": 4.19
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener tray",
+      "salesUnitSize": "12 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 10.65
+       },
+       "now": {
+        "amount": 7.99
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé bier 4-pack",
+      "salesUnitSize": "1,32 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.79
+       },
+       "now": {
+        "amount": 5.84
+       }
+      }
+     },
+     {
+      "title": "Brouwers Blond 4-pack",
+      "salesUnitSize": "1,32 l",
+      "priceV2": {
+       "was": {
+        "amount": 5.15
+       },
+       "now": {
+        "amount": 3.86
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier krat",
+      "salesUnitSize": "24 x 30 cl",
+      "priceV2": {
+       "was": {
+        "amount": 21.32
+       },
+       "now": {
+        "amount": 15.99
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan 0.0% alcoholvrij bier krat",
+      "salesUnitSize": "7,2 l",
+      "priceV2": {
+       "was": {
+        "amount": 19.95
+       },
+       "now": {
+        "amount": 14.96
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener bier krat",
+      "salesUnitSize": "24 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 17.99
+       },
+       "now": {
+        "amount": 13.49
+       }
+      }
+     },
+     {
+      "title": "Bavaria pils 24fl",
+      "salesUnitSize": "24 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 17.32
+       },
+       "now": {
+        "amount": 12.99
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener 12-krat",
+      "salesUnitSize": "12 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 9.29
+       },
+       "now": {
+        "amount": 6.97
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Pilsener",
+      "salesUnitSize": "24 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 19.32
+       },
+       "now": {
+        "amount": 14.49
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Bier",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.0
+       },
+       "now": {
+        "amount": 0.75
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.6
+       },
+       "now": {
+        "amount": 1.2
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Weizener",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.34
+       },
+       "now": {
+        "amount": 1.0
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Wit",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.0
+       },
+       "now": {
+        "amount": 0.75
+       }
+      }
+     },
+     {
+      "title": "Bavaria Pilsener",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.2
+       },
+       "now": {
+        "amount": 0.9
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen 0.0 bier",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 0.97
+       },
+       "now": {
+        "amount": 0.73
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Fruity rosé",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.09
+       },
+       "now": {
+        "amount": 0.82
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen 0.0 bier",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.09
+       },
+       "now": {
+        "amount": 0.82
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Bier",
+      "salesUnitSize": "0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 0.89
+       },
+       "now": {
+        "amount": 0.67
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.22
+       },
+       "now": {
+        "amount": 0.91
+       }
+      }
+     },
+     {
+      "title": "Bavaria pilsener bier bl.",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 0.97
+       },
+       "now": {
+        "amount": 0.73
+       }
+      }
+     },
+     {
+      "title": "Warsteiner bier bl",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 0.99
+       },
+       "now": {
+        "amount": 0.74
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsener bier",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 0.98
+       },
+       "now": {
+        "amount": 0.73
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen bier",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.0
+       },
+       "now": {
+        "amount": 0.75
+       }
+      }
+     },
+     {
+      "title": "Amstel Radler citroen bier",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.0
+       },
+       "now": {
+        "amount": 0.75
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Bockbier",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.34
+       },
+       "now": {
+        "amount": 1.0
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Alkoholfrei pilsener",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 0.92
+       },
+       "now": {
+        "amount": 0.69
+       }
+      }
+     },
+     {
+      "title": "Bavaria 50cl blik",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.2
+       },
+       "now": {
+        "amount": 0.9
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Alkoholfrei",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.0
+       },
+       "now": {
+        "amount": 0.75
+       }
+      }
+     },
+     {
+      "title": "Amstel Bier",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.17
+       },
+       "now": {
+        "amount": 0.88
+       }
+      }
+     },
+     {
+      "title": "St. Pierre blond",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.09
+       },
+       "now": {
+        "amount": 0.82
+       }
+      }
+     },
+     {
+      "title": "Brouwers St. Pierre tripel",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.09
+       },
+       "now": {
+        "amount": 0.82
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Grand prestige",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.74
+       },
+       "now": {
+        "amount": 1.3
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Karakter",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.55
+       },
+       "now": {
+        "amount": 1.16
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Tripel",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.75
+       },
+       "now": {
+        "amount": 1.31
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% Fruity ginger lime",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.09
+       },
+       "now": {
+        "amount": 0.82
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Weizener",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.67
+       },
+       "now": {
+        "amount": 1.25
+       }
+      }
+     },
+     {
+      "title": "Warsteiner Herb alkoholfrei",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 0.94
+       },
+       "now": {
+        "amount": 0.7
+       }
+      }
+     },
+     {
+      "title": "Hertog Jan Pilsener bier",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.04
+       },
+       "now": {
+        "amount": 0.78
+       }
+      }
+     },
+     {
+      "title": "Bavaria 0.0% IPA",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.17
+       },
+       "now": {
+        "amount": 0.88
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé bier",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.39
+       },
+       "now": {
+        "amount": 1.04
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé bier",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.95
+       },
+       "now": {
+        "amount": 1.46
+       }
+      }
+     },
+     {
+      "title": "Amstel Pilsner",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 0.84
+       },
+       "now": {
+        "amount": 0.63
+       }
+      }
+     },
+     {
+      "title": "Amstel Rosé 0.0%",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.27
+       },
+       "now": {
+        "amount": 0.95
+       }
+      }
+     }
+    ]
+   }
+  ]
+ }
+}

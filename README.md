@@ -29,6 +29,7 @@ on AWS.
 | ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
 | ✅ | Lidl deals (about 40 a week, from lidl.nl's deals page) | done (`fetch-deals --chain lidl`) |
 | ✅ | The page names each store's chain; the weekly refresh in one command | done (`scripts/refresh-deals.sh`) |
+| ✅ | A beer section: crates, cans and bottles by price per litre (AH and Jumbo) | done (`#/beer`, `GET /api/beer`) |
 | ⏳ | Continuous deployment | next ([PLAN.md §9.4](PLAN.md)) |
 
 **Known limitations:**
@@ -209,6 +210,10 @@ cd frontend && npm run dev      # terminal 2: the page on http://localhost:5173
 Open <http://localhost:5173>, type a postcode or place and pick one of the suggestions (or press
 "Use my location"), choose a diet and cuisines, and press **Find the best deals**. The stores come back best first; the best store's
 deals are shown, and the others open with a click.
+
+The **Beer** link at the top opens the beer section (`#/beer`): this week's beer deals of every
+chain as crates, cans and bottles, each cheapest per litre first, the only fair way to compare a
+crate with a 6-pack. It needs no location, since a chain's deals are the same in every store.
 
 The development server forwards every `/api` request to the API on port 8000, so to the browser
 the page and the API are one site. That's also how the AWS demo will serve them, so the API needs

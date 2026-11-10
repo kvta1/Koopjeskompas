@@ -1,0 +1,347 @@
+{
+ "data": {
+  "bonusPromotions": [
+   {
+    "id": "825005",
+    "products": [
+     {
+      "title": "Grolsch Herfstbok 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.69
+       },
+       "now": {
+        "amount": 5.77
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbok bier",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 2.25
+       },
+       "now": {
+        "amount": 1.69
+       }
+      }
+     },
+     {
+      "title": "Brand Dubbelbock 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.99
+       },
+       "now": {
+        "amount": 5.99
+       }
+      }
+     },
+     {
+      "title": "Grolsch Gerijpte herfstbok 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.79
+       },
+       "now": {
+        "amount": 6.59
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbier 0.0 6-pack",
+      "salesUnitSize": "6 x 0.33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "La Trappe Bockbier 4-pack",
+      "salesUnitSize": "4x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.89
+       },
+       "now": {
+        "amount": 5.92
+       }
+      }
+     },
+     {
+      "title": "Jopen Bokbier 4-granen bok",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 2.19
+       },
+       "now": {
+        "amount": 1.64
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbok bier 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.89
+       },
+       "now": {
+        "amount": 6.67
+       }
+      }
+     },
+     {
+      "title": "Brugse Zot Bok",
+      "salesUnitSize": "33 cl",
+      "priceV2": {
+       "was": {
+        "amount": 2.19
+       },
+       "now": {
+        "amount": 1.64
+       }
+      }
+     },
+     {
+      "title": "Grolsch Dunkel weizenbock 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.89
+       },
+       "now": {
+        "amount": 5.92
+       }
+      }
+     },
+     {
+      "title": "Gulpener Herfstbock 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.19
+       },
+       "now": {
+        "amount": 5.39
+       }
+      }
+     },
+     {
+      "title": "Brouwerij 't IJ Ijbok",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 2.79
+       },
+       "now": {
+        "amount": 2.09
+       }
+      }
+     },
+     {
+      "title": "Lowlander Pumpkin weizen",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 2.99
+       },
+       "now": {
+        "amount": 2.24
+       }
+      }
+     },
+     {
+      "title": "Moersleutel Geitenbreier",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 3.19
+       },
+       "now": {
+        "amount": 2.39
+       }
+      }
+     },
+     {
+      "title": "Frontaal Drop bock",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 3.49
+       },
+       "now": {
+        "amount": 2.62
+       }
+      }
+     },
+     {
+      "title": "Alfa Herfstbok 6-pack",
+      "salesUnitSize": "6 x 30 cl",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Two Chefs Brewing Stroopwafel Stout",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 2.99
+       },
+       "now": {
+        "amount": 2.24
+       }
+      }
+     },
+     {
+      "title": "Frontaal Deer hutner",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 3.99
+       },
+       "now": {
+        "amount": 2.99
+       }
+      }
+     },
+     {
+      "title": "Grolsch Winterbok speciaalbier 6-pack",
+      "salesUnitSize": "6 x 0,3 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.09
+       },
+       "now": {
+        "amount": 6.07
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbok",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.29
+       },
+       "now": {
+        "amount": 0.97
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbok",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.49
+       },
+       "now": {
+        "amount": 1.12
+       }
+      }
+     },
+     {
+      "title": "Grolsch Gerijpte herfstbok",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.49
+       },
+       "now": {
+        "amount": 1.12
+       }
+      }
+     },
+     {
+      "title": "Brand Dubbelbock",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.34
+       },
+       "now": {
+        "amount": 1.0
+       }
+      }
+     },
+     {
+      "title": "Texels Jutters bock",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 2.1
+       },
+       "now": {
+        "amount": 1.57
+       }
+      }
+     },
+     {
+      "title": "Grolsch Kruidige winterbok",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.35
+       },
+       "now": {
+        "amount": 1.01
+       }
+      }
+     },
+     {
+      "title": "Grolsch Herfstbier 0.0%",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.17
+       },
+       "now": {
+        "amount": 0.88
+       }
+      }
+     },
+     {
+      "title": "La Trappe Bockbier",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.98
+       },
+       "now": {
+        "amount": 1.48
+       }
+      }
+     },
+     {
+      "title": "Grolsch Weizenbock",
+      "salesUnitSize": "300 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.34
+       },
+       "now": {
+        "amount": 1.0
+       }
+      }
+     }
+    ]
+   }
+  ]
+ }
+}

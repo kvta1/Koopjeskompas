@@ -632,6 +632,64 @@ So the pipeline runs inside AWS instead:
 - **The budget** stays at zero spend with credits excluded; check Cost Explorer after each step
   that adds a service.
 
+### 9.5 A beer section: the cheapest beer per litre, in crates, cans and bottles
+
+A separate part of the page, in the spirit of biernet.nl and bierindeaanbieding.nl: this week's
+beer deals of every chain, in three tabs (kratten, blikken, flessen), each sorted by **price per
+litre**, the only fair way to compare a crate of 24 × 30 cl with a 6-pack of 33 cl cans.
+
+**Decided (2026-11-10):** AH, Jumbo and Lidl for now (roughly 5 to 15 beer products a week;
+biernet.nl covers ten-plus chains); a **national** list, not near the user, since deals are
+national per chain; and the **NIX18** message ("Geen 18, geen alcohol") shown in the section.
+
+**What the data has now, and lacks.** This week AH has about 5 beer deals and Jumbo about 6, all
+on ranges ("Alle Heineken multipacks: 25% korting"), and Lidl none. Those are percentage deals,
+so their products were never looked up: there is no packaging, volume or price per product. AH's
+range lookup returns each product's title, `salesUnitSize` and price; Jumbo's promotion pages give
+each product's price and even `pricePerUnit` per litre; Lidl's tiles carry a packaging text.
+
+**Separate where it matters, shared where it can be:**
+
+| Layer | Approach |
+|---|---|
+| Page | A separate "Bier" section with its own address (`#/bier`) and tabs |
+| API | A separate endpoint, `GET /api/beer`: beer products per packaging type, by price per litre |
+| Domain | A separate pure module, `domain/beer.py`: is it beer, which packaging, how many litres, what per litre |
+| Fetching | Shared with the existing sources: AH and Jumbo also look up the products of beer deals (about 11 requests a week); a separate beer scraper would visit the same pages twice |
+
+Steps, each its own commit:
+
+1. **Real beer products first.** Look up this week's beer ranges once (AH ~4 lookups, Jumbo
+   ~5 pages) and keep them as fixtures, so the rules below rest on real titles and sizes.
+2. **The domain** (`domain/beer.py`): recognise beer (pils, bier, IPA, weizen, tripel, bok,
+   brand names; not wine, spirits or cider); read the packaging (krat, blik, fles) and the
+   volume ("24 x 30 cl" = 7.2 l) from the product's title and size; the deal price from the
+   product's normal price and the deal's discount; the price per litre. `RangeProduct` gains an
+   optional `unit_size`. Table tests on the real titles.
+3. **Ingestion:** AH and Jumbo look up the products of beer deals too, and keep each product's
+   size; Lidl keeps its packaging text.
+4. **The API:** `GET /api/beer`, with its own response models; `openapi.json` and the page's types
+   regenerated.
+5. **The page:** navigation between "Supermarkets" and "Bier", the three tabs, a list per tab
+   (product, chain, packaging, price, price per litre, discount, until when), and NIX18.
+
+✅ Milestone: the cheapest beer per litre this week, per packaging type, across AH, Jumbo and Lidl.
+
+Built (2026-11-10). Also decided: packaging by best guess with the exact pack always shown, and
+alcohol-free beer included with a "0.0" badge. What the real data taught:
+- **Far more beer than estimated.** Not 5 to 15 products a week but about 255 (this week AH 176,
+  Jumbo 79, Lidl 0): one deal like "Alle Hertog Jan, Amstel, Bavaria of Warsteiner multipacks"
+  covers 95 products.
+- **AH sells one title in several sizes**, and products were kept by title, so only the first
+  survived (now kept by title and size; this also affected scoring's range medians slightly).
+- **Jumbo's price per litre is of the price paid**, the deal's when there is one, so the volume
+  is (promoPrice or price) over it, and it beats a title when they disagree ("Corona Cero 330
+  ml" holds 1.32 l). `RangeProduct.litres` carries it.
+- **Dutch compounds**: "herfstbokbieren" holds beer words without word boundaries.
+Of 238 captured products, the rules place all but two (one titled "xx"). The cheapest this week:
+a crate of Bavaria 24 x 0,3 l at € 12,99 (€ 1,80 per litre), Amstel 50 cl cans at € 0,88
+(€ 1,76), and an Amstel 6-pack of bottles at € 3,74 (€ 2,08). Not yet: Lidl beer (none on
+offer when this was built; its tiles carry a packaging text to use when there is).
 ### 9.2 Full roadmap (phased)
 
 ### Phase 0 — Foundations (1 evening)

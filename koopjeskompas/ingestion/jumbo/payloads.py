@@ -107,9 +107,15 @@ class OverviewPage(_JumboModel):
         return self.data.nu_tab.active_tab.runtimes
 
 
+class PricePerUnit(_JumboModel):
+    price: int  # cents per unit
+    unit: str  # "l", "kg", "pieces"
+
+
 class Price(_JumboModel):
     price: int  # cents: the normal price
     promo_price: int | None = None  # cents: the price with the deal, when it has one
+    price_per_unit: PricePerUnit | None = None
 
 
 class Product(_JumboModel):

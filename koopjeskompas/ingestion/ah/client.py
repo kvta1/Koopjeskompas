@@ -28,7 +28,7 @@ from koopjeskompas.ingestion.ah.payloads import (
     BonusPeriod,
     BonusWeek,
     SectionMetadata,
-    ranges_needing_prices,
+    ranges_to_look_up,
 )
 
 logger = logging.getLogger(__name__)
@@ -111,7 +111,7 @@ class AhClient:
                 logger.warning("skipping section %r: %s", meta.description, error)
                 week.failed_sections.append(meta.description)
 
-        for segment_id in ranges_needing_prices(week.sections):
+        for segment_id in ranges_to_look_up(week.sections):
             try:
                 week.ranges[segment_id] = self._fetch_range(segment_id, period)
             except AhApiError as error:
@@ -183,7 +183,7 @@ def load_raw_week(raw_dir: Path, day: date) -> BonusWeek:
             week.sections.append(_read_json(raw_dir / section_filename(meta)))
         except FileNotFoundError:
             week.failed_sections.append(meta.description)
-    for segment_id in ranges_needing_prices(week.sections):
+    for segment_id in ranges_to_look_up(week.sections):
         try:
             week.ranges[segment_id] = _read_json(raw_dir / range_filename(segment_id))
         except FileNotFoundError:

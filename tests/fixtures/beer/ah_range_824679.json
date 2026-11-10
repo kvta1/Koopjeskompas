@@ -1,0 +1,275 @@
+{
+ "data": {
+  "bonusPromotions": [
+   {
+    "id": "824679",
+    "products": [
+     {
+      "title": "Heineken Premium pilsener 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.65
+       },
+       "now": {
+        "amount": 4.99
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 0.0 6-pack",
+      "salesUnitSize": "6 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.65
+       },
+       "now": {
+        "amount": 4.99
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 6-pack",
+      "salesUnitSize": "6 x 0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.79
+       },
+       "now": {
+        "amount": 6.59
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 24-pack",
+      "salesUnitSize": "24 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 26.59
+       },
+       "now": {
+        "amount": 19.94
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener draaidop 24-pack",
+      "salesUnitSize": "24 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 23.99
+       },
+       "now": {
+        "amount": 17.99
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 0.0 draaidop 6-pack",
+      "salesUnitSize": "6 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener draaidop 12-pack",
+      "salesUnitSize": "12 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 13.99
+       },
+       "now": {
+        "amount": 10.49
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 0.0 draaidop 12-pack",
+      "salesUnitSize": "12 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 12.49
+       },
+       "now": {
+        "amount": 9.37
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener draaidop 6-pack",
+      "salesUnitSize": "6 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 7.99
+       },
+       "now": {
+        "amount": 5.99
+       }
+      }
+     },
+     {
+      "title": "Heineken Witpils 6-pack",
+      "salesUnitSize": "1,8 l",
+      "priceV2": {
+       "was": {
+        "amount": 8.29
+       },
+       "now": {
+        "amount": 6.22
+       }
+      }
+     },
+     {
+      "title": "Heineken Pilsner 0.0% 12-pack",
+      "salesUnitSize": "12 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 13.29
+       },
+       "now": {
+        "amount": 9.97
+       }
+      }
+     },
+     {
+      "title": "Heineken 0.0 24-pack",
+      "salesUnitSize": "24 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 25.99
+       },
+       "now": {
+        "amount": 19.49
+       }
+      }
+     },
+     {
+      "title": "Heineken Original 12-pack",
+      "salesUnitSize": "12 x 0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 13.29
+       },
+       "now": {
+        "amount": 9.97
+       }
+      }
+     },
+     {
+      "title": "Heineken Original 24-pack",
+      "salesUnitSize": "24 x 0,25 l",
+      "priceV2": {
+       "was": {
+        "amount": 25.99
+       },
+       "now": {
+        "amount": 19.49
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.11
+       },
+       "now": {
+        "amount": 0.83
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener",
+      "salesUnitSize": "0,5 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.47
+       },
+       "now": {
+        "amount": 1.1
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener draaidop",
+      "salesUnitSize": "250 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.17
+       },
+       "now": {
+        "amount": 0.88
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener",
+      "salesUnitSize": "0,33 l",
+      "priceV2": {
+       "was": {
+        "amount": 1.11
+       },
+       "now": {
+        "amount": 0.83
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 0.0 draaidop",
+      "salesUnitSize": "250 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.17
+       },
+       "now": {
+        "amount": 0.88
+       }
+      }
+     },
+     {
+      "title": "Heineken Premium pilsener 0.0",
+      "salesUnitSize": "330 ml",
+      "priceV2": {
+       "was": {
+        "amount": 1.11
+       },
+       "now": {
+        "amount": 0.83
+       }
+      }
+     },
+     {
+      "title": "Heineken 0.0 Flavoured lime lemongrass 4-pack",
+      "salesUnitSize": "1,32 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     },
+     {
+      "title": "Heineken 0.0 Flavoured nectarine juniper 4-pack",
+      "salesUnitSize": "1,32 l",
+      "priceV2": {
+       "was": {
+        "amount": 6.99
+       },
+       "now": {
+        "amount": 5.24
+       }
+      }
+     }
+    ]
+   }
+  ]
+ }
+}
