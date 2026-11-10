@@ -23,10 +23,12 @@ product and per-weight deals are scored. Step 3 added the web API (`koopjeskompa
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
 themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/`,
 `scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
-search with PDOK in the page) are done. Step 3 (Jumbo) is on hold: the `DealSource` interface
-(`ingestion/source.py`, `ingestion/ah/source.py`) is built, but Jumbo's site is behind Akamai and
-blocks honestly identified requests; the findings and options are in PLAN.md §9.4. Never disguise a
-scraper as a browser to get past bot protection. Step 4 is continuous deployment inside AWS.
+search with PDOK in the page) are done. Step 3 adds Jumbo and Lidl next to AH, in four parts
+(3a multi-chain foundations, 3b Jumbo, 3c Lidl, 3d page and weekly routine); the `DealSource`
+interface (`ingestion/source.py`, `ingestion/ah/source.py`) is built. Follow the scraping policy
+in PLAN.md §9.4 step 3: a browser identity is allowed when an honest one is blocked, but deal
+pages only, a fixed pause, one request at a time, and no CAPTCHA solving, proxies or forged
+bot-detection data. Step 4 is continuous deployment inside AWS.
 
 ## Commands
 
