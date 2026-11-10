@@ -1,5 +1,6 @@
 import type { Deal, RankedStore } from "../api/client";
 import { formatDate, formatDistance, formatPercent, mapUrl } from "../format";
+import { ChainBadge } from "./ChainBadge";
 
 interface StoreCardProps {
   ranked: RankedStore;
@@ -20,7 +21,7 @@ export function StoreCard({ ranked, cuisinesChosen, open }: StoreCardProps) {
         </span>
         <div className="store-name">
           <h3>
-            <span className={`chain chain-${store.chain.toLowerCase()}`}>{store.chain}</span>
+            <ChainBadge chain={store.chain} />
             {place && ` ${place}`}
           </h3>
           <p className="address">
