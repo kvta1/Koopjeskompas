@@ -68,8 +68,11 @@ def test_identity_is_honest_unless_asked_otherwise(tmp_path: Path) -> None:
     route = respx.get(url__startswith=BASE).respond(text="ok")
 
     PoliteClient(BASE, tmp_path, sleep=lambda _: None).get_text("/", "a.html")
-    honest = route.calls.last.request.headers["user-agent"]
-    assert honest == HONEST_HEADERS["User-Agent"]
+    honest = route.calls.last.request.headers
+    assert honest["user-agent"] == HONEST_HEADERS["User-Agent"]
+    # Honest, but complete: some CDNs refuse a request that says nothing else.
+    assert honest["accept"].startswith("text/html")
+    assert honest["accept-language"].startswith("nl-NL")
 
     browser = PoliteClient(BASE, tmp_path, BROWSER_HEADERS, sleep=lambda _: None)
     browser.get_text("/", "b.html")
