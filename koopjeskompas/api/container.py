@@ -1,101 +1,88 @@
-"""Container entry point: the same FastAPI app, served by uvicorn, for Azure Container Apps.
+"""Container entry point: the same FastAPI app, served by uvicorn, on any container host.
 
 A container is an ordinary server, unlike a Lambda: uvicorn listens on a port and
 calls the app, as ``koopjeskompas serve`` does on the laptop. So there's no adapter
 like Mangum; the ``Dockerfile`` starts uvicorn with ``create_container_app``, which
 builds the app once when the container starts.
 
-Configured by environment variables, so one image runs anywhere:
+One image runs anywhere; environment variables say where the deals are:
 
-- ``DEALS_CONTAINER_URL``: the Blob Storage container holding the snapshots, e.g.
-  ``https://<account>.blob.core.windows.net/data``. Each chain's ``deals/<key>.json``
-  is copied to local disk at startup. With no snapshot at all the app doesn't start,
-  so a broken setup shows up as a failing container rather than as empty rankings.
-  A new upload reaches new containers, not running ones: restart the app after a
-  ``publish-deals``, or wait until it has scaled to zero and back.
-- ``DATA_DIR``: without ``DEALS_CONTAINER_URL``, the deals are read from this
-  directory instead (default ``/data``), e.g. the laptop's ``data/`` mounted with
-  ``docker run -v``.
-- ``CORS_ORIGINS``: comma-separated origins of web pages on another domain that may
-  call the API, e.g. ``https://<name>.azurestaticapps.net``. Empty: none.
+- ``DEALS_BUCKET``: an S3 bucket, for a container on AWS (ECS, EC2), using the
+  task's or instance's role.
+- ``DEALS_CONTAINER_URL``: a Blob Storage container, for Azure Container Apps, e.g.
+  ``https://<account>.blob.core.windows.net/data``, using its managed identity.
+- Neither: the deals are read from ``DATA_DIR`` (default ``/data``), e.g. the laptop's
+  ``data/`` mounted with ``docker run -v``.
 
-No keys or passwords: ``DefaultAzureCredential`` finds an identity by itself. In Azure
-that's the app's managed identity, which only needs the "Storage Blob Data Reader"
-role on the container; on the laptop it's your ``az login``.
+From storage, each chain's ``deals/<key>.json`` is copied to local disk at startup.
+With no snapshot at all the app doesn't start, so a broken setup shows up as a failing
+container rather than as empty rankings. A new upload reaches new containers, not
+running ones: restart the app after a ``publish-deals``, or wait until it has scaled
+to zero and back.
+
+``CORS_ORIGINS``: comma-separated origins of web pages on another domain that may call
+the API, e.g. ``https://<name>.azurestaticapps.net``. Empty: none.
 """
 
 import os
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol
 
-from azure.core.exceptions import ResourceNotFoundError
 from fastapi import FastAPI
 
 from koopjeskompas.api.app import create_app
-from koopjeskompas.api.snapshots import download_snapshots
+from koopjeskompas.cloud.snapshots import SnapshotStore, download_snapshots
 
 DOWNLOAD_DIR = Path("/tmp/koopjeskompas")
 DEFAULT_DATA_DIR = Path("/data")
 
 
-class _Download(Protocol):
-    def readall(self) -> bytes: ...
+def _s3(bucket: str) -> SnapshotStore:
+    # Each cloud's code is imported only when its setting is used: an Azure container
+    # never loads boto3, an AWS one never the Azure SDK.
+    from koopjeskompas.cloud.aws.s3 import open_s3_snapshots
+
+    return open_s3_snapshots(bucket)
 
 
-class BlobContainer(Protocol):
-    """The part of the SDK's ``ContainerClient`` we use, so tests can fake it."""
+def _blob(url: str) -> SnapshotStore:
+    from koopjeskompas.cloud.azure.blob import open_blob_snapshots
 
-    @property
-    def url(self) -> str: ...
-
-    def download_blob(self, blob: str) -> _Download: ...
+    return open_blob_snapshots(url)
 
 
-@dataclass(frozen=True)
-class BlobSnapshots:
-    """The snapshots in a Blob Storage container: the Azure adapter for
-    ``SnapshotStore`` (``lambda_handler.S3Snapshots`` is the AWS one)."""
+# Which setting names which storage, and how to open it.
+STORAGE: Mapping[str, Callable[[str], SnapshotStore]] = {
+    "DEALS_BUCKET": _s3,
+    "DEALS_CONTAINER_URL": _blob,
+}
 
-    container: BlobContainer
 
-    @property
-    def location(self) -> str:
-        return self.container.url
-
-    def download(self, key: str, path: Path) -> bool:
-        try:
-            data = self.container.download_blob(key).readall()
-        except ResourceNotFoundError:  # 404. Not 403: a missing role should be loud.
-            return False
-        path.write_bytes(data)
-        return True
+class ConfigurationError(ValueError):
+    """The environment variables contradict each other."""
 
 
 def build_app(
-    environ: Mapping[str, str], open_container: Callable[[str], BlobContainer]
+    environ: Mapping[str, str],
+    storage: Mapping[str, Callable[[str], SnapshotStore]] = STORAGE,
 ) -> FastAPI:
-    """The app as ``environ`` configures it; ``open_container`` connects to Blob
-    Storage (passed in, so tests need no Azure)."""
+    """The app as ``environ`` configures it. ``storage`` is passed in so tests can
+    swap the clouds for fakes."""
     origins = [o.strip() for o in environ.get("CORS_ORIGINS", "").split(",")]
     origins = [o for o in origins if o]
-    if url := environ.get("DEALS_CONTAINER_URL"):
-        download_snapshots(BlobSnapshots(open_container(url)), DOWNLOAD_DIR)
+
+    named = [setting for setting in storage if environ.get(setting)]
+    if len(named) > 1:
+        raise ConfigurationError(f"set one of {' and '.join(named)}, not both")
+    if named:
+        (setting,) = named
+        download_snapshots(storage[setting](environ[setting]), DOWNLOAD_DIR)
         data_dir = DOWNLOAD_DIR
     else:
         data_dir = Path(environ.get("DATA_DIR", DEFAULT_DATA_DIR))
     return create_app(data_dir=data_dir, cors_origins=origins)
 
 
-def _open_container(url: str) -> BlobContainer:
-    # Imported here: only a container that downloads needs the identity libraries.
-    from azure.identity import DefaultAzureCredential
-    from azure.storage.blob import ContainerClient
-
-    return ContainerClient.from_container_url(url, credential=DefaultAzureCredential())
-
-
 def create_container_app() -> FastAPI:
     """What uvicorn calls (``--factory``) once, when the container starts."""
-    return build_app(os.environ, _open_container)
+    return build_app(os.environ)

@@ -33,7 +33,7 @@ from constructs import Construct
 # snapshots under DEALS_PREFIX and finds the bucket through the stack's output.
 from koopjeskompas.publish import DATA_BUCKET_OUTPUT, DEALS_PREFIX
 
-API_HANDLER = "koopjeskompas.api.lambda_handler.handler"
+API_HANDLER = "koopjeskompas.cloud.aws.lambda_handler.handler"
 SITE_URL_OUTPUT = "SiteUrl"
 
 

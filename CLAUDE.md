@@ -119,16 +119,22 @@ The intended design is a modular monolith with a strict separation between the d
 - **API (FastAPI)**: read-only against the DB — `/api/rank`, `/api/stores`, `/api/deals`. Never
   scrapes or hits external sources synchronously in a request. Built so far: `api/app.py`
   (`create_app(data_dir)` factory; deals, stores and today are FastAPI dependencies, so tests swap
-  them via `dependency_overrides`), `api/lambda_handler.py` (the same app behind Mangum for AWS
-  Lambda; downloads every registered chain's snapshot (`deals/<key>.json`) from S3 into `/tmp`
-  per cold start, skipping missing ones, configured by `DEALS_BUCKET`), `api/container.py` (the same app
-  under uvicorn in the `Dockerfile`, for Azure Container Apps; snapshots from Blob Storage
-  (`DEALS_CONTAINER_URL`, managed identity via `DefaultAzureCredential`) or a mounted
-  `DATA_DIR`; `CORS_ORIGINS` for a page on another domain), `api/snapshots.py` (the
-  download loop both share, behind a `SnapshotStore` port: `S3Snapshots`, `BlobSnapshots`;
-  the Azure SDK is the `azure` dependency group, kept out of the Lambda zip) and `api/schemas.py` (the HTTP contract, deliberately separate
+  them via `dependency_overrides`), `api/container.py` (the same app under uvicorn in the
+  `Dockerfile`, for any container host; `DEALS_BUCKET` (S3, AWS) or `DEALS_CONTAINER_URL`
+  (Blob, Azure) names the storage, neither means a mounted `DATA_DIR`; `CORS_ORIGINS` for a
+  page on another domain) and `api/schemas.py` (the HTTP contract, deliberately separate
   from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
+- **Cloud** (`koopjeskompas/cloud/`): everything that knows a cloud exists, one folder per
+  cloud; nothing outside it imports a cloud SDK (`api/container.py` picks an adapter lazily).
+  `snapshots.py` is the port: `SnapshotStore` and `download_snapshots`, which copies every
+  registered chain's snapshot (`deals/<key>.json`) to local disk, skipping missing ones and
+  raising `NoSnapshotsError` when there's none. Adapters: `aws/s3.py` (`S3Snapshots`; a 403
+  counts as missing, the role can't list) and `azure/blob.py` (`BlobSnapshots`,
+  `DefaultAzureCredential`; a 403 raises). `aws/lambda_handler.py` is the Lambda entry point
+  (Mangum; downloads into `/tmp` per cold start, configured by `DEALS_BUCKET`). The Azure SDK
+  is the `azure` dependency group, kept out of the Lambda zip. Two ways to run (Lambda,
+  container) × two storages: an Azure Functions entry point would go in `azure/`.
 - **Chains** (`koopjeskompas/chains.py`): the registry of AH, Jumbo and Lidl: the `name` deals
   and stores meet on ("AH"), the `key` for the command line and files ("ah"), and how
   OpenStreetMap knows the brand. Dependency-free, so the Lambda can import it. The API, `rank`

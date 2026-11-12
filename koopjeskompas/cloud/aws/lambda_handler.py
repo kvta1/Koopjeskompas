@@ -20,51 +20,19 @@ none.
 """
 
 import os
-from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
 import boto3
-from botocore.exceptions import ClientError
 from mangum import Mangum
 from mangum.types import LambdaContext, LambdaEvent
 
 from koopjeskompas.api.app import create_app
-from koopjeskompas.api.snapshots import download_snapshots
+from koopjeskompas.cloud.aws.s3 import S3Downloader, S3Snapshots
+from koopjeskompas.cloud.snapshots import download_snapshots
 
 DATA_DIR = Path("/tmp/koopjeskompas")
-# What S3 answers for a key that isn't there: 404, or 403 for a role that may read
-# objects but not list the bucket, as this one (least privilege).
-_MISSING = {"404", "NoSuchKey", "403", "AccessDenied"}
-
-
-class S3Downloader(Protocol):
-    """The one S3 call we make; boto3's S3 client fits it, and so does a test fake."""
-
-    def download_file(self, Bucket: str, Key: str, Filename: str) -> None: ...
-
-
-@dataclass(frozen=True)
-class S3Snapshots:
-    """The snapshots in an S3 bucket: the AWS adapter for ``SnapshotStore``."""
-
-    s3: S3Downloader
-    bucket: str
-
-    @property
-    def location(self) -> str:
-        return f"s3://{self.bucket}"
-
-    def download(self, key: str, path: Path) -> bool:
-        try:
-            self.s3.download_file(Bucket=self.bucket, Key=key, Filename=str(path))
-        except ClientError as error:
-            code = error.response.get("Error", {}).get("Code", "")
-            if code in _MISSING:
-                return False
-            raise
-        return True
 
 
 def build_handler(s3: S3Downloader, bucket: str, data_dir: Path = DATA_DIR) -> Mangum:
@@ -83,5 +51,5 @@ def _handler_from_environment() -> Mangum:
 
 def handler(event: LambdaEvent, context: LambdaContext) -> dict[str, Any]:
     """What the Lambda function's handler setting points at:
-    ``koopjeskompas.api.lambda_handler.handler``."""
+    ``koopjeskompas.cloud.aws.lambda_handler.handler``."""
     return _handler_from_environment()(event, context)

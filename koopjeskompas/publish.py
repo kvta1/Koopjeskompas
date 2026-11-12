@@ -9,7 +9,7 @@ The names shared with the infrastructure live here, and ``infra/stack.py`` impor
 them: the app package must not depend on ``infra/``, which isn't part of it.
 
 A new snapshot reaches new Lambda environments; warm ones keep the old one until
-AWS recycles them, within hours (see ``api/lambda_handler.py``).
+AWS recycles them, within hours (see ``cloud/aws/lambda_handler.py``).
 """
 
 from collections.abc import Mapping, Sequence

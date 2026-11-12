@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build build/lambda.zip: the API and its dependencies, for AWS Lambda's python3.14
 # runtime on arm64 (Graviton). Upload it as the function's code; its handler is
-# koopjeskompas.api.lambda_handler.handler.
+# koopjeskompas.cloud.aws.lambda_handler.handler.
 #
 # Lambda imports from the top of the zip, so the package and every dependency sit
 # there side by side. Dependencies are installed for Lambda's machine, not this

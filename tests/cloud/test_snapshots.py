@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from koopjeskompas.api.snapshots import NoSnapshotsError, download_snapshots
+from koopjeskompas.cloud.snapshots import NoSnapshotsError, download_snapshots
 
 
 class FakeStore:

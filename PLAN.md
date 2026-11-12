@@ -271,7 +271,7 @@ Browser ──► CloudFront ──┬─► S3 bucket: React build (static file
 - **One domain:** CloudFront routes `/api/*` to the Lambda and everything else to S3. The browser
   only ever talks to one origin, so CORS never comes up in production.
 - **Data:** the parsed deals (`data/deals/ah.json`) as an object in a second, private S3 bucket.
-  `api/lambda_handler.py` downloads it into `/tmp` once per Lambda cold start, where `create_app`
+  `cloud/aws/lambda_handler.py` downloads it into `/tmp` once per Lambda cold start, where `create_app`
   reads it exactly as it reads `data/` locally, so the app needs no storage adapter. The Leiden
   store list is packaged with the code. No database.
 
@@ -326,7 +326,7 @@ Steps:
 1. ✅ **Guardrails.** A zero-spend budget (credits excluded, so it shows real usage) and the
    Region confirmed (eu-north-1).
 2. ✅ **The page on S3 + CloudFront, by hand.** A private bucket, read by CloudFront through OAC.
-3. **Lambda-ready API.** ✅ Code: the Mangum entry point (`api/lambda_handler.py`) with the
+3. **Lambda-ready API.** ✅ Code: the Mangum entry point (`cloud/aws/lambda_handler.py`) with the
    snapshot downloaded from S3, the nearest-day fallback, `scripts/build-lambda.sh` for the
    arm64 zip, and the body hash in the page. Tests use a fake S3; never real AWS in CI.
    ✅ By hand: the data bucket, the function (arm64, 512 MB, reserved concurrency 5), its

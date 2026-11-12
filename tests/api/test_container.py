@@ -1,42 +1,40 @@
-"""The container entry point, configured as Azure would, with Blob Storage faked."""
+"""The container entry point, configured by environment variables as a host would.
 
+Storage is faked: each test passes its own ``storage`` mapping, so no cloud is
+involved. The real adapters have their own tests in ``tests/cloud/``.
+"""
+
+from collections.abc import Callable, Mapping
 from datetime import date
 from pathlib import Path
 
 import pytest
-from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 from fastapi.testclient import TestClient
 
 from koopjeskompas.api import container
-from koopjeskompas.api.container import BlobSnapshots, build_app
-from koopjeskompas.api.snapshots import NoSnapshotsError
+from koopjeskompas.api.container import ConfigurationError, build_app
+from koopjeskompas.cloud.aws.s3 import S3Snapshots
+from koopjeskompas.cloud.azure.blob import BlobSnapshots
+from koopjeskompas.cloud.snapshots import NoSnapshotsError, SnapshotStore
 from koopjeskompas.domain.models import Deal
 from koopjeskompas.ingestion.cache import deals_path, save_deals
 
-CONTAINER_URL = "https://koopjes.blob.core.windows.net/data"
 PAGE = "https://example.azurestaticapps.net"
 LEIDEN_CENTRAAL = {"lat": 52.1664, "lon": 4.4817}
 
 
-class FakeDownload:
-    def __init__(self, data: bytes) -> None:
-        self.data = data
+class FakeStore:
+    """A ``SnapshotStore`` holding snapshots in memory, by key."""
 
-    def readall(self) -> bytes:
-        return self.data
+    def __init__(self, location: str, snapshots: dict[str, bytes]) -> None:
+        self.location = location
+        self.snapshots = snapshots
 
-
-class FakeContainer:
-    """Serves blobs from memory, like the SDK's ``ContainerClient``."""
-
-    def __init__(self, blobs: dict[str, bytes], url: str = CONTAINER_URL) -> None:
-        self.blobs = blobs
-        self.url = url
-
-    def download_blob(self, blob: str) -> FakeDownload:
-        if blob not in self.blobs:
-            raise ResourceNotFoundError("The specified blob does not exist.")
-        return FakeDownload(self.blobs[blob])
+    def download(self, key: str, path: Path) -> bool:
+        if key not in self.snapshots:
+            return False
+        path.write_bytes(self.snapshots[key])
+        return True
 
 
 @pytest.fixture
@@ -60,68 +58,80 @@ def download_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     return directory
 
 
-# --- Blob Storage -------------------------------------------------------------
+def fake_storage(
+    snapshots: dict[str, bytes], opened: list[str] | None = None
+) -> Mapping[str, Callable[[str], SnapshotStore]]:
+    """Both settings, each opening a fake store and noting what it was asked for."""
+
+    def opener(setting: str) -> Callable[[str], SnapshotStore]:
+        def open_store(value: str) -> SnapshotStore:
+            if opened is not None:
+                opened.append(f"{setting}={value}")
+            return FakeStore(value, snapshots)
+
+        return open_store
+
+    return {setting: opener(setting) for setting in container.STORAGE}
 
 
-def test_a_blob_is_copied_to_disk(snapshot: bytes, tmp_path: Path) -> None:
-    store = BlobSnapshots(FakeContainer({"deals/ah.json": snapshot}))
-    assert store.download("deals/ah.json", tmp_path / "ah.json")
-    assert (tmp_path / "ah.json").read_bytes() == snapshot
-    assert store.location == CONTAINER_URL
+# --- where the deals come from ----------------------------------------------
 
 
-def test_a_missing_blob_is_missing(tmp_path: Path) -> None:
-    assert not BlobSnapshots(FakeContainer({})).download(
-        "deals/ah.json", tmp_path / "x"
-    )
-
-
-def test_no_permission_is_an_error_not_a_missing_blob(tmp_path: Path) -> None:
-    class Forbidden(FakeContainer):
-        def download_blob(self, blob: str) -> FakeDownload:
-            raise HttpResponseError("AuthorizationPermissionMismatch")
-
-    with pytest.raises(HttpResponseError):
-        BlobSnapshots(Forbidden({})).download("deals/ah.json", tmp_path / "x")
-
-
-# --- configuration ------------------------------------------------------------
-
-
-def test_snapshots_come_from_the_blob_container(
-    snapshot: bytes, download_dir: Path
+@pytest.mark.parametrize(
+    ("setting", "value"),
+    [
+        ("DEALS_BUCKET", "koopjeskompas-data"),  # a container on AWS
+        ("DEALS_CONTAINER_URL", "https://k.blob.core.windows.net/data"),  # Azure
+    ],
+)
+def test_snapshots_come_from_the_named_storage(
+    setting: str, value: str, snapshot: bytes, download_dir: Path
 ) -> None:
     opened: list[str] = []
+    storage = fake_storage({"deals/ah.json": snapshot}, opened)
 
-    def open_container(url: str) -> FakeContainer:
-        opened.append(url)
-        return FakeContainer({"deals/ah.json": snapshot})
+    app = build_app({setting: value}, storage)
 
-    app = build_app({"DEALS_CONTAINER_URL": CONTAINER_URL}, open_container)
-
-    assert opened == [CONTAINER_URL]
+    assert opened == [f"{setting}={value}"]
     assert deals_path(download_dir, "AH").read_bytes() == snapshot
     response = TestClient(app).post("/api/rank", json={"location": LEIDEN_CENTRAAL})
     assert response.status_code == 200
 
 
-def test_an_empty_container_stops_the_app_from_starting() -> None:
+def test_two_storages_at_once_is_a_mistake() -> None:
+    environ = {"DEALS_BUCKET": "b", "DEALS_CONTAINER_URL": "https://k/data"}
+    with pytest.raises(ConfigurationError, match="not both"):
+        build_app(environ, fake_storage({}))
+
+
+def test_empty_storage_stops_the_app_from_starting() -> None:
     with pytest.raises(NoSnapshotsError):
-        build_app({"DEALS_CONTAINER_URL": CONTAINER_URL}, lambda url: FakeContainer({}))
+        build_app({"DEALS_BUCKET": "empty"}, fake_storage({}))
 
 
-def test_without_a_container_url_a_mounted_directory_is_read(
+def test_without_storage_a_mounted_directory_is_read(
     snapshot: bytes, tmp_path: Path
 ) -> None:
-    deals_path(tmp_path / "mounted", "AH").parent.mkdir(parents=True)
-    deals_path(tmp_path / "mounted", "AH").write_bytes(snapshot)
+    mounted = tmp_path / "mounted"
+    deals_path(mounted, "AH").parent.mkdir(parents=True)
+    deals_path(mounted, "AH").write_bytes(snapshot)
+    opened: list[str] = []
 
-    def no_azure(url: str) -> FakeContainer:
-        raise AssertionError("Blob Storage shouldn't be used")
+    app = build_app({"DATA_DIR": str(mounted)}, fake_storage({}, opened))
 
-    app = build_app({"DATA_DIR": str(tmp_path / "mounted")}, no_azure)
+    assert opened == []
     response = TestClient(app).post("/api/rank", json={"location": LEIDEN_CENTRAAL})
     assert response.status_code == 200
+
+
+def test_each_setting_opens_its_clouds_adapter(monkeypatch: pytest.MonkeyPatch) -> None:
+    import boto3
+
+    monkeypatch.setattr(boto3, "client", lambda service: object())
+    s3 = container.STORAGE["DEALS_BUCKET"]("koopjeskompas-data")
+    blob = container.STORAGE["DEALS_CONTAINER_URL"]("https://k.blob.core.windows.net/d")
+    assert isinstance(s3, S3Snapshots)
+    assert isinstance(blob, BlobSnapshots)
 
 
 # --- CORS -------------------------------------------------------------------
@@ -129,7 +139,7 @@ def test_without_a_container_url_a_mounted_directory_is_read(
 
 def client_with_cors(origins: str, data_dir: Path) -> TestClient:
     environ = {"DATA_DIR": str(data_dir), "CORS_ORIGINS": origins}
-    return TestClient(build_app(environ, lambda url: FakeContainer({})))
+    return TestClient(build_app(environ, fake_storage({})))
 
 
 def preflight(client: TestClient, origin: str) -> dict[str, str]:

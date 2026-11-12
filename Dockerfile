@@ -1,5 +1,6 @@
-# The web API as a container image, for Azure Container Apps (or any container host).
+# The web API as a container image.
 # The same app as the AWS Lambda; see koopjeskompas/api/container.py for its settings.
+# One image for every host: Azure Container Apps, or ECS/EC2 on AWS.
 #
 #   docker build --pull -t koopjeskompas-api .   (--pull: the newest base, with security fixes)
 #   docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api

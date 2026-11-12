@@ -5,12 +5,14 @@ The app reads deals from a local directory (``<data_dir>/deals/ah.json``, ...), 
 weekly ``publish-deals`` uploads the same files to storage, and the server copies them
 down when it starts.
 
-Which storage is a detail: S3 for the AWS Lambda, Blob Storage for the Azure container.
-So this module holds only what they share, the loop over the chains, and talks to
-storage through ``SnapshotStore``, a one-method interface (a "port"). Each cloud has a
-small class that fits it (an "adapter"): ``S3Snapshots`` in ``lambda_handler.py``,
-``BlobSnapshots`` in ``container.py``. The same pattern as ``DealSource`` for the
-supermarkets.
+Which storage is a detail: S3 on AWS, Blob Storage on Azure. So this module holds only
+what they share, the loop over the chains, and talks to storage through
+``SnapshotStore``, a small interface (a "port"). Each cloud has a class that fits it
+(an "adapter"): ``aws/s3.py``'s ``S3Snapshots`` and ``azure/blob.py``'s
+``BlobSnapshots``. The same pattern as ``DealSource`` for the supermarkets.
+
+How the app runs is a separate question: the Lambda (``aws/lambda_handler.py``) always
+uses S3, while a container (``api/container.py``) takes whichever storage it's told.
 """
 
 import logging
