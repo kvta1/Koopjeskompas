@@ -53,10 +53,22 @@ export async function fetchBeer(): Promise<BeerResponse> {
   return requestJson<BeerResponse>("/api/beer");
 }
 
+/**
+ * Where the API is, for a page served from another domain: on Azure the page
+ * (Static Web Apps) and the API (Container Apps) each have their own address, so
+ * the page is built with `VITE_API_BASE_URL=https://<the API>`. Empty by default:
+ * locally (Vite's proxy) and on AWS (CloudFront) the API is on the page's own
+ * domain, and a path like "/api/rank" is enough. Vite fills it in at build time.
+ */
+export function apiUrl(path: string): string {
+  const base = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/+$/, "");
+  return `${base}${path}`;
+}
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(path, init);
+    response = await fetch(apiUrl(path), init);
   } catch {
     // fetch only rejects when there is no HTTP response at all.
     throw new ApiError(0, `Can't reach the API. ${START_THE_API}`);

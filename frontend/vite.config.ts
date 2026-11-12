@@ -14,5 +14,6 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts"],
     unstubGlobals: true, // undo vi.stubGlobal("fetch", ...) after each test
+    unstubEnvs: true, // and vi.stubEnv("VITE_API_BASE_URL", ...)
   },
 });

@@ -168,7 +168,9 @@ The intended design is a modular monolith with a strict separation between the d
   `frontend/openapi.json` (a pytest test fails when it's stale) and `npm run gen:api` turns it into
   `src/api/schema.d.ts` (CI fails when that's stale). So after changing `api/schemas.py`, run both
   and commit both. In development Vite proxies `/api` to the API, so the browser sees one origin
-  and no CORS is configured (production will be one origin too, via CloudFront). Plain CSS with
+  and no CORS is configured (on AWS one origin too, via CloudFront). On Azure the page and API
+  have separate domains: build with `VITE_API_BASE_URL=https://<api>` (`apiUrl` in `client.ts`) and
+  set the API's `CORS_ORIGINS` to the page. Plain CSS with
   colour tokens; components hold no fetch logic (`src/api/client.ts` does); tests sit next to the
   code (`*.test.ts(x)`) and stub `fetch`. The place search (`src/api/pdok.ts`,
   `components/PlaceSearch.tsx`) calls PDOK Locatieserver straight from the browser
