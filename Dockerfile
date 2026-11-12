@@ -1,7 +1,7 @@
 # The web API as a container image, for Azure Container Apps (or any container host).
 # The same app as the AWS Lambda; see koopjeskompas/api/container.py for its settings.
 #
-#   docker build -t koopjeskompas-api .
+#   docker build --pull -t koopjeskompas-api .   (--pull: the newest base, with security fixes)
 #   docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api
 #
 # Two stages: the first installs everything with uv, the second copies only the
@@ -36,7 +36,10 @@ RUN uv sync --frozen --no-default-groups --group azure --no-editable
 FROM python:3.14-slim
 
 # Not root: if the app were ever broken into, the attacker shouldn't own the container.
-RUN useradd --system --uid 10001 --no-create-home app
+# No pip: the app runs from its own virtual environment and never installs anything,
+# and pip's bundled copies of urllib3 and others would only add to scanner findings.
+RUN useradd --system --uid 10001 --no-create-home app \
+ && rm -rf /usr/local/bin/pip* /usr/local/lib/python3.14/site-packages/pip*
 
 COPY --from=build /app/.venv /app/.venv
 ENV PATH=/app/.venv/bin:$PATH PYTHONUNBUFFERED=1
