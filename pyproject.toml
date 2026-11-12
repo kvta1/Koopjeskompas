@@ -21,14 +21,19 @@ requires = ["uv_build>=0.12.7,<0.13"]
 build-backend = "uv_build"
 
 [tool.uv]
-# `uv sync` installs the infrastructure tools too; the Lambda zip gets none of the groups.
-default-groups = ["dev", "infra"]
+# `uv sync` installs the infrastructure tools and the Azure libraries too; the Lambda zip
+# gets none of the groups, the container image only `azure`.
+default-groups = ["dev", "infra", "azure"]
 
 [tool.uv.build-backend]
 # The package lives at the repo root rather than under src/.
 module-root = ""
 
 [dependency-groups]
+azure = [
+    "azure-identity>=1.27.0",
+    "azure-storage-blob>=12.31.1",
+]
 dev = [
     "boto3-stubs[cloudformation,s3]>=1.43.125",
     "httpx2>=2.16.0",

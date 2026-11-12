@@ -13,11 +13,13 @@ sync endpoints in a thread pool, so they don't block the server either.
 """
 
 import json
+from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
 from koopjeskompas.api.schemas import (
@@ -40,11 +42,16 @@ from koopjeskompas.ingestion.cache import load_snapshots
 from koopjeskompas.stores import load_stores
 
 
-def create_app(data_dir: Path) -> FastAPI:
+def create_app(data_dir: Path, cors_origins: Sequence[str] = ()) -> FastAPI:
     """Build the app for the cache in ``data_dir``.
 
     A factory rather than a module-level ``app``, so tests and the CLI can each point
     it at their own data directory without global configuration.
+
+    ``cors_origins`` are the web pages on another domain that may call the API from a
+    browser, e.g. ``https://<name>.azurestaticapps.net``. None by default: locally
+    (Vite's proxy) and on AWS (CloudFront) page and API share one origin, and a
+    browser needs no permission for that.
     """
     app = FastAPI(
         title="Koopjeskompas",
@@ -54,6 +61,8 @@ def create_app(data_dir: Path) -> FastAPI:
     app.state.data_dir = data_dir
     app.state.stores = load_stores()  # packaged and fixed: load once
     app.include_router(router)
+    if cors_origins:
+        _allow_cross_origin(app, cors_origins)
 
     # The web page is served elsewhere (Vite's dev server locally, CloudFront later),
     # so a visitor to the API itself gets its docs rather than a bare 404. Left out of
@@ -63,6 +72,26 @@ def create_app(data_dir: Path) -> FastAPI:
         return RedirectResponse(url="/docs")
 
     return app
+
+
+def _allow_cross_origin(app: FastAPI, origins: Sequence[str]) -> None:
+    """Let the pages at ``origins``, and only those, call the API from a browser.
+
+    A page's JavaScript may only read answers from its own origin (scheme, host and
+    port), unless the other server says otherwise: that's CORS. For a JSON POST the
+    browser first asks with an OPTIONS request (the "preflight"); this middleware
+    answers it and adds ``Access-Control-Allow-Origin`` to the real answer. It's a
+    browser rule, not access control: curl ignores it, and the API is public anyway.
+    """
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(origins),  # exact origins, never "*"
+        allow_methods=["GET", "POST"],
+        # What the page sends: JSON, and the body hash that CloudFront needs on AWS
+        # (frontend/src/api/client.ts), harmless here.
+        allow_headers=["Content-Type", "x-amz-content-sha256"],
+        max_age=3600,  # the browser may reuse a preflight answer for an hour
+    )
 
 
 def openapi_json(app: FastAPI) -> str:
