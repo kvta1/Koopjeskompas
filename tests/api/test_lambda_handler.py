@@ -18,11 +18,8 @@ from botocore.exceptions import ClientError
 from mangum.types import LambdaContext
 
 from koopjeskompas.api import lambda_handler
-from koopjeskompas.api.lambda_handler import (
-    NoSnapshotsError,
-    build_handler,
-    download_snapshots,
-)
+from koopjeskompas.api.lambda_handler import S3Snapshots, build_handler
+from koopjeskompas.api.snapshots import NoSnapshotsError
 from koopjeskompas.domain.models import Deal
 from koopjeskompas.ingestion.cache import save_deals
 
@@ -93,22 +90,17 @@ def function_url_event(
     }
 
 
-def test_each_chains_snapshot_lands_where_the_app_reads_it(
+def test_a_snapshot_in_the_bucket_is_downloaded(s3: FakeS3, tmp_path: Path) -> None:
+    path = tmp_path / "ah.json"
+    assert S3Snapshots(s3, BUCKET).download(KEY, path)
+    assert path.exists()
+    assert s3.downloads == [(BUCKET, KEY)]
+
+
+def test_a_403_means_missing_for_a_role_that_cant_list(
     s3: FakeS3, tmp_path: Path
 ) -> None:
-    # Only AH's snapshot is in the bucket: Jumbo and Lidl are skipped, not errors.
-    assert download_snapshots(s3, BUCKET, tmp_path / "data") == ["AH"]
-    assert (tmp_path / "data" / "deals" / "ah.json").exists()
-    assert [key for _, key in s3.downloads] == [
-        "deals/ah.json",
-        "deals/jumbo.json",
-        "deals/lidl.json",
-    ]
-
-
-def test_an_empty_bucket_is_an_error(tmp_path: Path) -> None:
-    with pytest.raises(NoSnapshotsError):
-        download_snapshots(FakeS3({}), BUCKET, tmp_path / "data")
+    assert not S3Snapshots(s3, BUCKET).download("deals/jumbo.json", tmp_path / "j")
 
 
 def test_other_s3_errors_are_not_mistaken_for_a_missing_snapshot(
@@ -120,7 +112,7 @@ def test_other_s3_errors_are_not_mistaken_for_a_missing_snapshot(
             raise ClientError(error, "GetObject")  # type: ignore[arg-type]
 
     with pytest.raises(ClientError):
-        download_snapshots(Throttled({}), BUCKET, tmp_path / "data")
+        S3Snapshots(Throttled({}), BUCKET).download(KEY, tmp_path / "ah.json")
 
 
 def test_the_handler_answers_function_url_events(s3: FakeS3, tmp_path: Path) -> None:
