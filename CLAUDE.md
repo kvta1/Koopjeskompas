@@ -58,6 +58,8 @@ npm run lint && npm run format:check && npm run typecheck && npm run build
 npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
 
 scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
+docker build -t koopjeskompas-api .   # the API as a container image (Azure); CI builds and starts it
+docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api
 scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
 scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--local: fetch only)
 uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket
@@ -119,7 +121,12 @@ The intended design is a modular monolith with a strict separation between the d
   (`create_app(data_dir)` factory; deals, stores and today are FastAPI dependencies, so tests swap
   them via `dependency_overrides`), `api/lambda_handler.py` (the same app behind Mangum for AWS
   Lambda; downloads every registered chain's snapshot (`deals/<key>.json`) from S3 into `/tmp`
-  per cold start, skipping missing ones, configured by `DEALS_BUCKET`) and `api/schemas.py` (the HTTP contract, deliberately separate
+  per cold start, skipping missing ones, configured by `DEALS_BUCKET`), `api/container.py` (the same app
+  under uvicorn in the `Dockerfile`, for Azure Container Apps; snapshots from Blob Storage
+  (`DEALS_CONTAINER_URL`, managed identity via `DefaultAzureCredential`) or a mounted
+  `DATA_DIR`; `CORS_ORIGINS` for a page on another domain), `api/snapshots.py` (the
+  download loop both share, behind a `SnapshotStore` port: `S3Snapshots`, `BlobSnapshots`;
+  the Azure SDK is the `azure` dependency group, kept out of the Lambda zip) and `api/schemas.py` (the HTTP contract, deliberately separate
   from the domain models; `extra="forbid"` so misspelled fields are a 422). Endpoints are sync
   `def`: scoring is CPU-bound. Tests use `TestClient` (needs the `httpx2` dev dependency).
 - **Chains** (`koopjeskompas/chains.py`): the registry of AH, Jumbo and Lidl: the `name` deals
