@@ -5,61 +5,27 @@ here in the documented "version 2.0" payload format that Function URLs use.
 """
 
 import json
-import shutil
 from collections.abc import Iterator
-from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
 
 import boto3
 import pytest
-from botocore.exceptions import ClientError
 from mangum.types import LambdaContext
 
-from koopjeskompas.api import lambda_handler
-from koopjeskompas.api.lambda_handler import (
-    NoSnapshotsError,
-    build_handler,
-    download_snapshots,
-)
-from koopjeskompas.domain.models import Deal
-from koopjeskompas.ingestion.cache import save_deals
+from koopjeskompas.cloud.aws import lambda_handler
+from koopjeskompas.cloud.aws.lambda_handler import build_handler
+from koopjeskompas.cloud.snapshots import NoSnapshotsError
+from tests.cloud.aws.fakes import BUCKET, KEY, FakeS3, bucket_with_ah
 
-BUCKET = "koopjeskompas-data"
-KEY = "deals/ah.json"
 CONTEXT = cast(LambdaContext, SimpleNamespace())  # Mangum only passes it on
 LEIDEN_CENTRAAL = {"lat": 52.1664, "lon": 4.4817}
 
 
-class FakeS3:
-    """Serves objects from local files, like ``download_file`` serves them from S3."""
-
-    def __init__(self, objects: dict[tuple[str, str], Path]) -> None:
-        self.objects = objects
-        self.downloads: list[tuple[str, str]] = []
-
-    def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
-        self.downloads.append((Bucket, Key))
-        if (Bucket, Key) not in self.objects:
-            # What S3 answers a role that may read objects but not list the bucket.
-            error = {"Error": {"Code": "403", "Message": "Forbidden"}}
-            raise ClientError(error, "HeadObject")  # type: ignore[arg-type]
-        shutil.copyfile(self.objects[Bucket, Key], Filename)
-
-
 @pytest.fixture
 def s3(tmp_path: Path) -> FakeS3:
-    snapshot = tmp_path / "snapshot.json"
-    deal = Deal(
-        chain="AH",
-        product_name="AH Hummus naturel",
-        mechanic_string="25% korting",
-        valid_from=date(2026, 11, 2),
-        valid_to=date(2026, 11, 8),
-    )
-    save_deals(snapshot, [deal])
-    return FakeS3({(BUCKET, KEY): snapshot})
+    return bucket_with_ah(tmp_path)
 
 
 def function_url_event(
@@ -91,36 +57,6 @@ def function_url_event(
         "body": None if body is None else json.dumps(body),
         "isBase64Encoded": False,
     }
-
-
-def test_each_chains_snapshot_lands_where_the_app_reads_it(
-    s3: FakeS3, tmp_path: Path
-) -> None:
-    # Only AH's snapshot is in the bucket: Jumbo and Lidl are skipped, not errors.
-    assert download_snapshots(s3, BUCKET, tmp_path / "data") == ["AH"]
-    assert (tmp_path / "data" / "deals" / "ah.json").exists()
-    assert [key for _, key in s3.downloads] == [
-        "deals/ah.json",
-        "deals/jumbo.json",
-        "deals/lidl.json",
-    ]
-
-
-def test_an_empty_bucket_is_an_error(tmp_path: Path) -> None:
-    with pytest.raises(NoSnapshotsError):
-        download_snapshots(FakeS3({}), BUCKET, tmp_path / "data")
-
-
-def test_other_s3_errors_are_not_mistaken_for_a_missing_snapshot(
-    tmp_path: Path,
-) -> None:
-    class Throttled(FakeS3):
-        def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
-            error = {"Error": {"Code": "SlowDown", "Message": "Slow down"}}
-            raise ClientError(error, "GetObject")  # type: ignore[arg-type]
-
-    with pytest.raises(ClientError):
-        download_snapshots(Throttled({}), BUCKET, tmp_path / "data")
 
 
 def test_the_handler_answers_function_url_events(s3: FakeS3, tmp_path: Path) -> None:

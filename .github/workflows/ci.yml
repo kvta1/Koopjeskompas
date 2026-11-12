@@ -53,6 +53,27 @@ jobs:
  
 
 
+  # The image Azure Container Apps runs: it builds, starts and answers.
+  container:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image builds
+        run: docker build --tag koopjeskompas-api .
+
+      # Without deals: health doesn't need them (ranking answers 503 until it has some).
+      - name: Container starts and answers /api/health
+        run: |
+          docker run --detach --name api --publish 8000:8000 koopjeskompas-api
+          for attempt in $(seq 1 30); do
+            curl --silent --fail http://localhost:8000/api/health && exit 0
+            sleep 1
+          done
+          docker logs api
+          exit 1
+
   frontend:
     runs-on: ubuntu-latest
     defaults:

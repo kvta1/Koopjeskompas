@@ -1,0 +1,9 @@
+# What `docker build` doesn't send to Docker: only pyproject.toml, uv.lock, README.md
+# and koopjeskompas/ are used. Leaving the rest out keeps builds fast and keeps local
+# files (deals, credentials, a virtualenv for another OS) out of the image.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!koopjeskompas/
+**/__pycache__

@@ -272,7 +272,7 @@ GitHub Actions runs all of these on every push and pull request to `main`, in tw
 the Python backend and one for the frontend.
 
 **The API on AWS Lambda** runs the same app behind [Mangum](https://mangum.fastapiexpert.com/)
-(`koopjeskompas/api/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
+(`koopjeskompas/cloud/aws/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
 
 ```bash
 scripts/build-lambda.sh                   # writes build/lambda.zip
@@ -318,7 +318,9 @@ koopjeskompas/
 ├── domain/        pure logic, no I/O: models, deal mechanics, tagging, scoring, distance
 ├── ingestion/     getting deals in: the JSON cache, and ah/ (HTTP client, payload models, parser)
 ├── api/           the web API: request/response models (schemas.py), endpoints (app.py)
-│                  and the AWS Lambda entry point (lambda_handler.py)
+│                  and the container entry point for any host (container.py)
+├── cloud/         what knows a cloud exists: the snapshot download (snapshots.py),
+│                  aws/ (S3, the Lambda entry point) and azure/ (Blob Storage)
 ├── chains.py      the chains Koopjeskompas knows (AH, Jumbo, Lidl), in one place
 ├── stores/        every store in NL (nl_stores.json), and osm.py, which asks OpenStreetMap for
 │                  them and turns the answer into stores (koopjeskompas fetch-stores)

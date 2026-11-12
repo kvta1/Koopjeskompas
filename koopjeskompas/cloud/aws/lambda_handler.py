@@ -19,70 +19,24 @@ The bucket comes from the ``DEALS_BUCKET`` environment variable, so the code nam
 none.
 """
 
-import logging
 import os
 from functools import cache
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any
 
 import boto3
-from botocore.exceptions import ClientError
 from mangum import Mangum
 from mangum.types import LambdaContext, LambdaEvent
 
 from koopjeskompas.api.app import create_app
-from koopjeskompas.chains import CHAINS
-from koopjeskompas.ingestion.cache import deals_path
-from koopjeskompas.publish import DEALS_PREFIX
+from koopjeskompas.cloud.aws.s3 import S3Downloader, S3Snapshots
+from koopjeskompas.cloud.snapshots import download_snapshots
 
 DATA_DIR = Path("/tmp/koopjeskompas")
-# What S3 answers for a key that isn't there: 404, or 403 for a role that may read
-# objects but not list the bucket, as this one (least privilege).
-_MISSING = {"404", "NoSuchKey", "403", "AccessDenied"}
-
-logger = logging.getLogger(__name__)
-
-
-class S3Downloader(Protocol):
-    """The one S3 call we make; boto3's S3 client fits it, and so does a test fake."""
-
-    def download_file(self, Bucket: str, Key: str, Filename: str) -> None: ...
-
-
-class NoSnapshotsError(RuntimeError):
-    """No chain's snapshot is in the bucket: nothing to rank with."""
-
-
-def download_snapshots(s3: S3Downloader, bucket: str, data_dir: Path) -> list[str]:
-    """Copy each chain's snapshot from S3 to where ``create_app`` looks for it.
-
-    Returns the chains found. A chain without a snapshot is skipped with a warning,
-    so one chain's missing upload doesn't take the others down.
-    """
-    found = []
-    for chain in CHAINS:
-        key = f"{DEALS_PREFIX}{chain.key}.json"  # where publish-deals puts it
-        path = deals_path(data_dir, chain.name)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            s3.download_file(Bucket=bucket, Key=key, Filename=str(path))
-        except ClientError as error:
-            code = error.response.get("Error", {}).get("Code", "")
-            if code not in _MISSING:
-                raise
-            logger.warning(
-                "No snapshot at s3://%s/%s (%s); skipping", bucket, key, code
-            )
-            continue
-        logger.info("Downloaded s3://%s/%s", bucket, key)
-        found.append(chain.name)
-    if not found:
-        raise NoSnapshotsError(f"no snapshot in s3://{bucket}/{DEALS_PREFIX}")
-    return found
 
 
 def build_handler(s3: S3Downloader, bucket: str, data_dir: Path = DATA_DIR) -> Mangum:
-    download_snapshots(s3, bucket, data_dir)
+    download_snapshots(S3Snapshots(s3, bucket), data_dir)
     # lifespan="off": the app has no startup or shutdown hooks for Mangum to run.
     return Mangum(create_app(data_dir=data_dir), lifespan="off")
 
@@ -97,5 +51,5 @@ def _handler_from_environment() -> Mangum:
 
 def handler(event: LambdaEvent, context: LambdaContext) -> dict[str, Any]:
     """What the Lambda function's handler setting points at:
-    ``koopjeskompas.api.lambda_handler.handler``."""
+    ``koopjeskompas.cloud.aws.lambda_handler.handler``."""
     return _handler_from_environment()(event, context)
