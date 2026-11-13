@@ -25,3 +25,8 @@ output "static_web_app_api_key" {
   value       = azurerm_static_web_app.page.api_key
   sensitive   = true # hidden in plan and apply output (but in the state: keep that private)
 }
+
+output "api_name" {
+  description = "The Container App's name, for az containerapp commands (logs, revisions)."
+  value       = azurerm_container_app.api.name
+}
