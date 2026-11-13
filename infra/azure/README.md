@@ -48,7 +48,7 @@ Browser ──► Static Web App: the page (frontend/dist, built with VITE_API_B
    docker login ghcr.io   # your GitHub name, and a token with write:packages
    ```
 
-3. **Create the state storage** once: `scripts/bootstrap-azure-state.sh`. Terraform keeps its
+3. **Create the state storage** once: `scripts/azure/bootstrap-state.sh`. Terraform keeps its
    record of what it built there, rather than on the laptop.
 
 ## Deploying
@@ -56,7 +56,7 @@ Browser ──► Static Web App: the page (frontend/dist, built with VITE_API_B
 From the repository root:
 
 ```bash
-scripts/deploy-azure.sh
+scripts/azure/deploy.sh
 ```
 
 This deploys the image, the infrastructure, the page and the deals, then checks the API answers.

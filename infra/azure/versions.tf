@@ -16,7 +16,7 @@ terraform {
   }
 
   # The state: Terraform's record of what it built, which it compares with this code
-  # on every plan. Kept in Azure Storage (scripts/bootstrap-azure-state.sh made it),
+  # on every plan. Kept in Azure Storage (scripts/azure/bootstrap-state.sh made it),
   # not on the laptop: it survives a lost laptop, a run takes a lock on it so two
   # applies can't collide, and GitHub Actions can reach it later (phase 4).
   #

@@ -22,7 +22,7 @@ product and per-weight deals are scored. Step 3 added the web API (`koopjeskompa
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
 themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/aws/`,
-`scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
+`scripts/aws/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
 search with PDOK in the page) are done. Step 3 adds Jumbo and Lidl next to AH, in four parts
 (3a multi-chain foundations, 3b Jumbo, 3c Lidl, 3d page and weekly routine); the `DealSource`
 interface (`ingestion/source.py`, `ingestion/ah/source.py`) is built. Follow the scraping policy
@@ -57,16 +57,16 @@ npm test                   # Vitest + React Testing Library
 npm run lint && npm run format:check && npm run typecheck && npm run build
 npm run gen:api            # regenerate src/api/schema.d.ts from openapi.json
 
-scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
+scripts/aws/build-lambda.sh  # build/lambda.zip for AWS Lambda (python3.14, arm64); CI runs it too
 docker build -t koopjeskompas-api .   # the API as a container image (Azure); CI builds and starts it
 docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api
-scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
+scripts/aws/deploy.sh      # the user's AWS deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
 scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--azure: also to Azure; --local: fetch only)
 uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket (--cloud azure --container-url …: to Blob)
 cd infra/aws && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
 
-scripts/bootstrap-azure-state.sh   # once: the storage for Terraform's state (needs `az login`)
-scripts/deploy-azure.sh    # the user's Azure deploy: image to GHCR, terraform apply, page via SWA CLI, publish-deals --cloud azure
+scripts/azure/bootstrap-state.sh   # once: the storage for Terraform's state (needs `az login`)
+scripts/azure/deploy.sh    # the user's Azure deploy: image to GHCR, terraform apply, page via SWA CLI, publish-deals --cloud azure
 cd infra/azure && terraform fmt -check -recursive && terraform init -backend=false && terraform validate && terraform test   # what CI runs; no Azure needed
 ```
 
@@ -197,7 +197,7 @@ The intended design is a modular monolith with a strict separation between the d
   a Container App running `ghcr.io/kvta1/koopjeskompas-api:<commit>` with a **user-assigned**
   identity (Blob Data Reader on the `data` container only, named by `AZURE_CLIENT_ID`), Log
   Analytics, and a Static Web App for the page. The state is in Azure Storage
-  (`scripts/bootstrap-azure-state.sh`, Entra auth); the subscription comes from
+  (`scripts/azure/bootstrap-state.sh`, Entra auth); the subscription comes from
   `ARM_SUBSCRIPTION_ID`. Region `germanywestcentral`; the page's settings are kept in `eastus2`
   (West Europe refuses this subscription). `tests/prod.tftest.hcl` runs against a mocked
   provider, in CI. The user runs `apply`; Claude may run `plan` (read-only).

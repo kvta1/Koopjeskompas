@@ -1,7 +1,7 @@
 # How the Azure provider signs in and behaves.
 #
 # Signing in: with no credentials here, the provider uses your `az login`. Which
-# subscription comes from ARM_SUBSCRIPTION_ID (scripts/deploy-azure.sh sets it), so no
+# subscription comes from ARM_SUBSCRIPTION_ID (scripts/azure/deploy.sh sets it), so no
 # subscription ID is written in the repository.
 
 provider "azurerm" {

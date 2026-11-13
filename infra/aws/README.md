@@ -26,11 +26,11 @@ From the repository root, signed in with `aws login`:
 
 ```bash
 cd infra/aws && npm ci && npx cdk bootstrap && cd ../..   # once per account and Region
-scripts/deploy.sh                                  # every deploy
+scripts/aws/deploy.sh                                  # every deploy
 ```
 
 `cdk bootstrap` creates a stack called `CDKToolkit`: a bucket for uploads and the roles CDK deploys
-through. `scripts/deploy.sh` builds the Lambda zip and the page, runs `cdk deploy`, and uploads the
+through. `scripts/aws/deploy.sh` builds the Lambda zip and the page, runs `cdk deploy`, and uploads the
 deal snapshots. CDK stops to ask before any change that widens access (IAM, for example). The demo's
 address is printed at the end as `Koopjeskompas.SiteUrl`.
 

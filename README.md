@@ -277,7 +277,7 @@ frontend.
 (`koopjeskompas/cloud/aws/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
 
 ```bash
-scripts/build-lambda.sh                   # writes build/lambda.zip
+scripts/aws/build-lambda.sh                   # writes build/lambda.zip
 ```
 
 CI builds it too, so a dependency without a Linux arm64 build fails on the pull request.
@@ -286,7 +286,7 @@ CI builds it too, so a dependency without a Linux arm64 build fails on the pull 
 explains bootstrapping and tearing down. Signed in with `aws login`:
 
 ```bash
-scripts/deploy.sh                         # build the zip and the page, deploy, upload the deals
+scripts/aws/deploy.sh                         # build the zip and the page, deploy, upload the deals
 scripts/refresh-deals.sh                  # weekly: fetch every chain's deals, publish them
 ```
 
@@ -294,7 +294,7 @@ scripts/refresh-deals.sh                  # weekly: fetch every chain's deals, p
 which also explains the first-time setup. Signed in with `az login`:
 
 ```bash
-scripts/deploy-azure.sh                   # image, infrastructure, page and deals
+scripts/azure/deploy.sh                   # image, infrastructure, page and deals
 scripts/refresh-deals.sh --azure          # weekly: as above, and publish to Azure too
 ```
 
@@ -342,8 +342,9 @@ tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/s
 infra/             the demos as code, one folder per cloud (README.md compares them):
 ├── aws/           AWS CDK: stack.py, app.py; tests in tests/infra/aws/
 └── azure/         Terraform: *.tf; tests in infra/azure/tests/
-scripts/           build-lambda.sh packages the API for Lambda; deploy.sh and deploy-azure.sh
-                   deploy everything; refresh-deals.sh is the weekly routine
+scripts/           refresh-deals.sh is the weekly routine; one folder per cloud:
+├── aws/           build-lambda.sh packages the API for Lambda; deploy.sh deploys everything
+└── azure/         bootstrap-state.sh (once); deploy.sh deploys everything
 frontend/          the web page (React + TypeScript + Vite)
 ├── openapi.json   the API's schema, written by `koopjeskompas openapi`
 └── src/

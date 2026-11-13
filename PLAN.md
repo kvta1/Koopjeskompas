@@ -327,7 +327,7 @@ Steps:
    Region confirmed (eu-north-1).
 2. ✅ **The page on S3 + CloudFront, by hand.** A private bucket, read by CloudFront through OAC.
 3. **Lambda-ready API.** ✅ Code: the Mangum entry point (`cloud/aws/lambda_handler.py`) with the
-   snapshot downloaded from S3, the nearest-day fallback, `scripts/build-lambda.sh` for the
+   snapshot downloaded from S3, the nearest-day fallback, `scripts/aws/build-lambda.sh` for the
    arm64 zip, and the body hash in the page. Tests use a fake S3; never real AWS in CI.
    ✅ By hand: the data bucket, the function (arm64, 512 MB, reserved concurrency 5), its
    Function URL and the `/api/*` behaviour.
@@ -366,7 +366,7 @@ Replace the console clicks with an **AWS CDK stack in Python** that recreates th
 - **Tests without AWS:** `aws_cdk.assertions.Template` tests on the synthesised template (bucket
   public access blocked, the URL's auth type, the behaviour's methods and policies, the source-ARN
   condition on each permission), run in CI with `cdk synth`. They need no credentials.
-- **`scripts/deploy.sh`:** build the Lambda zip, build the page, `cdk deploy` (which uploads both
+- **`scripts/aws/deploy.sh`:** build the Lambda zip, build the page, `cdk deploy` (which uploads both
   and invalidates `/index.html`). Run from the laptop after `aws login`.
 - **`koopjeskompas publish-deals`:** uploads `data/deals/<chain>.json` to the data bucket (the
   bucket name read from the stack's outputs), so the weekly refresh is `fetch-deals` +
@@ -378,11 +378,11 @@ Replace the console clicks with an **AWS CDK stack in Python** that recreates th
   by this project's policies; only `managed/*` roles are protected). CloudFront is global, but the
   stack itself lives in eu-north-1. Lambda@Edge and cross-Region references are off limits.
 
-✅ Milestone: `scripts/deploy.sh` on a fresh checkout recreates the whole demo, and the hand-made
+✅ Milestone: `scripts/aws/deploy.sh` on a fresh checkout recreates the whole demo, and the hand-made
 resources are gone.
 
 Built: `infra/` (now `infra/aws/`: stack, app, pinned CDK CLI, README with the cutover checklist), template tests in
-`tests/infra/` (now `tests/infra/aws/`), `koopjeskompas/publish.py` and `scripts/deploy.sh`. CDK's helper for Function URL
+`tests/infra/` (now `tests/infra/aws/`), `koopjeskompas/publish.py` and `scripts/aws/deploy.sh`. CDK's helper for Function URL
 origins does grant both Lambda permissions (checked in the synthesised template, and pinned by a
 test). Next: the user bootstraps, deploys and cuts over.
 
@@ -613,7 +613,7 @@ policies block, and storing long-lived AWS keys in GitHub is the practice OIDC e
 So the pipeline runs inside AWS instead:
 
 - **AWS CodePipeline + CodeBuild,** connected to the GitHub repository through **CodeConnections**
-  (a GitHub app; no keys). A merge to `main` starts CodeBuild, which runs `scripts/deploy.sh`. The
+  (a GitHub app; no keys). A merge to `main` starts CodeBuild, which runs `scripts/aws/deploy.sh`. The
   pipeline is a second CDK stack.
 - **Check first:** that CodePipeline, CodeBuild and CodeConnections are available on this
   project's plan (`aws freetier get-account-plan-state` and AWS's supported-services list), and

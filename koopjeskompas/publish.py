@@ -53,7 +53,7 @@ def find_data_bucket(cloudformation: StackDescriber, stack_name: str) -> str:
             return name
     raise PublishError(
         f"Stack {stack_name} has no {DATA_BUCKET_OUTPUT} output; deploy it first "
-        "(scripts/deploy.sh)."
+        "(scripts/aws/deploy.sh)."
     )
 
 

@@ -49,7 +49,7 @@ jobs:
 
       # Catches a dependency without a Linux arm64 wheel before it breaks a deploy.
       - name: Lambda zip builds
-        run: scripts/build-lambda.sh
+        run: scripts/aws/build-lambda.sh
  
 
 

@@ -9,7 +9,7 @@
 # this AWS project's policies don't allow (PLAN.md §9.3).
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."  # the repository root
 
 if ! aws sts get-caller-identity >/dev/null 2>&1; then
   echo "Not signed in to AWS: run 'aws login' first." >&2
@@ -17,7 +17,7 @@ if ! aws sts get-caller-identity >/dev/null 2>&1; then
 fi
 
 echo "==> Building the API's Lambda zip"
-scripts/build-lambda.sh
+scripts/aws/build-lambda.sh
 
 echo "==> Building the page"
 (cd frontend && npm ci --silent && npm run build)

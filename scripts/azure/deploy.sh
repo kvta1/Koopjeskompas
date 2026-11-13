@@ -8,11 +8,11 @@
 #   5. a check that the API answers
 #
 # Once beforehand: az login, docker login ghcr.io (a token with write:packages), and
-# scripts/bootstrap-azure-state.sh. Terraform shows its plan and asks before it changes
+# scripts/azure/bootstrap-state.sh. Terraform shows its plan and asks before it changes
 # anything: read it, then answer yes.
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."  # the repository root
 
 for tool in az terraform docker npm uv; do
   if ! command -v "$tool" >/dev/null; then

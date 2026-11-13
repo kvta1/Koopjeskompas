@@ -1,6 +1,6 @@
 """The CDK app: what ``cdk synth`` and ``cdk deploy`` run (see cdk.json).
 
-It hands the stack the real builds, so build them first; ``scripts/deploy.sh`` does
+It hands the stack the real builds, so build them first; ``scripts/aws/deploy.sh`` does
 all of it in order.
 """
 
@@ -21,7 +21,7 @@ PAGE_BUILD = ROOT / "frontend" / "dist"
 
 def main() -> None:
     for path, build in [
-        (LAMBDA_ZIP, "scripts/build-lambda.sh"),
+        (LAMBDA_ZIP, "scripts/aws/build-lambda.sh"),
         (PAGE_BUILD, "npm run build (in frontend/)"),
     ]:
         if not path.exists():
