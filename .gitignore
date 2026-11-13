@@ -223,3 +223,10 @@ __marimo__/
 # AWS CDK: the CLI and its synthesised templates
 /infra/node_modules/
 /infra/cdk.out/
+
+# Terraform (infra-azure/): downloaded providers, and state or plans, which can hold
+# secrets. The state lives in Azure Storage; the lock file is committed.
+/infra-azure/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
