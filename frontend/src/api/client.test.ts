@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { RANKING } from "../test/fixtures";
-import { ApiError, rankStores, sha256Hex } from "./client";
+import { ApiError, apiUrl, fetchBeer, rankStores, sha256Hex } from "./client";
 
 function respondWith(response: Response) {
   const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response);
@@ -26,6 +26,27 @@ describe("sha256Hex", () => {
     expect(await sha256Hex("é")).toBe(
       "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
     );
+  });
+});
+
+describe("apiUrl", () => {
+  it("is the path alone by default: the API is on the page's own domain", () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    expect(apiUrl("/api/rank")).toBe("/api/rank");
+  });
+
+  it("puts the API's address in front when the page is built with one", () => {
+    vi.stubEnv("VITE_API_BASE_URL", "https://api.example.azurecontainerapps.io/");
+    expect(apiUrl("/api/rank")).toBe("https://api.example.azurecontainerapps.io/api/rank");
+  });
+
+  it("is used for every request", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "https://api.example");
+    const fetchMock = respondWith(Response.json({ crates: [], cans: [], bottles: [] }));
+
+    await fetchBeer();
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://api.example/api/beer");
   });
 });
 
