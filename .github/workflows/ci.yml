@@ -74,6 +74,34 @@ jobs:
           docker logs api
           exit 1
 
+  # The Azure infrastructure (infra-azure/): formatted, valid, and its tests pass.
+  # No Azure login: -backend=false skips the remote state, and the tests mock Azure.
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra-azure
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.17.1
+
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      - name: Init (providers from .terraform.lock.hcl, no backend)
+        run: terraform init -backend=false -input=false
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Tests (mocked provider)
+        run: terraform test
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
