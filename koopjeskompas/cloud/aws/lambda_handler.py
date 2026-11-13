@@ -29,13 +29,13 @@ from mangum import Mangum
 from mangum.types import LambdaContext, LambdaEvent
 
 from koopjeskompas.api.app import create_app
-from koopjeskompas.cloud.aws.s3 import S3Downloader, S3Snapshots
+from koopjeskompas.cloud.aws.s3 import S3Client, S3Snapshots
 from koopjeskompas.cloud.snapshots import download_snapshots
 
 DATA_DIR = Path("/tmp/koopjeskompas")
 
 
-def build_handler(s3: S3Downloader, bucket: str, data_dir: Path = DATA_DIR) -> Mangum:
+def build_handler(s3: S3Client, bucket: str, data_dir: Path = DATA_DIR) -> Mangum:
     download_snapshots(S3Snapshots(s3, bucket), data_dir)
     # lifespan="off": the app has no startup or shutdown hooks for Mangum to run.
     return Mangum(create_app(data_dir=data_dir), lifespan="off")

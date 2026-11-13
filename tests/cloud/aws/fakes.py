@@ -3,6 +3,7 @@
 import shutil
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 from botocore.exceptions import ClientError
 
@@ -14,11 +15,13 @@ KEY = "deals/ah.json"
 
 
 class FakeS3:
-    """Serves objects from local files, like ``download_file`` serves them from S3."""
+    """Serves objects from local files, like ``download_file`` serves them from S3,
+    and records what ``upload_file`` is asked to store."""
 
-    def __init__(self, objects: dict[tuple[str, str], Path]) -> None:
-        self.objects = objects
+    def __init__(self, objects: dict[tuple[str, str], Path] | None = None) -> None:
+        self.objects = objects or {}
         self.downloads: list[tuple[str, str]] = []
+        self.uploads: list[dict[str, Any]] = []
 
     def download_file(self, Bucket: str, Key: str, Filename: str) -> None:
         self.downloads.append((Bucket, Key))
@@ -27,6 +30,22 @@ class FakeS3:
             error = {"Error": {"Code": "403", "Message": "Forbidden"}}
             raise ClientError(error, "HeadObject")  # type: ignore[arg-type]
         shutil.copyfile(self.objects[Bucket, Key], Filename)
+
+    def upload_file(
+        self,
+        Filename: str,
+        Bucket: str,
+        Key: str,
+        ExtraArgs: dict[str, Any] | None = None,
+    ) -> None:
+        self.uploads.append(
+            {
+                "file": Path(Filename).name,
+                "bucket": Bucket,
+                "key": Key,
+                "extra": ExtraArgs,
+            }
+        )
 
 
 def bucket_with_ah(tmp_path: Path) -> FakeS3:

@@ -35,9 +35,22 @@ def test_other_s3_errors_are_not_mistaken_for_a_missing_snapshot(
         S3Snapshots(Throttled({}), BUCKET).download(KEY, tmp_path / "ah.json")
 
 
+def test_a_snapshot_is_uploaded_as_json(tmp_path: Path) -> None:
+    s3 = FakeS3()
+    S3Snapshots(s3, BUCKET).upload(KEY, tmp_path / "ah.json")
+    assert s3.uploads == [
+        {
+            "file": "ah.json",
+            "bucket": BUCKET,
+            "key": KEY,
+            "extra": {"ContentType": "application/json"},
+        }
+    ]
+
+
 def test_opened_by_bucket_name(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     s3 = bucket_with_ah(tmp_path)
-    monkeypatch.setattr(boto3, "client", lambda service: s3)
+    monkeypatch.setattr(boto3, "client", lambda service, **_: s3)
     store = open_s3_snapshots(BUCKET)
     assert store == S3Snapshots(s3, BUCKET)
     assert store.location == f"s3://{BUCKET}"

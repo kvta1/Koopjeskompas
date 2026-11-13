@@ -127,7 +127,7 @@ def test_without_storage_a_mounted_directory_is_read(
 def test_each_setting_opens_its_clouds_adapter(monkeypatch: pytest.MonkeyPatch) -> None:
     import boto3
 
-    monkeypatch.setattr(boto3, "client", lambda service: object())
+    monkeypatch.setattr(boto3, "client", lambda service, **_: object())
     s3 = container.STORAGE["DEALS_BUCKET"]("koopjeskompas-data")
     blob = container.STORAGE["DEALS_CONTAINER_URL"]("https://k.blob.core.windows.net/d")
     assert isinstance(s3, S3Snapshots)

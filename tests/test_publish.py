@@ -1,4 +1,5 @@
-"""Publishing the snapshots, with fakes for S3 and CloudFormation: no AWS involved."""
+"""Publishing the snapshots, with fakes for S3, CloudFormation and Blob Storage: no
+cloud involved."""
 
 import json
 from pathlib import Path
@@ -6,6 +7,7 @@ from typing import Any
 
 import boto3
 import pytest
+from azure.core.exceptions import ClientAuthenticationError, HttpResponseError
 from botocore.exceptions import (
     ClientError,
     MissingDependencyException,
@@ -13,6 +15,9 @@ from botocore.exceptions import (
 )
 
 from koopjeskompas.cli import main
+from koopjeskompas.cloud.aws.s3 import S3Snapshots
+from koopjeskompas.cloud.azure import blob
+from koopjeskompas.cloud.azure.blob import BlobSnapshots
 from koopjeskompas.publish import (
     DATA_BUCKET_OUTPUT,
     PublishError,
@@ -20,29 +25,10 @@ from koopjeskompas.publish import (
     publish_deals,
     snapshots,
 )
+from tests.cloud.aws.fakes import FakeS3
+from tests.cloud.azure.test_blob import CONTAINER_URL, FakeContainer
 
 BUCKET = "koopjeskompas-databucket-abc123"
-
-
-class FakeS3:
-    def __init__(self) -> None:
-        self.uploads: list[dict[str, Any]] = []
-
-    def upload_file(
-        self,
-        Filename: str,
-        Bucket: str,
-        Key: str,
-        ExtraArgs: dict[str, Any] | None = None,
-    ) -> None:
-        self.uploads.append(
-            {
-                "file": Path(Filename).name,
-                "bucket": Bucket,
-                "key": Key,
-                "extra": ExtraArgs,
-            }
-        )
 
 
 class FakeCloudFormation:
@@ -88,7 +74,7 @@ def test_a_stack_without_the_output_says_to_deploy() -> None:
 
 def test_every_chain_snapshot_is_uploaded_under_deals(data_dir: Path) -> None:
     s3 = FakeS3()
-    keys = publish_deals(s3, BUCKET, snapshots(data_dir / "deals"))
+    keys = publish_deals(S3Snapshots(s3, BUCKET), snapshots(data_dir / "deals"))
 
     assert keys == ["deals/ah.json", "deals/jumbo.json"]
     assert s3.uploads[0] == {
@@ -163,3 +149,92 @@ def test_only_credential_errors_suggest_logging_in(
     monkeypatch.setattr(boto3, "client", refuse)
     assert main(["--data-dir", str(data_dir), "publish-deals", "--bucket", "b"]) == 1
     assert ("aws login" in capsys.readouterr().err) is says_log_in
+
+
+# --- Azure ------------------------------------------------------------------
+
+
+class OpenedContainer(FakeContainer):
+    """A fake container that also notes the URL it was opened with."""
+
+    opened_with: str | None = None
+
+
+@pytest.fixture
+def fake_azure(monkeypatch: pytest.MonkeyPatch) -> OpenedContainer:
+    container = OpenedContainer({})
+
+    def open_fake(url: str) -> BlobSnapshots:
+        container.opened_with = url
+        return BlobSnapshots(container)
+
+    monkeypatch.setattr(blob, "open_blob_snapshots", open_fake)
+    return container
+
+
+def test_publish_deals_to_azure(
+    data_dir: Path, fake_azure: OpenedContainer, capsys: pytest.CaptureFixture[str]
+) -> None:
+    argv = ["--data-dir", str(data_dir), "publish-deals", "--cloud", "azure"]
+    assert main([*argv, "--container-url", CONTAINER_URL]) == 0
+
+    assert fake_azure.opened_with == CONTAINER_URL
+    assert sorted(fake_azure.blobs) == ["deals/ah.json", "deals/jumbo.json"]
+    assert fake_azure.content_types["deals/ah.json"] == "application/json"
+    assert f"{CONTAINER_URL}/deals/ah.json" in capsys.readouterr().out
+
+
+def test_the_container_url_can_come_from_the_environment(
+    data_dir: Path, fake_azure: OpenedContainer, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # The same variable the API reads, so one setting serves both.
+    monkeypatch.setenv("DEALS_CONTAINER_URL", CONTAINER_URL)
+    assert main(["--data-dir", str(data_dir), "publish-deals", "--cloud", "azure"]) == 0
+    assert fake_azure.opened_with == CONTAINER_URL
+
+
+def test_azure_without_a_container_says_where_to_find_it(
+    data_dir: Path,
+    fake_azure: OpenedContainer,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.delenv("DEALS_CONTAINER_URL", raising=False)
+    assert main(["--data-dir", str(data_dir), "publish-deals", "--cloud", "azure"]) == 1
+    assert "deals_container_url" in capsys.readouterr().err
+    assert fake_azure.opened_with is None
+
+
+def azure_error(error_type: type[HttpResponseError], status: int) -> HttpResponseError:
+    """An error as the SDK raises it, with the HTTP status Azure answered."""
+    error = error_type("refused")
+    error.status_code = status
+    return error
+
+
+@pytest.mark.parametrize(
+    ("error", "hint"),
+    [
+        # No identity found: DefaultAzureCredential raises this before any upload.
+        (azure_error(ClientAuthenticationError, 401), "az login"),
+        # Signed in, but without the role that may write blobs.
+        (azure_error(HttpResponseError, 403), "Storage Blob Data Contributor"),
+    ],
+)
+def test_azure_errors_say_what_to_do(
+    data_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    error: HttpResponseError,
+    hint: str,
+) -> None:
+    class Refusing(FakeContainer):
+        def upload_blob(self, *args: Any, **kwargs: Any) -> object:
+            raise error
+
+    monkeypatch.setattr(
+        blob, "open_blob_snapshots", lambda url: BlobSnapshots(Refusing({}))
+    )
+    argv = ["--data-dir", str(data_dir), "publish-deals", "--cloud", "azure"]
+    assert main([*argv, "--container-url", CONTAINER_URL]) == 1
+    assert hint in capsys.readouterr().err
