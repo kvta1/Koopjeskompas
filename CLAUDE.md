@@ -64,6 +64,10 @@ scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, c
 scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--azure: also to Azure; --local: fetch only)
 uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket (--cloud azure --container-url …: to Blob)
 cd infra && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
+
+scripts/bootstrap-azure-state.sh   # once: the storage for Terraform's state (needs `az login`)
+scripts/deploy-azure.sh    # the user's Azure deploy: image to GHCR, terraform apply, page via SWA CLI, publish-deals --cloud azure
+cd infra-azure && terraform fmt -check -recursive && terraform init -backend=false && terraform validate && terraform test   # what CI runs; no Azure needed
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -186,6 +190,16 @@ The intended design is a modular monolith with a strict separation between the d
   and checks the template, with no AWS. Names shared with the app (Region, stack name, `deals/`
   prefix, the bucket output) live in `koopjeskompas/publish.py`; `infra/` imports them, never the
   other way round. Only eu-north-1 (CloudFront is global); no Lambda@Edge.
+- **Azure infrastructure** (`infra-azure/`): Terraform (azurerm 5.12, locked in
+  `.terraform.lock.hcl`), one file per concern (`storage.tf`, `api.tf`, `page.tf`, ...). It's the
+  second copy of the demo, built by hand in the portal first: Blob Storage (no account keys),
+  a Container App running `ghcr.io/kvta1/koopjeskompas-api:<commit>` with a **user-assigned**
+  identity (Blob Data Reader on the `data` container only, named by `AZURE_CLIENT_ID`), Log
+  Analytics, and a Static Web App for the page. The state is in Azure Storage
+  (`scripts/bootstrap-azure-state.sh`, Entra auth); the subscription comes from
+  `ARM_SUBSCRIPTION_ID`. Region `germanywestcentral`; the page's settings are kept in `eastus2`
+  (West Europe refuses this subscription). `tests/prod.tftest.hcl` runs against a mocked
+  provider, in CI. The user runs `apply`; Claude may run `plan` (read-only).
 
 Key invariant carried through every layer: vegetarian/vegan preference is a **hard filter**, not a
 soft relevance score.

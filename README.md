@@ -26,6 +26,7 @@ on AWS.
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
 | ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
+| ✅ | A second demo on Azure (Container Apps + Static Web Apps), as Terraform | done ([infra-azure/](infra-azure/README.md)) |
 | ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
 | ✅ | Lidl deals (about 40 a week, from lidl.nl's deals page) | done (`fetch-deals --chain lidl`) |
 | ✅ | The page names each store's chain; the weekly refresh in one command | done (`scripts/refresh-deals.sh`) |
@@ -268,8 +269,9 @@ npm run typecheck              # type check (tsc, strict)
 npm run build                  # production build into frontend/dist/
 ```
 
-GitHub Actions runs all of these on every push and pull request to `main`, in two jobs: one for
-the Python backend and one for the frontend.
+GitHub Actions runs all of these on every push and pull request to `main`, in four jobs: the
+Python backend, the container image, the Azure Terraform (`fmt`, `validate`, `test`) and the
+frontend.
 
 **The API on AWS Lambda** runs the same app behind [Mangum](https://mangum.fastapiexpert.com/)
 (`koopjeskompas/cloud/aws/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
@@ -286,6 +288,14 @@ explains bootstrapping and tearing down. Signed in with `aws login`:
 ```bash
 scripts/deploy.sh                         # build the zip and the page, deploy, upload the deals
 scripts/refresh-deals.sh                  # weekly: fetch every chain's deals, publish them
+```
+
+**The Azure demo** is defined as code with Terraform in [`infra-azure/`](infra-azure/README.md),
+which also explains the first-time setup. Signed in with `az login`:
+
+```bash
+scripts/deploy-azure.sh                   # image, infrastructure, page and deals
+scripts/refresh-deals.sh --azure          # weekly: as above, and publish to Azure too
 ```
 
 **When the API's request or response models change**, regenerate the page's types and commit
@@ -328,9 +338,11 @@ koopjeskompas/
 └── cli.py         the koopjeskompas command; wires the pieces together
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
                    and so on; fixtures/ah/ holds the captured AH responses
-├── publish.py     uploads the deal snapshots to the AWS demo
+├── publish.py     uploads the deal snapshots to the AWS or Azure demo
 infra/             the AWS demo as code (CDK): stack.py, app.py; tests in tests/infra/
-scripts/           build-lambda.sh packages the API for Lambda; deploy.sh deploys everything
+infra-azure/       the Azure demo as code (Terraform); tests in infra-azure/tests/
+scripts/           build-lambda.sh packages the API for Lambda; deploy.sh and deploy-azure.sh
+                   deploy everything; refresh-deals.sh is the weekly routine
 frontend/          the web page (React + TypeScript + Vite)
 ├── openapi.json   the API's schema, written by `koopjeskompas openapi`
 └── src/
