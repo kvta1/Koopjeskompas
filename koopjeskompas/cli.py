@@ -361,7 +361,7 @@ def _publish_to_azure(container_url: str | None, files: list[Path]) -> int:
     if not container_url:
         raise PublishError(
             "Which Blob container? Pass --container-url or set DEALS_CONTAINER_URL "
-            "(terraform -chdir=infra-azure output -raw deals_container_url)."
+            "(terraform -chdir=infra/azure output -raw deals_container_url)."
         )
     # Imported here, as in api/container.py: an AWS publish never loads the Azure SDK.
     from azure.core.exceptions import ClientAuthenticationError, HttpResponseError

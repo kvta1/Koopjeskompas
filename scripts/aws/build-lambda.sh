@@ -10,7 +10,7 @@
 # here instead of a broken function there.
 set -euo pipefail
 
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."  # the repository root
 
 BUILD=build/lambda
 # Amazon Linux 2023, the python3.14 runtime's OS. For an x86_64 function, run with

@@ -92,7 +92,7 @@ def test_azure_publishes_to_both_clouds(tmp_path: Path) -> None:
     assert called == [
         "aws sts get-caller-identity",
         "az account show",
-        "terraform -chdir=infra-azure output -raw deals_container_url",
+        "terraform -chdir=infra/azure output -raw deals_container_url",
         "uv run koopjeskompas fetch-deals",
         "uv run koopjeskompas publish-deals",
         f"uv run koopjeskompas publish-deals --cloud azure --container-url {AZURE_URL}",
@@ -110,7 +110,7 @@ def test_azure_not_deployed_asks_no_supermarket(tmp_path: Path) -> None:
     code, called, err = run(tmp_path, "--azure", TF_EXIT="1")
     assert code == 1
     assert "uv run koopjeskompas fetch-deals" not in called
-    assert "deploy-azure.sh" in err
+    assert "scripts/azure/deploy.sh" in err
 
 
 def test_one_cloud_failing_still_publishes_to_the_other(tmp_path: Path) -> None:
@@ -126,6 +126,6 @@ def test_local_and_azure_contradict(tmp_path: Path) -> None:
     assert called == []
 
 
-@pytest.mark.parametrize("script", sorted((SCRIPT.parent).glob("*.sh")))
+@pytest.mark.parametrize("script", sorted(SCRIPT.parent.rglob("*.sh")))
 def test_every_script_is_valid_bash(script: Path) -> None:
     assert subprocess.run(["bash", "-n", str(script)]).returncode == 0

@@ -9,8 +9,8 @@ Where to is a detail behind ``SnapshotTarget``, the write side of
 ``cloud/snapshots.py``'s ``SnapshotStore``; the same adapters implement both
 (``cloud/aws/s3.py``, ``cloud/azure/blob.py``).
 
-The names shared with the AWS infrastructure live here, and ``infra/stack.py`` imports
-them: the app package must not depend on ``infra/``, which isn't part of it.
+The names shared with the AWS infrastructure live here, and ``infra/aws/stack.py``
+imports them: the app package must not depend on ``infra/``, which isn't part of it.
 """
 
 from collections.abc import Mapping, Sequence
@@ -53,7 +53,7 @@ def find_data_bucket(cloudformation: StackDescriber, stack_name: str) -> str:
             return name
     raise PublishError(
         f"Stack {stack_name} has no {DATA_BUCKET_OUTPUT} output; deploy it first "
-        "(scripts/deploy.sh)."
+        "(scripts/aws/deploy.sh)."
     )
 
 

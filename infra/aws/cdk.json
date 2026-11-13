@@ -1,0 +1,4 @@
+{
+  "app": "PYTHONPATH=../.. uv run --frozen python -m infra.aws.app",
+  "output": "cdk.out"
+}

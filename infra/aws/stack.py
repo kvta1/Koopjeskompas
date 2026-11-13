@@ -76,7 +76,7 @@ class KoopjeskompasStack(Stack):
             self,
             "Api",
             runtime=lambda_.Runtime.PYTHON_3_14,
-            # The zip holds arm64 builds (scripts/build-lambda.sh); the two must match.
+            # The zip holds arm64 builds (scripts/aws/build-lambda.sh); the two must match.
             architecture=lambda_.Architecture.ARM_64,
             code=api_code,
             handler=API_HANDLER,

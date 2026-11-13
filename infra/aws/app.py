@@ -1,6 +1,6 @@
 """The CDK app: what ``cdk synth`` and ``cdk deploy`` run (see cdk.json).
 
-It hands the stack the real builds, so build them first; ``scripts/deploy.sh`` does
+It hands the stack the real builds, so build them first; ``scripts/aws/deploy.sh`` does
 all of it in order.
 """
 
@@ -11,17 +11,17 @@ import aws_cdk as cdk
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_s3_deployment as s3deploy
 
-from infra.stack import KoopjeskompasStack
+from infra.aws.stack import KoopjeskompasStack
 from koopjeskompas.publish import REGION, STACK_NAME
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 LAMBDA_ZIP = ROOT / "build" / "lambda.zip"
 PAGE_BUILD = ROOT / "frontend" / "dist"
 
 
 def main() -> None:
     for path, build in [
-        (LAMBDA_ZIP, "scripts/build-lambda.sh"),
+        (LAMBDA_ZIP, "scripts/aws/build-lambda.sh"),
         (PAGE_BUILD, "npm run build (in frontend/)"),
     ]:
         if not path.exists():

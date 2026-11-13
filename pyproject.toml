@@ -58,4 +58,4 @@ addopts = "-p no:launch_testing -p no:launch_ros"
 [tool.mypy]
 strict = true
 plugins = ["pydantic.mypy"]
-exclude = ["^\\.venv/", "^build/", "^dist/", "^frontend/", "^infra/cdk\\.out/", "^infra/node_modules/"]
+exclude = ["^\\.venv/", "^build/", "^dist/", "^frontend/", "^infra/aws/cdk\\.out/", "^infra/aws/node_modules/"]
