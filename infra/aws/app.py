@@ -11,10 +11,10 @@ import aws_cdk as cdk
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_s3_deployment as s3deploy
 
-from infra.stack import KoopjeskompasStack
+from infra.aws.stack import KoopjeskompasStack
 from koopjeskompas.publish import REGION, STACK_NAME
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 LAMBDA_ZIP = ROOT / "build" / "lambda.zip"
 PAGE_BUILD = ROOT / "frontend" / "dist"
 

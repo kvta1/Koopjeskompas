@@ -25,8 +25,8 @@ on AWS.
 | ✅ | Web API (`POST /api/rank`, FastAPI) | done (`serve`) |
 | ✅ | Web page (React + TypeScript) | done (`frontend/`) |
 | ✅ | Public demo on AWS | live (S3 + CloudFront + Lambda) |
-| ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/](infra/README.md)) |
-| ✅ | A second demo on Azure (Container Apps + Static Web Apps), as Terraform | done ([infra-azure/](infra-azure/README.md)) |
+| ✅ | Infrastructure as code (AWS CDK) and a one-command deploy | done ([infra/aws/](infra/aws/README.md)) |
+| ✅ | A second demo on Azure (Container Apps + Static Web Apps), as Terraform | done ([infra/azure/](infra/azure/README.md)) |
 | ✅ | Jumbo deals (165 a week, from jumbo.com's deal pages) | done (`fetch-deals --chain jumbo`) |
 | ✅ | Lidl deals (about 40 a week, from lidl.nl's deals page) | done (`fetch-deals --chain lidl`) |
 | ✅ | The page names each store's chain; the weekly refresh in one command | done (`scripts/refresh-deals.sh`) |
@@ -282,7 +282,7 @@ scripts/build-lambda.sh                   # writes build/lambda.zip
 
 CI builds it too, so a dependency without a Linux arm64 build fails on the pull request.
 
-**The AWS demo** is defined as code with AWS CDK in [`infra/`](infra/README.md), which also
+**The AWS demo** is defined as code with AWS CDK in [`infra/aws/`](infra/aws/README.md), which also
 explains bootstrapping and tearing down. Signed in with `aws login`:
 
 ```bash
@@ -290,7 +290,7 @@ scripts/deploy.sh                         # build the zip and the page, deploy, 
 scripts/refresh-deals.sh                  # weekly: fetch every chain's deals, publish them
 ```
 
-**The Azure demo** is defined as code with Terraform in [`infra-azure/`](infra-azure/README.md),
+**The Azure demo** is defined as code with Terraform in [`infra/azure/`](infra/azure/README.md),
 which also explains the first-time setup. Signed in with `az login`:
 
 ```bash
@@ -339,8 +339,9 @@ koopjeskompas/
 tests/             mirrors koopjeskompas/: domain/test_scoring.py tests domain/scoring.py,
                    and so on; fixtures/ah/ holds the captured AH responses
 ├── publish.py     uploads the deal snapshots to the AWS or Azure demo
-infra/             the AWS demo as code (CDK): stack.py, app.py; tests in tests/infra/
-infra-azure/       the Azure demo as code (Terraform); tests in infra-azure/tests/
+infra/             the demos as code, one folder per cloud (README.md compares them):
+├── aws/           AWS CDK: stack.py, app.py; tests in tests/infra/aws/
+└── azure/         Terraform: *.tf; tests in infra/azure/tests/
 scripts/           build-lambda.sh packages the API for Lambda; deploy.sh and deploy-azure.sh
                    deploy everything; refresh-deals.sh is the weekly routine
 frontend/          the web page (React + TypeScript + Vite)

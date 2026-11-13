@@ -1,9 +1,9 @@
-# Tests for infra-azure/, run with `terraform test` (in CI too).
+# Tests for infra/azure/, run with `terraform test` (in CI too).
 #
 # The azurerm provider is mocked: `apply` here builds nothing in Azure, it fills in
 # made-up values for whatever Azure would compute (IDs, host names), so the tests check
 # how the resources are wired together, with no account or credentials. The same idea
-# as tests/infra/ for the AWS stack.
+# as tests/infra/aws/ for the AWS stack.
 
 mock_provider "azurerm" {
   # Values the mock can't make up: Azure checks these are GUIDs.

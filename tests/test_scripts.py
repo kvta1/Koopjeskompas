@@ -92,7 +92,7 @@ def test_azure_publishes_to_both_clouds(tmp_path: Path) -> None:
     assert called == [
         "aws sts get-caller-identity",
         "az account show",
-        "terraform -chdir=infra-azure output -raw deals_container_url",
+        "terraform -chdir=infra/azure output -raw deals_container_url",
         "uv run koopjeskompas fetch-deals",
         "uv run koopjeskompas publish-deals",
         f"uv run koopjeskompas publish-deals --cloud azure --container-url {AZURE_URL}",

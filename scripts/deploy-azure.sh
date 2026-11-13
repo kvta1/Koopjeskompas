@@ -2,7 +2,7 @@
 # Deploy the whole Azure demo from this laptop, in the order phase 2 did it by hand:
 #
 #   1. the API's image, built from this commit, to GitHub Container Registry
-#   2. the infrastructure with Terraform (infra-azure/), running that image
+#   2. the infrastructure with Terraform (infra/azure/), running that image
 #   3. the page, built with the API's address, to the Static Web App
 #   4. the deal snapshots, to Blob Storage
 #   5. a check that the API answers
@@ -16,7 +16,7 @@ cd "$(dirname "$0")/.."
 
 for tool in az terraform docker npm uv; do
   if ! command -v "$tool" >/dev/null; then
-    echo "Missing '$tool': install it first (infra-azure/README.md)." >&2
+    echo "Missing '$tool': install it first (infra/azure/README.md)." >&2
     exit 1
   fi
 done
@@ -28,7 +28,7 @@ fi
 ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 export ARM_SUBSCRIPTION_ID
 
-tf() { terraform -chdir=infra-azure "$@"; }
+tf() { terraform -chdir=infra/azure "$@"; }
 
 echo "==> 1. The API's image"
 # Tagged with the commit, so every deploy says exactly which code runs. Uncommitted

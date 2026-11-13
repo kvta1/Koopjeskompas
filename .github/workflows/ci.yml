@@ -33,7 +33,7 @@ jobs:
         run: uv python install   # uses the version pinned in .python-version / pyproject.toml
  
       - name: Install dependencies
-        run: uv sync   # the default groups: dev tools and the CDK library (for infra/ tests)
+        run: uv sync   # the default groups: dev tools and the CDK library (for the CDK tests in tests/infra/aws/)
  
       - name: Lint (ruff)
         run: uv run ruff check .
@@ -74,13 +74,13 @@ jobs:
           docker logs api
           exit 1
 
-  # The Azure infrastructure (infra-azure/): formatted, valid, and its tests pass.
+  # The Azure infrastructure (infra/azure/): formatted, valid, and its tests pass.
   # No Azure login: -backend=false skips the remote state, and the tests mock Azure.
   terraform:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: infra-azure
+        working-directory: infra/azure
 
     steps:
       - uses: actions/checkout@v4

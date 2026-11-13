@@ -17,7 +17,7 @@ Browser ──► CloudFront ──┬─► S3: the page (frontend/dist)
 - `cdk.json`: tells the `cdk` command how to run `app.py`.
 - `package.json`: pins the `cdk` command itself (it's a Node program; the stack is Python).
 
-`tests/infra/test_stack.py` checks the synthesised template (who may read or call what), with no
+`tests/infra/aws/test_stack.py` checks the synthesised template (who may read or call what), with no
 AWS account needed, so it runs in CI.
 
 ## Deploying
@@ -25,7 +25,7 @@ AWS account needed, so it runs in CI.
 From the repository root, signed in with `aws login`:
 
 ```bash
-cd infra && npm ci && npx cdk bootstrap && cd ..   # once per account and Region
+cd infra/aws && npm ci && npx cdk bootstrap && cd ../..   # once per account and Region
 scripts/deploy.sh                                  # every deploy
 ```
 
@@ -37,7 +37,7 @@ address is printed at the end as `Koopjeskompas.SiteUrl`.
 To see what a deploy would change without changing anything:
 
 ```bash
-cd infra && npx cdk diff
+cd infra/aws && npx cdk diff
 ```
 
 ## The weekly snapshot
@@ -56,7 +56,7 @@ within hours. Until a chain's new snapshot arrives, the API ranks its old one on
 ## Tearing it down
 
 ```bash
-cd infra && npx cdk destroy
+cd infra/aws && npx cdk destroy
 ```
 
 This deletes everything except the data bucket, which is kept on purpose (`RETAIN`) so old

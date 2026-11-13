@@ -21,7 +21,7 @@ decisions. Current status: **the MVP (steps 1–4) is done** — the pure domain
 product and per-weight deals are scored. Step 3 added the web API (`koopjeskompas/api/`:
 `POST /api/rank`, `GET /api/health`). Step 4 added the web page (`frontend/`). The AWS demo (PLAN.md §9.3) is in
 live, first built by hand in the console by the user to learn it (the user does the AWS steps
-themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/`,
+themselves; Claude explains and checks read-only). PLAN.md §9.4 steps 1 (CDK in `infra/aws/`,
 `scripts/deploy.sh`, `publish-deals`) and 2 (every AH in NL via `fetch-stores`, postcode and place
 search with PDOK in the page) are done. Step 3 adds Jumbo and Lidl next to AH, in four parts
 (3a multi-chain foundations, 3b Jumbo, 3c Lidl, 3d page and weekly routine); the `DealSource`
@@ -63,11 +63,11 @@ docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api
 scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
 scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--azure: also to Azure; --local: fetch only)
 uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket (--cloud azure --container-url …: to Blob)
-cd infra && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
+cd infra/aws && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
 
 scripts/bootstrap-azure-state.sh   # once: the storage for Terraform's state (needs `az login`)
 scripts/deploy-azure.sh    # the user's Azure deploy: image to GHCR, terraform apply, page via SWA CLI, publish-deals --cloud azure
-cd infra-azure && terraform fmt -check -recursive && terraform init -backend=false && terraform validate && terraform test   # what CI runs; no Azure needed
+cd infra/azure && terraform fmt -check -recursive && terraform init -backend=false && terraform validate && terraform test   # what CI runs; no Azure needed
 ```
 
 `fetch-deals` writes raw AH responses to `data/raw/ah/<date>/` (`metadata.json`, one
@@ -180,17 +180,18 @@ The intended design is a modular monolith with a strict separation between the d
   `components/PlaceSearch.tsx`) calls PDOK Locatieserver straight from the browser
   (`suggest`, then `lookup`; `centroide_ll` is `POINT(lon lat)`, longitude first). TypeScript stays on 5.9 because typescript-eslint and
   openapi-typescript don't support TypeScript 7 yet.
-- **Infrastructure** (`infra/`): an AWS CDK app in Python (`stack.py`, `app.py`; the `cdk` CLI is
-  pinned in `infra/package.json`). Its libraries are the `infra` dependency group, a default
+- **Infrastructure** (`infra/`, one folder per cloud, like `koopjeskompas/cloud/`): `infra/aws/` is
+  an AWS CDK app in Python (`stack.py`, `app.py`; the `cdk` CLI is pinned in
+  `infra/aws/package.json`). Its libraries are the `infra` dependency group, a default
   group, so `uv sync` installs it, while `build-lambda.sh` exports no groups at all. The group
   also holds `botocore[crt]`: boto3 needs it to use `aws login` credentials (for
   `publish-deals`); the Lambda uses its role and doesn't. `build-lambda.sh` makes a reproducible
   zip (sorted entries, fixed timestamps), so an unchanged build doesn't redeploy the function. The stack
-  takes the Lambda code and page files as parameters; `tests/infra/` synthesises it with stand-ins
+  takes the Lambda code and page files as parameters; `tests/infra/aws/` synthesises it with stand-ins
   and checks the template, with no AWS. Names shared with the app (Region, stack name, `deals/`
-  prefix, the bucket output) live in `koopjeskompas/publish.py`; `infra/` imports them, never the
+  prefix, the bucket output) live in `koopjeskompas/publish.py`; `infra/aws/` imports them, never the
   other way round. Only eu-north-1 (CloudFront is global); no Lambda@Edge.
-- **Azure infrastructure** (`infra-azure/`): Terraform (azurerm 5.12, locked in
+- **Azure infrastructure** (`infra/azure/`): Terraform (azurerm 5.12, locked in
   `.terraform.lock.hcl`), one file per concern (`storage.tf`, `api.tf`, `page.tf`, ...). It's the
   second copy of the demo, built by hand in the portal first: Blob Storage (no account keys),
   a Container App running `ghcr.io/kvta1/koopjeskompas-api:<commit>` with a **user-assigned**

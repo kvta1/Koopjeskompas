@@ -47,8 +47,8 @@ if $azure; then
     echo "Not signed in to Azure: run 'az login' first." >&2
     exit 1
   fi
-  # Where the Azure demo keeps its deals, as Terraform built it (infra-azure/).
-  if ! container_url=$(terraform -chdir=infra-azure output -raw deals_container_url 2>/dev/null); then
+  # Where the Azure demo keeps its deals, as Terraform built it (infra/azure/).
+  if ! container_url=$(terraform -chdir=infra/azure output -raw deals_container_url 2>/dev/null); then
     echo "Can't read the Azure demo's storage from Terraform: deploy it first" \
       "(scripts/deploy-azure.sh)." >&2
     exit 1

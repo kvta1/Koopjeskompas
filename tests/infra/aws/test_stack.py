@@ -14,7 +14,7 @@ from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_s3_deployment as s3deploy
 from aws_cdk.assertions import Match, Template
 
-from infra.stack import API_HANDLER, KoopjeskompasStack
+from infra.aws.stack import API_HANDLER, KoopjeskompasStack
 
 # AWS's managed CloudFront policies, by their fixed IDs.
 CACHING_DISABLED = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad"

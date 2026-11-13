@@ -1,4 +1,0 @@
-{
-  "app": "PYTHONPATH=.. uv run --frozen python -m infra.app",
-  "output": "cdk.out"
-}

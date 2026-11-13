@@ -381,8 +381,8 @@ Replace the console clicks with an **AWS CDK stack in Python** that recreates th
 ✅ Milestone: `scripts/deploy.sh` on a fresh checkout recreates the whole demo, and the hand-made
 resources are gone.
 
-Built: `infra/` (stack, app, pinned CDK CLI, README with the cutover checklist), template tests in
-`tests/infra/`, `koopjeskompas/publish.py` and `scripts/deploy.sh`. CDK's helper for Function URL
+Built: `infra/` (now `infra/aws/`: stack, app, pinned CDK CLI, README with the cutover checklist), template tests in
+`tests/infra/` (now `tests/infra/aws/`), `koopjeskompas/publish.py` and `scripts/deploy.sh`. CDK's helper for Function URL
 origins does grant both Lambda permissions (checked in the synthesised template, and pinned by a
 test). Next: the user bootstraps, deploys and cuts over.
 

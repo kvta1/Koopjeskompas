@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Once, before the first `terraform init` in infra-azure/: create the storage where
+# Once, before the first `terraform init` in infra/azure/: create the storage where
 # Terraform keeps its state (its record of what it built in Azure).
 #
 # Why a script and not Terraform: Terraform's state has to exist before Terraform can
@@ -12,11 +12,11 @@
 #   stkoopjeskompastfstate          storage account: no keys (Entra sign-in only), no
 #                                   public access, versioning and 7 days of soft delete,
 #                                   so an overwritten or deleted state can be restored
-#   tfstate                         the container infra-azure/versions.tf points at
+#   tfstate                         the container infra/azure/versions.tf points at
 #   Storage Blob Data Contributor   for you, so `terraform` (signed in as you) may read
 #                                   and write the state
 #
-# Needs `az login`. The names must match the backend block in infra-azure/versions.tf.
+# Needs `az login`. The names must match the backend block in infra/azure/versions.tf.
 set -euo pipefail
 
 LOCATION=germanywestcentral
@@ -70,7 +70,7 @@ echo "==> Lock: nobody deletes the state by accident"
 # Deleting the group (or the account) now fails until the lock is removed:
 #   az lock delete --name keep-terraform-state --resource-group rg-koopjeskompas-tfstate
 az lock create --name keep-terraform-state --resource-group "$GROUP" \
-  --lock-type CanNotDelete --notes "Terraform state of infra-azure/" --output none
+  --lock-type CanNotDelete --notes "Terraform state of infra/azure/" --output none
 
 echo "==> Done. A new role can take a few minutes to work; then:"
-echo "    terraform -chdir=infra-azure init"
+echo "    terraform -chdir=infra/azure init"

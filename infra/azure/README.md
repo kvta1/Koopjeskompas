@@ -1,7 +1,7 @@
-# infra-azure: the Azure demo as code
+# infra/azure: the Azure demo as code
 
 [Terraform](https://developer.hashicorp.com/terraform) code for the second copy of the demo, on
-Azure. It's the same app as the AWS demo in [`infra/`](../infra/README.md); only the hosting
+Azure. It's the same app as the AWS demo in [`infra/aws/`](../aws/README.md); only the hosting
 differs. The page and the API have their own domains here, so the page is built with the API's
 address and the API allows the page's address (CORS).
 
@@ -68,9 +68,9 @@ The weekly deals: `scripts/refresh-deals.sh --azure` publishes to AWS and Azure.
 Useful on their own (set `ARM_SUBSCRIPTION_ID=$(az account show --query id -o tsv)` first):
 
 ```bash
-terraform -chdir=infra-azure plan -var image_tag=$(git rev-parse --short HEAD)   # what would change
-terraform -chdir=infra-azure output                                              # the addresses
-terraform -chdir=infra-azure test                                                # the tests, no Azure
+terraform -chdir=infra/azure plan -var image_tag=$(git rev-parse --short HEAD)   # what would change
+terraform -chdir=infra/azure output                                              # the addresses
+terraform -chdir=infra/azure test                                                # the tests, no Azure
 ```
 
 ## Good to know
@@ -96,7 +96,7 @@ terraform -chdir=infra-azure test                                               
 ## Tearing down
 
 ```bash
-terraform -chdir=infra-azure destroy -var image_tag=$(git rev-parse --short HEAD)
+terraform -chdir=infra/azure destroy -var image_tag=$(git rev-parse --short HEAD)
 ```
 
 This removes everything Terraform built. The state storage (`rg-koopjeskompas-tfstate`) stays.
