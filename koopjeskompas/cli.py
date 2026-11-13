@@ -3,6 +3,7 @@
 import argparse
 import json
 import logging
+import os
 import sys
 from collections.abc import Callable, Sequence
 from datetime import date
@@ -18,6 +19,7 @@ from botocore.exceptions import (
 )
 
 from koopjeskompas.api.app import create_app, get_today, openapi_json
+from koopjeskompas.cloud.aws.s3 import open_s3_snapshots
 from koopjeskompas.domain.models import Coordinates, Cuisine, Diet, Preferences
 from koopjeskompas.domain.scoring import (
     ScoringWeights,
@@ -163,16 +165,28 @@ def _build_parser() -> argparse.ArgumentParser:
 
     publish = subcommands.add_parser(
         "publish-deals",
-        help="upload the cached deals to the AWS demo (needs `aws login`)",
+        help="upload the cached deals to a demo: AWS (`aws login`) or Azure (`az login`)",
+    )
+    publish.add_argument(
+        "--cloud",
+        choices=["aws", "azure"],
+        default="aws",
+        help="which demo (default: %(default)s)",
     )
     publish.add_argument(
         "--bucket",
-        help="the data bucket (default: read from the deployed stack's outputs)",
+        help="AWS: the data bucket (default: read from the deployed stack's outputs)",
     )
     publish.add_argument(
         "--stack",
         default=STACK_NAME,
-        help="the CDK stack to read it from (default: %(default)s)",
+        help="AWS: the CDK stack to read it from (default: %(default)s)",
+    )
+    publish.add_argument(
+        "--container-url",
+        default=os.environ.get("DEALS_CONTAINER_URL"),
+        help="Azure: the Blob container, https://<account>.blob.core.windows.net/data "
+        "(default: $DEALS_CONTAINER_URL; Terraform's output deals_container_url)",
     )
     publish.set_defaults(handler=_publish_deals)
 
@@ -311,13 +325,21 @@ def _serve(args: argparse.Namespace) -> int:
 def _publish_deals(args: argparse.Namespace) -> int:
     try:
         files = snapshots(args.data_dir / "deals")
-        bucket = args.bucket or find_data_bucket(
-            boto3.client("cloudformation", region_name=REGION), args.stack
-        )
-        keys = publish_deals(boto3.client("s3", region_name=REGION), bucket, files)
+        if args.cloud == "azure":
+            return _publish_to_azure(args.container_url, files)
+        return _publish_to_aws(args.bucket, args.stack, files)
     except PublishError as error:
         print(error, file=sys.stderr)
         return 1
+
+
+def _publish_to_aws(bucket: str | None, stack: str, files: list[Path]) -> int:
+    try:
+        bucket = bucket or find_data_bucket(
+            boto3.client("cloudformation", region_name=REGION), stack
+        )
+        target = open_s3_snapshots(bucket, region=REGION)
+        keys = publish_deals(target, files)
     except (BotoCoreError, ClientError) as error:
         print(f"Talking to AWS failed: {error}", file=sys.stderr)
         if _signed_out(error):
@@ -327,10 +349,48 @@ def _publish_deals(args: argparse.Namespace) -> int:
             )
         return 1
     for key in keys:
-        print(f"Uploaded s3://{bucket}/{key}")
+        print(f"Uploaded {target.location}/{key}")
     print(
         "New Lambda environments use it at once; warm ones keep the previous snapshot "
         "until AWS recycles them, within hours."
+    )
+    return 0
+
+
+def _publish_to_azure(container_url: str | None, files: list[Path]) -> int:
+    if not container_url:
+        raise PublishError(
+            "Which Blob container? Pass --container-url or set DEALS_CONTAINER_URL "
+            "(terraform -chdir=infra-azure output -raw deals_container_url)."
+        )
+    # Imported here, as in api/container.py: an AWS publish never loads the Azure SDK.
+    from azure.core.exceptions import ClientAuthenticationError, HttpResponseError
+
+    from koopjeskompas.cloud.azure.blob import open_blob_snapshots
+
+    target = open_blob_snapshots(container_url)
+    try:
+        keys = publish_deals(target, files)
+    except ClientAuthenticationError as error:
+        # DefaultAzureCredential found no identity: on the laptop, that's az login.
+        print(f"Signing in to Azure failed: {error}", file=sys.stderr)
+        print("Not signed in to Azure: run 'az login'.", file=sys.stderr)
+        return 1
+    except HttpResponseError as error:
+        print(f"Talking to Azure failed: {error.message}", file=sys.stderr)
+        if error.status_code == 403:
+            print(
+                "Signed in, but not allowed to write there: you need the role "
+                "'Storage Blob Data Contributor' on the container (Terraform gives it "
+                "to whoever applies; a new role can take a few minutes to work).",
+                file=sys.stderr,
+            )
+        return 1
+    for key in keys:
+        print(f"Uploaded {target.location}/{key}")
+    print(
+        "New replicas use it at once; a running one keeps the previous snapshot until "
+        "it scales to zero (5 minutes without requests) or restarts."
     )
     return 0
 

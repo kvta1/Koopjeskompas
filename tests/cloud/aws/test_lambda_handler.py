@@ -82,7 +82,7 @@ def from_environment(
     s3: FakeS3, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[FakeS3]:
     """``handler`` as AWS calls it: configured by environment variables."""
-    monkeypatch.setattr(boto3, "client", lambda service: s3)
+    monkeypatch.setattr(boto3, "client", lambda service, **_: s3)
     monkeypatch.setattr(lambda_handler, "DATA_DIR", tmp_path / "data")
     monkeypatch.setenv("DEALS_BUCKET", BUCKET)
     lambda_handler._handler_from_environment.cache_clear()

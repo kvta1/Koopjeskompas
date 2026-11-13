@@ -61,8 +61,8 @@ scripts/build-lambda.sh    # build/lambda.zip for AWS Lambda (python3.14, arm64)
 docker build -t koopjeskompas-api .   # the API as a container image (Azure); CI builds and starts it
 docker run --rm -p 8000:8000 -v "$PWD/data:/data:ro" koopjeskompas-api
 scripts/deploy.sh          # the user's deploy (needs `aws login`): zip, page, cdk deploy, publish-deals
-scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--local: fetch only)
-uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket
+scripts/refresh-deals.sh   # the user's weekly routine: fetch-deals for every chain, then publish-deals (--azure: also to Azure; --local: fetch only)
+uv run koopjeskompas publish-deals   # upload data/deals/*.json to the demo's data bucket (--cloud azure --container-url …: to Blob)
 cd infra && npx cdk synth  # synthesise the CloudFormation template (no AWS needed); cdk diff to compare
 ```
 
