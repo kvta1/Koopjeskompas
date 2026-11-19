@@ -51,11 +51,15 @@ resource "azurerm_container_app_environment" "main" {
 
   # Pay per use, scale to zero: as the portal sets up a new environment.
   workload_profile {
-    name                  = "Consumption"
+    name                  = local.workload_profile
     workload_profile_type = "Consumption"
   }
 
   tags = local.tags
+}
+
+locals {
+  workload_profile = "Consumption"
 }
 
 # --- The app -----------------------------------------------------------------------
@@ -65,6 +69,8 @@ resource "azurerm_container_app" "api" {
   resource_group_name          = azurerm_resource_group.main.name
   container_app_environment_id = azurerm_container_app_environment.main.id
   revision_mode                = "Single" # one revision at a time; a new one replaces the old
+  # Azure puts the app on the environment's profile anyway; saying so keeps plans clean.
+  workload_profile_name = local.workload_profile
 
   identity {
     type         = "UserAssigned"
