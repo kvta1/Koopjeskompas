@@ -13,6 +13,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Every job's token may only read the repository: an action that turned malicious
+# couldn't push code or change releases with it.
+permissions:
+  contents: read
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   checks:
@@ -73,6 +78,21 @@ jobs:
           done
           docker logs api
           exit 1
+
+      # Fails on HIGH or CRITICAL vulnerabilities that have a fix: rebuilding installs it
+      # (the Dockerfile upgrades Debian's packages). Ones without a fix yet are reported
+      # by a full local scan, not failed on (README: "Security scan").
+      # Pinned by commit, not tag: in March 2026 this action's tags were hijacked
+      # (CVE-2026-33634). Trivy itself pinned too, as used locally.
+      - name: No fixable vulnerabilities in the image (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: image
+          image-ref: koopjeskompas-api
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+          version: v0.76.2
 
   # The Azure infrastructure (infra/azure/): formatted, valid, and its tests pass.
   # No Azure login: -backend=false skips the remote state, and the tests mock Azure.
