@@ -28,7 +28,9 @@ fi
 ARM_SUBSCRIPTION_ID=$(az account show --query id --output tsv)
 export ARM_SUBSCRIPTION_ID
 
-tf() { terraform -chdir=infra/azure "$@"; }
+# An absolute path, so it also works inside a "(cd frontend && ...)".
+infra="$PWD/infra/azure"
+tf() { terraform -chdir="$infra" "$@"; }
 
 echo "==> 1. The API's image"
 # Tagged with the commit, so every deploy says exactly which code runs. Uncommitted
@@ -65,10 +67,17 @@ if ! grep -q "$api_url" frontend/dist/assets/*.js; then
   echo "The built page doesn't contain $api_url: not deploying it." >&2
   exit 1
 fi
-# The token only for this one command, never printed or exported. It decides which
-# Static Web App receives the files (without it the SWA CLI makes a new one).
-(cd frontend && SWA_CLI_DEPLOYMENT_TOKEN="$(tf output -raw static_web_app_api_key)" \
+# The token decides which Static Web App receives the files: without it the SWA CLI
+# offers to make a new one, so stop instead. Never printed or exported, and only
+# passed to this one command.
+swa_token=$(tf output -raw static_web_app_api_key)
+if [[ -z $swa_token ]]; then
+  echo "No deployment token from Terraform: not deploying the page." >&2
+  exit 1
+fi
+(cd frontend && SWA_CLI_DEPLOYMENT_TOKEN="$swa_token" \
   npx --yes @azure/static-web-apps-cli@2.1.0 deploy ./dist --env production)
+unset swa_token
 
 echo "==> 4. The deals"
 if compgen -G "data/deals/*.json" >/dev/null; then
