@@ -270,8 +270,24 @@ npm run build                  # production build into frontend/dist/
 ```
 
 GitHub Actions runs all of these on every push and pull request to `main`, in four jobs: the
-Python backend, the container image, the Azure Terraform (`fmt`, `validate`, `test`) and the
-frontend.
+Python backend, the container image (builds, starts, and passes a security scan), the Azure
+Terraform (`fmt`, `validate`, `test`) and the frontend.
+
+**Security scan.** CI scans the container image with [Trivy](https://trivy.dev/) and fails on
+HIGH or CRITICAL vulnerabilities that already have a fix. The same check locally, after a
+`docker build --pull -t koopjeskompas-api .`:
+
+```bash
+trivy image --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1 koopjeskompas-api
+trivy image koopjeskompas-api             # everything, also what has no fix yet
+```
+
+The full scan still lists vulnerabilities, all in Debian's base packages (the Python packages
+have none). Those have no fix yet, or Debian decided not to patch them; most sit in tools
+the API never runs, such as `mount` and `login`. They're accepted: they disappear on a
+rebuild once Debian releases a fix, because the Dockerfile installs Debian's security updates.
+Rebuilding also matters without code changes: `scripts/azure/deploy.sh` reuses the image of a
+commit that's already in the registry, so new fixes need a new commit.
 
 **The API on AWS Lambda** runs the same app behind [Mangum](https://mangum.fastapiexpert.com/)
 (`koopjeskompas/cloud/aws/lambda_handler.py`). To build the zip for the function (Python 3.14, arm64):
