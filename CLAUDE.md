@@ -81,7 +81,11 @@ refetching.
 
 CI (`.github/workflows/ci.yml`) runs `ruff check`, `ruff format --check`, `mypy` (strict, pydantic
 plugin; configured in `pyproject.toml`) and `pytest` on every push/PR to `main`, and in a second
-job the frontend's checks (generated types current, ESLint, Prettier, tsc, Vitest, Vite build). Keep changes green
+job the frontend's checks (generated types current, ESLint, Prettier, tsc, Vitest, Vite build); also
+the container image (builds, answers `/api/health`, and Trivy finds no fixable HIGH/CRITICAL
+vulnerabilities) and the Azure Terraform. The workflow's token is read-only. `trivy-action` is
+pinned by commit SHA, not tag (its tags were hijacked in March 2026); pin new third-party actions
+the same way. Keep changes green
 against this pipeline. There is no `.pre-commit-config.yaml` yet despite `pre-commit` being a dev
 dependency — if you add one, make it mirror the CI checks rather than diverging from them.
 

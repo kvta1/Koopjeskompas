@@ -36,10 +36,16 @@ RUN uv sync --frozen --no-default-groups --group azure --no-editable
 # --- run -----------------------------------------------------------------------
 FROM python:3.14-slim
 
+# Debian's security fixes released since the base image was built: the official image
+# can lag days behind (zlib's fix, November 2026). Stays on Debian 13, so these are
+# patches, not new releases; the package lists are removed to keep the image small.
 # Not root: if the app were ever broken into, the attacker shouldn't own the container.
 # No pip: the app runs from its own virtual environment and never installs anything,
 # and pip's bundled copies of urllib3 and others would only add to scanner findings.
-RUN useradd --system --uid 10001 --no-create-home app \
+RUN apt-get update \
+ && apt-get upgrade --yes --no-install-recommends \
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --system --uid 10001 --no-create-home app \
  && rm -rf /usr/local/bin/pip* /usr/local/lib/python3.14/site-packages/pip*
 
 COPY --from=build /app/.venv /app/.venv
